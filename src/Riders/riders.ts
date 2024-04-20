@@ -1,4 +1,5 @@
-import { MaritalStatus, StateOFOrigin, VehicleType } from "src/Enums/all-enums"
+import { TaskEntity } from "src/Entity/ridersTasks.entity"
+import { MaritalStatus, StateOFOrigin, TaskStatus, VehicleType } from "src/Enums/all-enums"
 
 export interface IRider{
     id:string
@@ -31,6 +32,7 @@ export interface IRider{
     isLoggedOut:boolean 
     loginCount:number
     locked_until : Date
+    tasks : TaskEntity[]
 }
 
 export interface IRegisterRider{

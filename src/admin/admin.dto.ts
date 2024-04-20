@@ -1,5 +1,13 @@
 import { IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsStrongPassword, Matches, matches } from "class-validator";
-import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, StateOFOrigin, VehicleType } from "src/Enums/all-enums";
+import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, RiderTask, StateOFOrigin, VehicleType } from "src/Enums/all-enums";
+
+
+
+export class AssignTaskDto{
+    @IsEnum(RiderTask)
+    task:RiderTask
+
+}
 
 export class RegisterAdminDto{
     @IsEmail()

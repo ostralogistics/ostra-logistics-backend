@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AdminEntity } from 'src/Entity/admins.entity';
 import { CustomerEntity } from 'src/Entity/customers.entity';
 import { RiderEntity } from 'src/Entity/riders.entity';
-import { RidersRepository } from 'src/Riders/riders.repository';
+import { RidersRepository, TaskRepository } from 'src/Riders/riders.repository';
 import { CustomerRepository } from 'src/customer/customer.repository';
 import { AdminRepository } from './admin.repository';
 import { Notifications } from 'src/Entity/notifications.entity';
@@ -24,13 +24,15 @@ import {
   IRider,
 } from 'src/Riders/riders';
 import {
+  AssignTaskDto,
   RegisterRiderByAdminDto,
   UpdateRiderInfoByAdminDto,
 } from './admin.dto';
-import { NotificationType, PaymentStatus } from 'src/Enums/all-enums';
+import { NotificationType, PaymentStatus, RiderTask, TaskStatus } from 'src/Enums/all-enums';
 import { ILike } from 'typeorm';
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { OrderRepository } from 'src/order/order.reposiroty';
+import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 
 @Injectable()
 export class AdminRiderDashboardService {
@@ -41,6 +43,7 @@ export class AdminRiderDashboardService {
     private readonly notificationripo: NotificationRepository,
     @InjectRepository(OrderEntity)
     private readonly orderripo: OrderRepository,
+    @InjectRepository(TaskEntity) private readonly taskRepo: TaskRepository,
     private uploadservice: UploadService,
     private customerauthservice: CustomerAuthService,
     private mailer: Mailer,
@@ -468,7 +471,8 @@ export class AdminRiderDashboardService {
   async AssignOrderToRider(
     riderID: string,
     orderID: number,
-  ): Promise<{ message: string } | any> {
+    dto:AssignTaskDto
+  ){
     try {
       const rider = await this.riderripo.findOne({
         where: { id: riderID },
@@ -494,7 +498,17 @@ export class AdminRiderDashboardService {
       order.Rider = rider;
       await this.orderripo.save(order);
 
-      return { message: `Order ${order} assigned to rider ${order.Rider}` };
+      //save task to the task table
+      const task = new TaskEntity()
+      task.rider = order.Rider,
+      task.task = dto.task
+      task.assigned_order = order,
+      task.assignedAT = new Date()
+
+      await this.taskRepo.save(task)
+
+      
+      return task;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(

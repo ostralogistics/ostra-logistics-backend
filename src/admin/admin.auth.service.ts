@@ -89,9 +89,7 @@ export class AdminAuthService {
     const emiailverificationcode =
       await this.customerauthservice.generateEmailToken();
 
-    // mail
-    await this.mailerservice.SendVerificationeMail(dto.email, dto.firstname);
-
+  
     //otp
     const otp = new UserOtp();
     otp.email = dto.email;
@@ -101,6 +99,9 @@ export class AdminAuthService {
     await twominuteslater.setMinutes(twominuteslater.getMinutes() + 10);
     otp.expiration_time = twominuteslater;
     await this.otprepo.save(otp);
+
+      // mail
+      await this.mailerservice.SendVerificationeMail(dto.email, dto.firstname,emiailverificationcode,twominuteslater);
 
     //save the notification
     const notification = new Notifications();
@@ -181,6 +182,9 @@ export class AdminAuthService {
 
     await this.adminrepo.save(admin);
 
+    //send welcome mail 
+    await this.mailerservice.WelcomeMail(admin.email, admin.firstname)
+
     const accessToken = await this.customerauthservice.signToken(
       admin.id,
       admin.email,
@@ -243,6 +247,8 @@ export class AdminAuthService {
     await this.mailerservice.SendVerificationeMail(
       newOtp.email,
       emailexsist.firstname,
+      emiailverificationcode,
+      twominuteslater
     );
 
     return { message: 'New Otp verification code has been sent successfully' };

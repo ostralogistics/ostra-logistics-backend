@@ -1,6 +1,6 @@
 import { Controller, UploadedFile, UseInterceptors, Post,Get,Patch,Delete, BadRequestException, Query, InternalServerErrorException, Body, Param, UseGuards } from "@nestjs/common";
 import { AdminRiderDashboardService } from "./admin.riders.dashboard.service";
-import { RegisterRiderByAdminDto, UpdateRiderInfoByAdminDto } from "./admin.dto";
+import { AssignTaskDto, RegisterRiderByAdminDto, UpdateRiderInfoByAdminDto } from "./admin.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { IChangeRiderPassword, IRegisterRider } from "src/Riders/riders";
 import { RiderEntity } from "src/Entity/riders.entity";
@@ -74,9 +74,11 @@ export class AdminRiderDashBoardController{
     }
 
     @Patch('assign-order-to-rider/:orderID/:riderID')
-    async AssignOrderToRide(@Param('orderID')orderID:number, @Param('riderID')riderID:string){
-        return await this.adminriderservice.AssignOrderToRider(riderID,orderID)
+    async AssignOrderToRide(@Param('orderID')orderID:number, @Param('riderID')riderID:string,@Body()dto:AssignTaskDto){
+        return await this.adminriderservice.AssignOrderToRider(riderID,orderID,dto)
     }
+
+    
 
 
 }

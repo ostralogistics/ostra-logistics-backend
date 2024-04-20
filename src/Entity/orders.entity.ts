@@ -5,6 +5,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, Ma
 import { CustomerEntity } from './customers.entity';
 import { RiderEntity } from './riders.entity';
 import { BidEntity } from './bids.entity';
+import { TaskEntity } from './ridersTasks.entity';
 
 @Entity('orders')
 export class OrderEntity implements IOrder {
@@ -133,7 +134,7 @@ export class OrderEntity implements IOrder {
     @Column({  length: 255, nullable:true })
     trackingID: string;
 
-    @Column({  length: 255, nullable:true })
+    @Column({   nullable:true })
     dropoffCode: string;
 
     
@@ -151,6 +152,9 @@ export class OrderEntity implements IOrder {
 
     @ManyToOne(()=>CustomerEntity, owner=>owner.my_orders)
     customer: CustomerEntity
+
+    @OneToMany(()=>TaskEntity,task =>task.assigned_order)
+    assigned_task :TaskEntity
 
     // @ManyToOne(() => BidEntity, bid => bid.id) // Many orders can be associated with one bid group
     // @JoinColumn({ name: 'bidGroupId', referencedColumnName: 'bidGroupId' })

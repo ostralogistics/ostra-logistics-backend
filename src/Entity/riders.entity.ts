@@ -1,7 +1,8 @@
 import { MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums";
 import { IRider } from "src/Riders/riders";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OrderEntity } from "./orders.entity";
+import { TaskEntity } from "./ridersTasks.entity";
 
 @Entity({name:"Riders",})
 export class RiderEntity implements IRider{
@@ -110,6 +111,9 @@ export class RiderEntity implements IRider{
 
     @OneToOne(()=>OrderEntity,order=> order.Rider)
     assigned_order:OrderEntity
+
+    @OneToMany(()=>TaskEntity, task=>task.rider)
+    tasks: TaskEntity[];
     
 
     

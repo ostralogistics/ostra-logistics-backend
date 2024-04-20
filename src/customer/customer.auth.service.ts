@@ -36,6 +36,7 @@ import {
   VerifyOtpForResetPasswordDto,
 } from 'src/common/common.dto';
 import { Mailer } from 'src/common/mailer/mailer.service';
+import exp from 'constants';
 
 @Injectable()
 export class CustomerAuthService {
@@ -120,9 +121,7 @@ export class CustomerAuthService {
       //2fa authentication
       const emiailverificationcode = await this.generateEmailToken();
   
-      // mail
-      await this.mailerservice.SendVerificationeMail(dto.email, dto.firstname);
-  
+     
       //otp
       const otp = new UserOtp();
       otp.email = dto.email;
@@ -132,6 +131,10 @@ export class CustomerAuthService {
       await twominuteslater.setMinutes(twominuteslater.getMinutes() + 10);
       otp.expiration_time = twominuteslater;
       await this.otprepo.save(otp);
+  
+
+       // mail
+       await this.mailerservice.SendVerificationeMail(dto.email, dto.firstname,emiailverificationcode,twominuteslater);
   
       //save the notification
       const notification = new Notifications();
@@ -221,6 +224,9 @@ export class CustomerAuthService {
       //await this.mailerservice.SendWelcomeEmail(admin.email,admin.brandname)
   
       await this.customerrepo.save(customer);
+
+      //send welcome email 
+      await this.mailerservice.WelcomeMail(customer.email,customer.firstname)
   
       const accessToken = await this.signToken(
         customer.id,
@@ -287,6 +293,8 @@ export class CustomerAuthService {
     await this.mailerservice.SendVerificationeMail(
       newOtp.email,
       emailexsist.firstname,
+      emiailverificationcode,
+      twominuteslater
     );
 
     return { message: 'New Otp verification code has been sent successfully' };

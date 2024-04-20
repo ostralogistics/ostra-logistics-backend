@@ -10,9 +10,10 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { CustomerEntity } from "src/Entity/customers.entity";
 import { Mailer } from "src/common/mailer/mailer.service";
+import { TaskEntity } from "src/Entity/ridersTasks.entity";
 
 @Module({
-    imports:[TypeOrmModule.forFeature([RiderEntity,Notifications,UserOtp,CustomerEntity])],
+    imports:[TypeOrmModule.forFeature([RiderEntity,Notifications,UserOtp,CustomerEntity,TaskEntity])],
     providers:[RiderAuthService,CustomerAuthService,JwtService,ConfigService,Mailer],
     controllers:[RiderAuthController]
 

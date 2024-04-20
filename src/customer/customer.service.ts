@@ -33,6 +33,7 @@ import { CardEntity, ICard } from 'src/Entity/card.entity';
 import { ICustomer } from './customer';
 import { CustomerAuthService } from './customer.auth.service';
 import { UploadService } from 'src/common/helpers/upload.service';
+import { Mailer } from 'src/common/mailer/mailer.service';
 
 @Injectable()
 export class CustomerService {
@@ -49,6 +50,7 @@ export class CustomerService {
     private BidEvents: BidEventsService,
     private customerauthservice:CustomerAuthService,
     private uploadservice: UploadService,
+    private mailer : Mailer
   ) {}
 
   public generateBidGroupID(): string {
@@ -365,7 +367,7 @@ export class CustomerService {
   async fetchallOngoingOrders(customer:CustomerEntity){
   try {
       const findorder = await this.orderRepo.findAndCount({
-        where: { customer: {id:customer.id},order_status:OrderStatus.ENROUTE },
+        where: { customer: {id:customer.id},order_status:OrderStatus.IN_TRANSIT },
         relations:['customer','bid'],
         comment:'fetching orders that are in transit '
       })

@@ -6,43 +6,49 @@ import { OrderRepository } from 'src/order/order.reposiroty';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { PaymentStatus } from 'src/Enums/all-enums';
-import * as nanoid from 'nanoid'
+import * as nanoid from 'nanoid';
+import { Mailer } from 'src/common/mailer/mailer.service';
 
 @Injectable()
 export class PaystackWebhookService {
-  constructor(@InjectRepository(OrderEntity)private readonly orderRepo: OrderRepository){}
- 
-  //generaete 
-  public generateTrackingID():string{
-  const trackingcode = nanoid.customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz',8)
-  return trackingcode()
-}
+  constructor(
+    @InjectRepository(OrderEntity) private readonly orderRepo: OrderRepository,
+    private mailer: Mailer,
+  ) {}
 
- //generaete 
- public generateDropOffCode():string{
-  const dropoffcode = nanoid.customAlphabet('1234567890',6)
-  return dropoffcode()
- }
+  //generaete
+  public generateTrackingID(): string {
+    const trackingcode = nanoid.customAlphabet(
+      '1234567890abcdefghijklmnopqrstuvwxyz',
+      8,
+    );
+    return trackingcode();
+  }
 
+  //generaete
+  public generateDropOffCode(): string {
+    const dropoffcode = nanoid.customAlphabet('1234567890', 6);
+    return dropoffcode();
+  }
 
-
-   handleWebhook(req: Request, res: Response): void {
-   
+  handleWebhook(req: Request, res: Response): void {
     try {
-      
       // Validate event
       const hash = crypto
-        .createHmac('sha512', "sk_test_c86ebe0afdc2c1f27920173207a28287c956b1eb")
+        .createHmac(
+          'sha512',
+          'sk_test_c86ebe0afdc2c1f27920173207a28287c956b1eb',
+        )
         .update(JSON.stringify(req.body))
         .digest('hex');
 
       if (hash === req.headers['x-paystack-signature']) {
         // Retrieve the request's body
         const event = req.body;
-        if (event.event === 'charge.success'){
-          this.handleChargeSuccessEvent(event.data.reference)
-        }else{
-          console.log("Unsupported Paystack webhook event",event.event)
+        if (event.event === 'charge.success') {
+          this.handleChargeSuccessEvent(event.data.reference);
+        } else {
+          console.log('Unsupported Paystack webhook event', event.event);
         }
         // Do something with event
         console.log('Paystack webhook event:', event);
@@ -58,8 +64,11 @@ export class PaystackWebhookService {
 
   private async handleChargeSuccessEvent(orderReference: number) {
     try {
-      const order = await this.orderRepo.findOne({ where: { id: orderReference } });
-  
+      const order = await this.orderRepo.findOne({
+        where: { id: orderReference },
+        relations: ['customer', 'rider', 'assigned_task'],
+      });
+
       if (order) {
         order.payment_status = PaymentStatus.SUCCESSFUL;
         const trackingToken = `osl-${this.generateTrackingID()}`;
@@ -67,9 +76,24 @@ export class PaystackWebhookService {
         order.trackingID = trackingToken;
         order.dropoffCode = dropoffCode;
         await this.orderRepo.save(order);
-  
-        console.log('Order payment status updated successfully:', orderReference, 'trackingID:', order.trackingID, 'dropoffCode:', order.dropoffCode);
-        
+
+        console.log(
+          'Order payment status updated successfully:',
+          orderReference,
+          'trackingID:',
+          order.trackingID,
+          'dropoffCode:',
+          order.dropoffCode,
+        );
+
+        //send mail to customer
+        await this.mailer.OrderAcceptedMail(
+          order.customer.email,
+          order.customer.firstname,
+          order.trackingID,
+          order.dropoffCode,
+        );
+
         // Return the tracking ID and dropoff code in the response
         return {
           trackingID: order.trackingID,
@@ -82,5 +106,4 @@ export class PaystackWebhookService {
       console.error('Error handling charge success event:', error);
     }
   }
-  
 }

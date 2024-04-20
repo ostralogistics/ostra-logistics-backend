@@ -24,6 +24,7 @@ import { CustomerAuthService } from 'src/customer/customer.auth.service';
 import { NotificationType } from 'src/Enums/all-enums';
 import { RequestResetPasswordDto } from './riders.dto';
 import { customAlphabet } from 'nanoid';
+import { Mailer } from 'src/common/mailer/mailer.service';
 
 @Injectable()
 export class RiderAuthService {
@@ -35,6 +36,7 @@ export class RiderAuthService {
     @InjectRepository(UserOtp) private readonly otprepo: OtpRepository,
     @InjectRepository(Notifications)
     private readonly notificationrepo: NotificationRepository,
+    private mailer:Mailer
   ) {}
 
   public generateNewPassword(): string {
@@ -127,7 +129,7 @@ export class RiderAuthService {
     const hashedPassword = await this.customerauthservice.hashpassword(newPassword)
 
     //foward the new password to the email 
-    const riderResetPasswordEmail= ""
+    await this.mailer.NewPasswordMail(rideremial.email,rideremial.firstname,newPassword)
 
     //save the hashed password to the db 
     rideremial.password = hashedPassword

@@ -1,5 +1,6 @@
 import { CustomerEntity } from "src/Entity/customers.entity"
 import { RiderEntity } from "src/Entity/riders.entity"
+import { TaskEntity } from "src/Entity/ridersTasks.entity"
 import { OrderStatus, ParcelStatus, PaymentStatus, PriorityDeliveryType } from "src/Enums/all-enums"
 import { BidStatus, VehicleType } from "src/Enums/all-enums"
 
@@ -58,6 +59,7 @@ export interface IOrder{
     RiderArrivaltime:Date
     RiderAssignedAT:Date
     Rider:RiderEntity
+    assigned_task :TaskEntity
     accepted_cost_of_delivery : number
    
 }

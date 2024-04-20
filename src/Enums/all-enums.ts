@@ -13,6 +13,35 @@ export enum BidStatus {
 
 }
 
+
+
+export enum AcceptOrDeclineTask{
+    DECLINE ="decline",
+    ACCEPT ="accept"
+}
+
+export enum TaskStatus{
+    ONGOING="ongoing",
+    CONCLUDED ="concluded"
+}
+
+export enum RiderTask{
+    PICKUP ="pickup",
+    DROPOFF ="dropoff"
+}
+
+
+export enum RiderMileStones{
+    AT_PICKUP_LOCATION ="at_pickup_location",
+    PICKED_UP_PARCEL ="picked_up_parcel",
+    AT_THE_OFFICE_FOR_REBRANDING ="at_the_office_for_rebranding",
+    AT_DROPOFF_LOCATION ="at_dropoff_location",
+    DROPPED_OFF_PARCEL ="dropped_off-parcel"
+
+}
+
+
+
 export enum BiddingAction {
     DECLINE ="decline",
     ACCEPT ="accept",
@@ -73,8 +102,10 @@ export enum PaymentStatus{
 
 export enum OrderStatus{
     BIDDING_ONGOING ="bidding_ongoing",
+    ENROUTE_TO_PICKUP ="enroute_to_pick_up",
+    PARCEL_REBRANDING ="parcel_rebranding",
     PICKED_UP ="picked_up",
-    ENROUTE = "enroute",
+    IN_TRANSIT = "in_transit",
     DROPPED_OFF ="dropped_off"
 }
 

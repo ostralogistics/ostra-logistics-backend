@@ -9,6 +9,7 @@ import { Notifications } from "src/Entity/notifications.entity";
 import { OrderEntity } from "src/Entity/orders.entity";
 import { UserOtp } from "src/Entity/otp.entity";
 import { RiderEntity } from "src/Entity/riders.entity";
+import { TaskEntity } from "src/Entity/ridersTasks.entity";
 
 @Injectable()
 export class TypeOrmService {
@@ -25,7 +26,7 @@ export class TypeOrmService {
         database: this.configservice.get('DATABASE_NAME'),
         synchronize: true,
         logging: false,
-        entities: [ AdminEntity, UserOtp, Notifications, CustomerEntity, OrderEntity,RiderEntity,BidEntity,CardEntity
+        entities: [ AdminEntity, UserOtp, Notifications, CustomerEntity, OrderEntity,RiderEntity,BidEntity,CardEntity,TaskEntity
           
         ],
         migrations: [],

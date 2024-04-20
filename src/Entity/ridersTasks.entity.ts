@@ -1,1 +1,56 @@
 // where the tasks can be stored for the rider to see and follwo up with 
+
+import { RiderMileStones, RiderTask, TaskStatus } from "src/Enums/all-enums";
+import { OrderEntity } from "./orders.entity";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { RiderEntity } from "./riders.entity";
+
+export interface IRiderTask{
+    id:number,
+    task:RiderTask,
+    rider:RiderEntity
+    acceptedAt:Date
+    declinedAT:Date,
+    assigned_order:OrderEntity,
+    status:TaskStatus
+    milestone :RiderMileStones
+    assignedAT:Date
+}
+
+@Entity({name:'Tasks'})
+export class TaskEntity implements IRiderTask{
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({nullable:true, type:'enum', enum:RiderTask})
+    task: RiderTask;
+
+    
+
+    @ManyToOne(()=>RiderEntity,rider=>rider.tasks)
+    rider: RiderEntity;
+
+    @UpdateDateColumn({nullable:true, default:null})
+    acceptedAt: Date;
+
+    @UpdateDateColumn({nullable:true, default:null})
+    declinedAT: Date;
+
+    @Column({nullable:true, type:'enum', enum:TaskStatus})
+    status: TaskStatus;
+
+
+    @Column({nullable:true, type:'enum', enum:RiderMileStones})
+    milestone: RiderMileStones;
+
+    @ManyToOne(()=>OrderEntity,order =>order.assigned_task)
+    assigned_order: OrderEntity;
+
+    @UpdateDateColumn()
+    assignedAT: Date;
+
+
+
+
+
+}

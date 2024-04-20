@@ -22,9 +22,10 @@ import { OrderEntity } from "src/Entity/orders.entity";
 import { AdminCustomerDashBoardController } from "./admin.customers.dashboard.controller";
 import { AdminCustomerDashBoardService } from "./admin.customers.dashboard.service";
 import { BidEventsService } from "src/common/Events/bid.events.service";
+import { TaskEntity } from "src/Entity/ridersTasks.entity";
 
 @Module({
-    imports:[TypeOrmModule.forFeature([AdminEntity,Notifications,UserOtp,RiderEntity,CustomerEntity,BidEntity,OrderEntity])],
+    imports:[TypeOrmModule.forFeature([AdminEntity,Notifications,UserOtp,RiderEntity,CustomerEntity,BidEntity,OrderEntity,TaskEntity])],
     controllers:[AdminRiderDashBoardController,AdminStaffDashBoardController,AdminAuthController,AdminCustomerDashBoardController],
     providers:[Mailer,JwtService,AdminRiderDashboardService,AdminStaffDasboardService,UploadService,CustomerAuthService,AdminAuthService,AdminCustomerDashBoardService,BidEventsService]
 })
