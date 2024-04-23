@@ -37,7 +37,7 @@ export class CustomerController{
       await this.customerservice.TrackOrder(keyword)
      }
 
-     @Get('in-transit')
+     @Get('in-transit-orders')
      async GetallOrdersinTransit(@Req()req){
       return await this.customerservice.fetchallOngoingOrders(req.user)
      }

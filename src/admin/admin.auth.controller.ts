@@ -38,13 +38,8 @@ export class AdminAuthController{
         console.log(email)
         return await this.adminauthservice.ResendExpiredOtp(email)
 
-
     }
 
-    @Patch('/add-password/:adminID')
-    async AddPasswordAfterVerification (@Param('adminID')adminID:string,@Body()dto:addPasswordDto):Promise<{message:string}>{
-        return await this.adminauthservice.AddPasswordAfterVerification(adminID,dto)
-    }
 
     @Post('/send-password-reset-token')
     async sendPasswordResetLink (@Body()dto:SendPasswordResetLinkDto):Promise<{message:string}>{

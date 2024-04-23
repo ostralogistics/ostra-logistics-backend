@@ -33,7 +33,7 @@ export class RiderController{
         return await this.riderservice.RiderCheckInWhenHePicksUp(taskID,orderID,req.user)
     }
 
-    @Patch('checkin-at-the -office/:taskID/:orderID')
+    @Patch('checkin-at-the-office/:taskID/:orderID')
     async RiderChecksWhenRiderIsAtOfficeForReranding (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
         return await this.riderservice.RiderCheckInWhenRiderArrivesATTheOfficeForRebranding(taskID,orderID,req.user)
     }
@@ -54,7 +54,7 @@ export class RiderController{
 
     }
 
-    @Get('all-one-assigned-task/:taskID')
+    @Get('one-assigned-task/:taskID')
     async GetOneAsignedTask(@Req()req,@Param('taskID')taskID:number){
         return await this.riderservice.fetchOneTask(req.user,taskID)
 

@@ -1,3 +1,4 @@
+import { RequestEntity } from "src/Entity/requests.entity"
 import { TaskEntity } from "src/Entity/ridersTasks.entity"
 import { MaritalStatus, StateOFOrigin, TaskStatus, VehicleType } from "src/Enums/all-enums"
 
@@ -33,6 +34,7 @@ export interface IRider{
     loginCount:number
     locked_until : Date
     tasks : TaskEntity[]
+    my_requests: RequestEntity[];
 }
 
 export interface IRegisterRider{

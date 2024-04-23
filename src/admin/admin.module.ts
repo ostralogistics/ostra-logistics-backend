@@ -23,9 +23,10 @@ import { AdminCustomerDashBoardController } from "./admin.customers.dashboard.co
 import { AdminCustomerDashBoardService } from "./admin.customers.dashboard.service";
 import { BidEventsService } from "src/common/Events/bid.events.service";
 import { TaskEntity } from "src/Entity/ridersTasks.entity";
+import { RequestEntity } from "src/Entity/requests.entity";
 
 @Module({
-    imports:[TypeOrmModule.forFeature([AdminEntity,Notifications,UserOtp,RiderEntity,CustomerEntity,BidEntity,OrderEntity,TaskEntity])],
+    imports:[TypeOrmModule.forFeature([AdminEntity,Notifications,UserOtp,RiderEntity,CustomerEntity,BidEntity,OrderEntity,TaskEntity,RequestEntity])],
     controllers:[AdminRiderDashBoardController,AdminStaffDashBoardController,AdminAuthController,AdminCustomerDashBoardController],
     providers:[Mailer,JwtService,AdminRiderDashboardService,AdminStaffDasboardService,UploadService,CustomerAuthService,AdminAuthService,AdminCustomerDashBoardService,BidEventsService]
 })

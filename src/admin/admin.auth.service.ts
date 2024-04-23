@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   HttpException,
   HttpStatus,
@@ -52,11 +53,23 @@ export class AdminAuthService {
 
   // get customer profile
   async getProfile(adminId: string): Promise<IAdmin> {
-    const admin = await this.adminrepo.findOne({ where: { id: adminId } });
-    if (!admin) {
-      throw new NotFoundException('Super admin not found');
+    try {
+      const admin = await this.adminrepo.findOne({ where: { id: adminId } });
+      if (!admin) {
+        throw new NotFoundException('Super admin not found');
+      }
+      return admin;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+      throw new NotFoundException(error.message);
+    else {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while fetching admin profile, please try again later',
+      );
     }
-    return admin;
+      
+    }
   }
 
   //sign up user
@@ -68,16 +81,16 @@ export class AdminAuthService {
       where: { email: dto.email },
     });
     if (checkemail)
-      throw new HttpException(
+      throw new ConflictException(
         'This super admin already exists',
-        HttpStatus.FOUND,
       );
 
+      const hashedpassword = await this.customerauthservice.hashpassword(dto.password)
 
     const admin = new AdminEntity();
     admin.email = dto.email;
-    admin.firstname = dto.firstname;
-    admin.lastname = dto.lastname;
+    admin.fullname = dto.fullname;
+    admin.password =hashedpassword
     admin.mobile =dto.mobile
     admin.role = Role.ADMIN;
     admin.RegisteredAt = new Date();
@@ -101,13 +114,12 @@ export class AdminAuthService {
     await this.otprepo.save(otp);
 
       // mail
-      await this.mailerservice.SendVerificationeMail(dto.email, dto.firstname,emiailverificationcode,twominuteslater);
+      await this.mailerservice.SendVerificationeMail(dto.email, dto.fullname,emiailverificationcode,twominuteslater);
 
     //save the notification
     const notification = new Notifications();
-    notification.account = admin.firstname;
+    notification.account = admin.fullname;
     notification.subject = 'New Super Admin Created!';
-    notification.notification_type = NotificationType.ADMIN_CREATED;
     notification.message = `new admin created successfully `;
     await this.notificationrepo.save(notification);
 
@@ -117,27 +129,7 @@ export class AdminAuthService {
     };
   }
 
-  //add password and confirm it too 
-  async AddPasswordAfterVerification(adminID:string, dto:addPasswordDto):Promise<{message:string}>{
-    try {
-      const checkadmin = await this.adminrepo.findOne({where:{id:adminID}})
-      if (!checkadmin.isVerified) throw new UnauthorizedException('sorry this admin has not been verified yet, please request for an otp to verify your account')
-  
-      const hashedpassword = await this.customerauthservice.hashpassword(dto.password)
-  
-      //add the password 
-      checkadmin.password = hashedpassword
-  
-      await this.adminrepo.save(checkadmin)
-  
-      return {message:'password has been added successfully'}
- 
-    } catch (error) {
-     throw  new InternalServerErrorException('an error occured while adding password',error)
-     
-    }
-   }
-  // verify email of admin
+
 
   async verifyEmail(
     dto: VerifyOtpDto,
@@ -172,10 +164,9 @@ export class AdminAuthService {
     await this.adminrepo.save(admin);
 
     const notification = new Notifications();
-    (notification.account = admin.firstname),
+    (notification.account = admin.fullname),
       (notification.subject = 'Super Admin Verified!');
-    notification.notification_type = NotificationType.EMAIL_VERIFICATION;
-    notification.message = `Hello ${admin.firstname}, your email has been successfully verified `;
+    notification.message = `Hello ${admin.fullname}, your email has been successfully verified `;
     await this.notificationrepo.save(notification);
 
     //await this.mailerservice.SendWelcomeEmail(admin.email,admin.brandname)
@@ -183,7 +174,7 @@ export class AdminAuthService {
     await this.adminrepo.save(admin);
 
     //send welcome mail 
-    await this.mailerservice.WelcomeMail(admin.email, admin.firstname)
+    await this.mailerservice.WelcomeMail(admin.email, admin.fullname)
 
     const accessToken = await this.customerauthservice.signToken(
       admin.id,
@@ -237,16 +228,15 @@ export class AdminAuthService {
 
     //save the notification
     const notification = new Notifications();
-    notification.account = emailexsist.firstname;
+    notification.account = emailexsist.fullname
     notification.subject = 'Otp Resent!';
-    notification.notification_type = NotificationType.EMAIL_VERIFICATION;
-    notification.message = `Hello ${emailexsist.firstname}, a new verification Link has been resent to your mail `;
+    notification.message = `Hello ${emailexsist.fullname}, a new verification Link has been resent to your mail `;
     await this.notificationrepo.save(notification);
 
     //send mail
     await this.mailerservice.SendVerificationeMail(
       newOtp.email,
-      emailexsist.firstname,
+      emailexsist.fullname,
       emiailverificationcode,
       twominuteslater
     );
@@ -274,7 +264,7 @@ export class AdminAuthService {
     await this.mailerservice.SendPasswordResetLinkMail(
       dto.email,
       resetlink,
-      isEmailReistered.firstname,
+      isEmailReistered.fullname,
     );
 
     //save the reset link and the expiration time to the database
@@ -283,10 +273,10 @@ export class AdminAuthService {
     await this.adminrepo.save(isEmailReistered);
 
     const notification = new Notifications();
-    (notification.account = isEmailReistered.firstname),
+    (notification.account = isEmailReistered.fullname),
       (notification.subject = 'password Reset link!');
     notification.notification_type = NotificationType.EMAIL_VERIFICATION;
-    notification.message = `Hello ${isEmailReistered.firstname}, password resent link sent `;
+    notification.message = `Hello ${isEmailReistered.fullname}, password resent link sent `;
     await this.notificationrepo.save(notification);
 
     return { message: 'The password reset link has been sent successfully' };
@@ -314,10 +304,9 @@ export class AdminAuthService {
 
 
     const notification = new Notifications();
-    (notification.account = verifyuser.firstname),
+    (notification.account = verifyuser.fullname ),
       (notification.subject = 'Verify Password Reset Token!');
-    notification.notification_type = NotificationType.EMAIL_VERIFICATION;
-    notification.message = `Hello ${verifyuser.firstname}, password reset link verified and the password has been recently reseted `;
+    notification.message = `Hello ${verifyuser.fullname}, password reset link verified and the password has been recently reseted `;
     await this.adminrepo.save(verifyuser);
 
     return { message: 'otp has been verified' };
@@ -389,10 +378,9 @@ async FinallyResetPasswordAfterVerification(adminID:string|any, dto:addPasswordD
 
     //save the notification
     const notification = new Notifications();
-    notification.account = findadmin.firstname;
-    notification.subject = 'Photographer just logged in!';
-    notification.notification_type = NotificationType.LOGGED_IN;
-    notification.message = `Hello ${findadmin.firstname}, just logged in `;
+    notification.account = findadmin.fullname;
+    notification.subject = ' login!';
+    notification.message = `Hello ${findadmin.fullname}, just logged in `;
     await this.notificationrepo.save(notification);
 
     return await this.customerauthservice.signToken(

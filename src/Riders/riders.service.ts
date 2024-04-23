@@ -37,7 +37,7 @@ export class RiderService {
     try {
       const assigned_order = await this.orderRepo.findAndCount({
         where: { Rider: { id: Rider.id } },
-        relations: ['Rider', 'customer'],
+        
       });
       if (assigned_order[1] === 0)
         throw new NotFoundException(
@@ -197,7 +197,7 @@ export class RiderService {
           id: orderID,
           assigned_task: { id: taskID, rider: { id: Rider.id } },
         },
-        relations: ['Rider', 'asssigned_task'],
+        relations: ['Rider', 'assigned_task'],
       });
       if (!isOrder)
         throw new NotAcceptableException(

@@ -41,15 +41,21 @@ export class AdminEntity implements IAdmin{
     mobile: string;
 
     @Column({nullable:true})
+    fullname: string;
+
+
+    @Column({nullable:true})
     firstname: string;
+
 
     @Column({nullable:true})
     lastname: string;
 
-    @UpdateDateColumn({nullable:true})
+   
+    @Column({nullable:true,type:'timestamp'})
     UpdatedAt:Date
 
-    @CreateDateColumn({nullable:true})
+    @Column({nullable:true,type:'timestamp'})
     RegisteredAt:Date
 
 
@@ -65,6 +71,9 @@ export class AdminEntity implements IAdmin{
     @Column({nullable:true})
     gender: Gender;
 
+    @Column({nullable:true})
+    Nationality: string;
+
 
     @Column({nullable:true,default:false})
     isLoggedIn: boolean;
@@ -78,7 +87,7 @@ export class AdminEntity implements IAdmin{
     @Column({nullable:false,default:false})
     isVerified: boolean;
 
-    @Column({nullable:true})
+    @Column({nullable:true,type:'timestamp'})
     reset_link_exptime: Date;
 
     @Column({nullable:true})
@@ -90,7 +99,7 @@ export class AdminEntity implements IAdmin{
     @Column({nullable:false, default:false})
     isLocked: boolean;
 
-    @CreateDateColumn()
+    @Column({nullable:true,type:'timestamp'})
     locked_until: Date;
     
     

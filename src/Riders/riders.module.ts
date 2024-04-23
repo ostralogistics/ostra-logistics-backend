@@ -11,11 +11,15 @@ import { ConfigService } from "@nestjs/config";
 import { CustomerEntity } from "src/Entity/customers.entity";
 import { Mailer } from "src/common/mailer/mailer.service";
 import { TaskEntity } from "src/Entity/ridersTasks.entity";
+import { RiderService } from "./riders.service";
+import { RiderController } from "./riders.controller";
+import { OrderEntity } from "src/Entity/orders.entity";
+import { RequestEntity } from "src/Entity/requests.entity";
 
 @Module({
-    imports:[TypeOrmModule.forFeature([RiderEntity,Notifications,UserOtp,CustomerEntity,TaskEntity])],
-    providers:[RiderAuthService,CustomerAuthService,JwtService,ConfigService,Mailer],
-    controllers:[RiderAuthController]
+    imports:[TypeOrmModule.forFeature([RiderEntity,Notifications,UserOtp,CustomerEntity,TaskEntity,OrderEntity,RequestEntity])],
+    providers:[RiderAuthService,CustomerAuthService,JwtService,ConfigService,Mailer,RiderService],
+    controllers:[RiderAuthController,RiderController]
 
 })
 export class RiderModule{}

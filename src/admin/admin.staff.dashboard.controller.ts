@@ -13,7 +13,7 @@ export class AdminStaffDashBoardController{
     constructor(private readonly adminstaffservice:AdminStaffDasboardService){}
 
 
-    @Post('/regster/')
+    @Post('/regster')
     async AdminRegisterStaff(dto:RegisterOtherAdminByAdminDto,){
         return await this.adminstaffservice.RegisterStaff(dto)
 

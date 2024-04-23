@@ -5,7 +5,7 @@ import { Role } from "src/Enums/all-enums";
 import { ROLE_KEY } from "../decorator/role.decorator";
 
 
-// GUARD FOR THE ADMINTYPE
+// GUARD FOR THE Roleguard
 @Injectable()
 export class RoleGuard implements CanActivate{
     constructor(private reflector:Reflector){}

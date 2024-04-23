@@ -88,7 +88,7 @@ export class Mailer {
       <body>
         <div class="container">
           <div class="logo">
-            <h1>IDEABOX</h1>
+          <h1> OSTRA LOGISTICS </h1>
           </div>
           <h1 class="verification-heading">Dear, ${name}!</h1>
           <p class="message">TWO STEP VERIFICATION:</p>
@@ -179,7 +179,7 @@ export class Mailer {
         <body>
           <div class="container">
             <div class="logo">
-            <h1> IDEABOX </h1>
+            <h1> OSTRA LOGISTICS </h1>
             </div>
               
             <h1 class="verification-heading">Password Reset Token</h1>
@@ -273,7 +273,7 @@ export class Mailer {
       <body>
         <div class="container">
           <div class="logo">
-          <h1> IDEABOX </h1>
+          <h1> OSTRA LOGISTICS </h1>
           </div>
             
           <h1 class="verification-heading">Welcome OnBoard!</h1>

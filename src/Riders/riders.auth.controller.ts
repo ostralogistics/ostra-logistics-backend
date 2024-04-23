@@ -21,7 +21,7 @@ export class RiderAuthController{
         return await this.riderauthsrvice.login(dto)
     }
 
-    @Patch('/password-reset-request')
+    @Post('/password-reset-request')
     async RequestResetPassword(@Body()dto:RequestResetPasswordDto){
       return await this.riderauthsrvice.RequestResetPassword(dto)
     }

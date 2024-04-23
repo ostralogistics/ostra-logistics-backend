@@ -2,6 +2,7 @@ import { AdminAccessLevels, AdminType, Gender, MaritalStatus, Role, StateOFOrigi
 
 export interface IAdmin {
     id:string 
+    fullname:string
     firstname:string
     lastname:string
     email:string,
@@ -12,6 +13,7 @@ export interface IAdmin {
     marital_status:MaritalStatus
     profile_picture: string
     state_of_origin:StateOFOrigin
+    Nationality:string
     LGA_of_origin: string
     LGA_of_Home_Address: string
     RegisteredAt : Date

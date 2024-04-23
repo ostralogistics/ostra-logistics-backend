@@ -27,7 +27,8 @@ export enum TaskStatus{
 
 export enum RiderTask{
     PICKUP ="pickup",
-    DROPOFF ="dropoff"
+    DROPOFF ="dropoff",
+    PICKUP_AND_DROPOFF ="pickup and dropoff"
 }
 
 
@@ -96,6 +97,11 @@ export enum PaymentStatus{
     SUCCESSFUL ="successful",
     FAILED ="failed",
     PENDING ="pending"
+}
+
+export enum RequestType{
+    PASSWORD_RESET= "password reset",
+    PROFILE_CORRECTION="password correction"
 }
 
 

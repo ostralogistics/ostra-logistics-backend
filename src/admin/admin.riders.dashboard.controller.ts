@@ -13,34 +13,43 @@ export class AdminRiderDashBoardController{
     constructor(private readonly adminriderservice:AdminRiderDashboardService){}
 
 
-    @Post('/register/:adminId')
-    async AdminRegisterRider(@Param('adminId')adminId:string,@Body()dto:RegisterRiderByAdminDto):Promise<{message: string; response: IRegisterRider}>{
+    @Post('/register')
+    async AdminRegisterRider(@Body()dto:RegisterRiderByAdminDto){
         return await this.adminriderservice.RegisterRider(dto) 
     }
 
     @Patch('/update-rider-info/:riderId')
-    async UpdateRiderInfo(@Param('riderId')riderId:string,@Body()dto:UpdateRiderInfoByAdminDto):Promise<{message: string; response: IRegisterRider}>{
+    async UpdateRiderInfo(@Param('riderId')riderId:string,@Body()dto:UpdateRiderInfoByAdminDto){
         return await this.adminriderservice.UpdateRiderInfoByAdmin(riderId,dto,)
     }
 
     @Delete('delete-rider/:riderID')
-    async DeleteRider( @Param('riderID')riderID:string): Promise<{ message: string | BadRequestException }> {
+    async DeleteRider( @Param('riderID')riderID:string) {
         return await this.adminriderservice.AdminDeleteRider(riderID)
     }
 
     @Patch('/change-rider-password/:riderID')
-    async ChangeRiderPassword(@Param('adminID')adminID:string, @Param('riderID')riderID:string):Promise<{ message: string; response: IChangeRiderPassword }> {
+    async ChangeRiderPassword(@Param('adminID')adminID:string, @Param('riderID')riderID:string) {
         return await this.adminriderservice.AdminChangeRiderPassword(riderID)
     }
 
+    @Patch('/change-rider-password-onRequest/:riderID/:requestID')
+    async ChangeRiderPasswordBasedOnRequest(@Param('requestID')requestID:number, @Param('riderID')riderID:string) {
+        return await this.adminriderservice.AdminChangeRiderPasswordBasedOnRequest(riderID,requestID)
+    }
+
+    @Get('/all-requests')
+    async GetAllRequests(){
+        return await this.adminriderservice.GetAllRequests();  
+    }
+
     @Get('/all-riders')
-    async GetAllRiders(@Query('page')page:number, @Query('limit')limit:number):Promise<RiderEntity[] | InternalServerErrorException>{
-        return await this.adminriderservice.GetAllRiders(page, limit);
-        
+    async GetAllRiders(@Query('page')page:number, @Query('limit')limit:number){
+        return await this.adminriderservice.GetAllRiders(page, limit);  
     }
 
     @Get('/one-rider/:riderID')
-    async GetOneRider(@Param('riderID')riderID:string): Promise<RiderEntity | InternalServerErrorException> {
+    async GetOneRider(@Param('riderID')riderID:string){
         return await this.adminriderservice.GetOneRiderByID(riderID)
     }
 
@@ -77,6 +86,8 @@ export class AdminRiderDashBoardController{
     async AssignOrderToRide(@Param('orderID')orderID:number, @Param('riderID')riderID:string,@Body()dto:AssignTaskDto){
         return await this.adminriderservice.AssignOrderToRider(riderID,orderID,dto)
     }
+
+    
 
     
 

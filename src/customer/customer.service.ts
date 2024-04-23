@@ -28,7 +28,12 @@ import { BidEventsService } from 'src/common/Events/bid.events.service';
 import { IOrder } from 'src/order/order';
 import { ILike } from 'typeorm';
 import { find } from 'rxjs';
-import { CardDetailsDto, ChangePasswordDto, UpdateCustomerDto, addPasswordDto } from './customer.dto';
+import {
+  CardDetailsDto,
+  ChangePasswordDto,
+  UpdateCustomerDto,
+  addPasswordDto,
+} from './customer.dto';
 import { CardEntity, ICard } from 'src/Entity/card.entity';
 import { ICustomer } from './customer';
 import { CustomerAuthService } from './customer.auth.service';
@@ -48,9 +53,9 @@ export class CustomerService {
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private BidEvents: BidEventsService,
-    private customerauthservice:CustomerAuthService,
+    private customerauthservice: CustomerAuthService,
     private uploadservice: UploadService,
-    private mailer : Mailer
+    private mailer: Mailer,
   ) {}
 
   public generateBidGroupID(): string {
@@ -62,7 +67,6 @@ export class CustomerService {
     try {
       const bidGroupID = this.generateBidGroupID();
 
-     
       if (Array.isArray(dto)) {
         const existingOrders = await this.orderRepo.find({
           where: {
@@ -85,10 +89,14 @@ export class CustomerService {
         return await this.createOrder(customer, dto);
       }
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'something went wronng while placing order, please try again',
-      );
+      if (error instanceof NotAcceptableException)
+        throw new NotAcceptableException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching all picked up orders, please try again later',
+        );
+      }
     }
   }
 
@@ -96,67 +104,77 @@ export class CustomerService {
     customer: CustomerEntity,
     dto: OrderDto,
   ): Promise<OrderEntity> {
-    const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
-      dto.pickup_address,
-    );
-    const dropOffCoordinates = await this.geocodingservice.getYahooCoordinates(
-      dto.dropOff_address,
-    );
+    try {
+      const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
+        dto.pickup_address,
+      );
+      const dropOffCoordinates =
+        await this.geocodingservice.getYahooCoordinates(dto.dropOff_address);
 
-    if (!pickupCoordinates || !dropOffCoordinates) {
-      throw new NotAcceptableException('cordeinates not found');
+      if (!pickupCoordinates || !dropOffCoordinates) {
+        throw new NotAcceptableException('cordeinates not found');
+      }
+
+      const distance = this.distanceservice.calculateDistance(
+        pickupCoordinates,
+        dropOffCoordinates,
+      );
+      const roundDistance = Math.round(distance);
+      const flatRate = roundDistance * 4.25;
+
+      const order = new OrderEntity();
+      order.customer = customer;
+      order.parcel_name = dto.parcel_name;
+      order.product_category = dto.product_category;
+      order.quantity = dto.quantity;
+      order.parcelWorth = dto.parcelWorth;
+      order.weight_of_parcel = dto.weight_of_parcel;
+      order.describe_weight_of_parcel = dto.describe_weight_of_parcel;
+      order.note_for_rider = dto.note_for_rider;
+
+      order.pickup_address = dto.pickup_address;
+      order.pickup_phone_number = dto.pickup_phone_number;
+      order.Area_of_pickup = dto.Area_of_pickup;
+      order.landmark_of_pickup = dto.landmark_of_pickup;
+
+      order.Recipient_name = dto.Recipient_name;
+      order.Recipient_phone_number = dto.Recipient_phone_number;
+      order.dropOff_address = dto.dropOff_address;
+      order.house_apartment_number_of_dropoff =
+        dto.house_apartment_number_of_dropoff;
+      order.Area_of_dropoff = dto.Area_of_dropoff;
+      order.landmark_of_dropoff = dto.landmark_of_dropoff;
+
+      order.vehicleType = dto.vehicleType;
+      order.delivery_type = dto.delivery_type;
+      order.schedule_date = dto.schedule_date;
+
+      order.pickupLat = pickupCoordinates.lat;
+      order.pickupLong = pickupCoordinates.lon;
+      order.dropOffLat = dropOffCoordinates.lat;
+      order.dropOffLong = dropOffCoordinates.lon;
+      order.distance = roundDistance;
+
+      order.initial_cost = flatRate;
+      order.bidStatus = BidStatus.PENDING;
+      order.vehicleType = dto.vehicleType;
+      order.payment_status = PaymentStatus.PENDING;
+      order.order_status = OrderStatus.BIDDING_ONGOING;
+      order.orderCreatedAtTime = new Date();
+
+      await this.orderRepo.save(order);
+
+      return order;
+    } catch (error) {
+      if (error instanceof NotAcceptableException)
+        throw new NotAcceptableException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to place an order, please try again later',
+        );
+      }
     }
-
-    const distance = this.distanceservice.calculateDistance(
-      pickupCoordinates,
-      dropOffCoordinates,
-    );
-    const roundDistance = Math.round(distance);
-    const flatRate = roundDistance * 4.25;
-
-    const order = new OrderEntity();
-    order.customer = customer;
-    order.parcel_name = dto.parcel_name;
-    order.product_category = dto.product_category;
-    order.quantity = dto.quantity;
-    order.parcelWorth = dto.parcelWorth;
-    order.weight_of_parcel = dto.weight_of_parcel;
-    order.describe_weight_of_parcel = dto.describe_weight_of_parcel;
-    order.note_for_rider = dto.note_for_rider;
-
-    order.pickup_address = dto.pickup_address;
-    order.pickup_phone_number = dto.pickup_phone_number;
-    order.Area_of_pickup = dto.Area_of_pickup;
-    order.landmark_of_pickup = dto.landmark_of_pickup;
-
-    order.Recipient_name = dto.Recipient_name;
-    order.Recipient_phone_number = dto.Recipient_phone_number;
-    order.dropOff_address = dto.dropOff_address;
-    order.house_apartment_number_of_dropoff =
-      dto.house_apartment_number_of_dropoff;
-    order.Area_of_dropoff = dto.Area_of_dropoff;
-    order.landmark_of_dropoff = dto.landmark_of_dropoff;
-
-    order.vehicleType = dto.vehicleType;
-    order.delivery_type = dto.delivery_type;
-    order.schedule_date = dto.schedule_date;
-
-    order.pickupLat = pickupCoordinates.lat;
-    order.pickupLong = pickupCoordinates.lon;
-    order.dropOffLat = dropOffCoordinates.lat;
-    order.dropOffLong = dropOffCoordinates.lon;
-    order.distance = roundDistance;
-
-    order.initial_cost = flatRate;
-    order.bidStatus = BidStatus.PENDING;
-    order.vehicleType = dto.vehicleType;
-    order.payment_status = PaymentStatus.PENDING;
-    order.order_status = OrderStatus.BIDDING_ONGOING;
-    order.orderCreatedAtTime = new Date();
-
-    await this.orderRepo.save(order);
-
-    return order;
   }
 
   //biding process
@@ -165,7 +183,7 @@ export class CustomerService {
   async AcceptORDeclineBid(
     dto: BidActionDto,
     orderID: number,
-    customer:CustomerEntity,
+    customer: CustomerEntity,
     bidID: number,
   ): Promise<IBids> {
     try {
@@ -227,24 +245,26 @@ export class CustomerService {
       }
       return bid;
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'something went wrong while trying to accept or decline bid, please try again',
-      );
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof NotAcceptableException)
+        throw new NotAcceptableException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to accept or decline bid, please try again later',
+        );
+      }
     }
   }
 
   //2. counterbid with an offer
-  async CounterBid(
-    dto: counterBidDto,
-    bidID: number,
-  ): Promise<IBids> {
+  async CounterBid(dto: counterBidDto, bidID: number): Promise<IBids> {
     try {
-      
       //check bid
       const bid = await this.bidRepo.findOne({
-        where: { id: bidID ,},
-        relations: ['order', 'customer'],
+        where: { id: bidID },
+        relations: ['order'],
       });
       if (!bid)
         throw new NotFoundException(
@@ -252,7 +272,7 @@ export class CustomerService {
         );
 
       // Check if order already has a counter offer (enforces one-time counter)
-      if (bid.bidStatus === BidStatus.COUNTERED) {
+      if (bid.bidStatus === BidStatus.COUNTERED || bid.bidStatus === BidStatus.ACCEPTED) {
         throw new NotAcceptableException(
           'Counter offer can only be made once for this order',
         );
@@ -262,6 +282,7 @@ export class CustomerService {
       bid.counter_bid_offer = dto.counter_bid;
       bid.counteredAt = new Date();
       bid.bidStatus = BidStatus.COUNTERED;
+      
 
       this.BidEvents.emitBidEvent(BidEvent.COUNTERED, { bid, bidID });
 
@@ -271,10 +292,16 @@ export class CustomerService {
 
       return bid;
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'something went wrong during counter offer, please try again later ',
-      );
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof NotAcceptableException)
+        throw new NotAcceptableException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to counter bid, please try again later',
+        );
+      }
     }
   }
 
@@ -340,13 +367,13 @@ export class CustomerService {
   // track order
   async TrackOrder(keyword: string | any): Promise<IOrder> {
     try {
-      
       //find order
       const trackorder = await this.orderRepo.findOne({
         where: { trackingID: ILike(`%${keyword}`) },
-        relations:['customer','bid'],
-        cache:false,
-        comment:"tracking order with the trackingToken generated by the system"
+        relations: ['customer', 'bid'],
+        cache: false,
+        comment:
+          'tracking order with the trackingToken generated by the system',
       });
       if (!trackorder)
         throw new NotFoundException(
@@ -355,107 +382,134 @@ export class CustomerService {
 
       return trackorder;
     } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trackin an order, please try again later',
+        );
+      }
+    }
+  }
+
+  //fetching all orders intransit
+  async fetchallOngoingOrders(customer: CustomerEntity) {
+    try {
+      const findorder = await this.orderRepo.findAndCount({
+        where: {
+          customer: { id: customer.id },
+          order_status: OrderStatus.IN_TRANSIT,
+        },
+        relations: ['customer', 'bid'],
+        comment: 'fetching orders that are in transit ',
+      });
+
+      if (findorder[1] === 0)
+        throw new NotFoundException(' you have no order in transit ');
+
+      return findorder;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+      throw new NotFoundException(error.message);
+    else {
       console.log(error);
       throw new InternalServerErrorException(
-        'something happened while trying to track your order, please try again, later',
+        'something went wrong while fetching all  orders in transit , please try again later',
+      );
+    }
+    }
+  }
+
+  //fetching all orders intransit
+  async fetchallPickedupOrders(customer: CustomerEntity) {
+    try {
+      const findorder = await this.orderRepo.findAndCount({
+        where: {
+          customer: { id: customer.id },
+          order_status: OrderStatus.PICKED_UP,
+        },
+        relations: ['customer', 'bid'],
+        comment: 'fetching orders that are picked up ',
+      });
+
+      if (findorder[1] === 0)
+        throw new NotFoundException(' you have no order in transit ');
+
+      return findorder;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+      throw new NotFoundException(error.message);
+    else {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while fetching all picked up orders, please try again later',
+      );
+    }
+    }
+  }
+
+  //fetching all orders intransit
+  async fetchalldroppedoff(customer: CustomerEntity) {
+    try {
+      const findorder = await this.orderRepo.findAndCount({
+        where: {
+          customer: { id: customer.id },
+          order_status: OrderStatus.DROPPED_OFF,
+        },
+        relations: ['customer', 'bid'],
+        comment: 'fetching orders that have been dropped off ',
+      });
+
+      if (findorder[1] === 0)
+        throw new NotFoundException(' you have no dropped off orders ');
+
+      return findorder;
+    } catch (error) {
+      console.log(error);
+      if (error instanceof NotFoundException)
+      throw new NotFoundException(error.message);
+    else {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while fetching all droppedoff orders, please try again later',
+      );
+    }
+    }
+  }
+
+  //add cards
+  async AddCards(
+    dto: CardDetailsDto,
+    customer: CustomerEntity,
+  ): Promise<ICard> {
+    try {
+      //add new card
+      const card = new CardEntity();
+      card.cardNumber = dto.cardNumber;
+      card.expiryMonth = dto.expiryMonth;
+      card.expiryYear = dto.expiryYear;
+      card.cvv = dto.cvv;
+      card.card_owner = customer;
+      card.addedAT = new Date();
+
+      await this.cardRepo.save(card);
+
+      return card;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'somthing went wrong when trying to add a card,please try again later',
       );
     }
   }
 
-
-  //fetching all orders intransit
-  async fetchallOngoingOrders(customer:CustomerEntity){
-  try {
-      const findorder = await this.orderRepo.findAndCount({
-        where: { customer: {id:customer.id},order_status:OrderStatus.IN_TRANSIT },
-        relations:['customer','bid'],
-        comment:'fetching orders that are in transit '
-      })
-  
-      if (findorder[1]===0) throw new NotFoundException(' you have no order in transit ')
-  
-      return findorder
-  
-  } catch (error) {
-    console.log(error)
-    throw new InternalServerErrorException('something went wrong when fetchin orders in transit, please try again later')
-    
-  }
-  }
-
-
-    //fetching all orders intransit
-    async fetchallPickedupOrders(customer:CustomerEntity){
-      try {
-        const findorder = await this.orderRepo.findAndCount({
-          where: { customer: {id:customer.id},order_status:OrderStatus.PICKED_UP },
-          relations:['customer','bid'],
-          comment:'fetching orders that are picked up '
-        })
-    
-        if (findorder[1]===0) throw new NotFoundException(' you have no order in transit ')
-    
-        return findorder
-      } catch (error) {
-        console.log(error)
-        throw new InternalServerErrorException('something went wrong when fetching picked up orders, please try again later')
-        
-      }
-  
-    }
-
-      //fetching all orders intransit
-  async fetchalldroppedoff(customer:CustomerEntity){
-    try {
-      const findorder = await this.orderRepo.findAndCount({
-        where: { customer: {id:customer.id},order_status:OrderStatus.DROPPED_OFF },
-        relations:['customer','bid'],
-        comment:'fetching orders that have been dropped off '
-      })
-  
-      if (findorder[1]===0) throw new NotFoundException(' you have no order in transit ')
-  
-      return findorder
-    } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('something went wrong when trying to fetch droppedOff orders, please try again later ')
-      
-    }
-
-  }
-
-  
-  //add cards 
-  async AddCards(dto:CardDetailsDto, customer:CustomerEntity):Promise<ICard>{
-   try {
-   
-     //add new card 
-     const card = new CardEntity()
-     card.cardNumber = dto.cardNumber
-     card.expiryMonth = dto.expiryMonth
-     card.expiryYear = dto.expiryYear
-     card.cvv = dto.cvv
-     card.card_owner = customer
-     card.addedAT = new Date()
-     
-     await this.cardRepo.save(card)
- 
-     return card
-   } catch (error) {
-    console.log(error)
-    throw new InternalServerErrorException('somthing went wrong when trying to add a card,please try again later')
-    
-   }
-
-  }
-
-  //get all card 
-
+  //get all card
 
   async getAllCardsByCustomer(customer: CustomerEntity): Promise<CardEntity[]> {
     try {
       const cards = await this.cardRepo.find({
-        where: { card_owner: {id:customer.id} },
+        where: { card_owner: { id: customer.id } },
         relations: ['card_owner'], // Ensure that the relation is correctly set in your CardEntity
         comment: 'Fetch all cards related to this user',
       });
@@ -466,152 +520,172 @@ export class CustomerService {
 
       return cards;
     } catch (error) {
-      console.error(error);
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        throw new InternalServerErrorException('Something went wrong when trying to fetch all your cards. Please try again later.');
+        console.error(error);
+        throw new InternalServerErrorException(
+          'Something went wrong when trying to fetch all your cards. Please try again later.',
+        );
       }
     }
   }
 
-  //get one card 
+  //get one card
 
-  async GetOneCard(customer:CustomerEntity, cardID:number){
+  async GetOneCard(customer: CustomerEntity, cardID: number) {
     try {
       const findcard = await this.cardRepo.findOne({
-        where: { card_owner: {id:customer.id}, id:cardID },
-        relations:['card_owner'],
-        comment:'fetching one card related to this user '
-      })
-  
-      if (!findcard) throw new NotFoundException(` there is no card associated wit the cardID: ${cardID} `)
-  
-      return findcard
-    } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('something went wrong when trying to fetch the details of one card, please try again later')
-      
-    }
+        where: { card_owner: { id: customer.id }, id: cardID },
+        relations: ['card_owner'],
+        comment: 'fetching one card related to this user ',
+      });
 
+      if (!findcard)
+        throw new NotFoundException(
+          ` there is no card associated wit the cardID: ${cardID} `,
+        );
+
+      return findcard;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.error(error);
+        throw new InternalServerErrorException(
+          'Something went wrong when trying to fetch all one card. Please try again later.',
+        );
+      }
+    }
   }
 
-  //delete one card 
+  //delete one card
 
-  async DeleteOneCard(customer:CustomerEntity, cardID:number){
+  async DeleteOneCard(customer: CustomerEntity, cardID: number) {
     try {
       const findcard = await this.cardRepo.findOne({
-        where: { card_owner: {id:customer.id}, id:cardID }, 
-        relations:['card_owner'],
-        comment:'fetching one card and then deleting it '
-      })
-  
-      if (!findcard) throw new NotFoundException(` there is no card associated wit the cardID: ${cardID} `)
-  
-      //delete card 
-      await this.cardRepo.remove(findcard)
-  
-      return {message:"card successfully deleted"}
-    } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('something went wrong while trying to delete a card, please try again later')
-      
-    }
+        where: { card_owner: { id: customer.id }, id: cardID },
+        relations: ['card_owner'],
+        comment: 'fetching one card and then deleting it ',
+      });
 
+      if (!findcard)
+        throw new NotFoundException(
+          ` there is no card associated wit the cardID: ${cardID} `,
+        );
+
+      //delete card
+      await this.cardRepo.remove(findcard);
+
+      return { message: 'card successfully deleted' };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.error(error);
+        throw new InternalServerErrorException(
+          'Something went wrong when trying to delete a card. Please try again later.',
+        );
+      }
+    }
   }
 
+  //customer profile
 
-  //customer profile 
-
-  //update info for onboarding and for profile 
-  async UpdateCustomerInfo(dto:UpdateCustomerDto,customer:CustomerEntity):Promise<{message:string}>{
+  //update info for onboarding and for profile
+  async UpdateCustomerInfo(
+    dto: UpdateCustomerDto,
+    customer: CustomerEntity,
+  ): Promise<{ message: string }> {
     try {
+      // Check if the provided email is already in use
+      const existingCustomer = await this.customerRepo.findOne({
+        where: { email: dto.email },
+      });
+      if (existingCustomer && existingCustomer.id !== customer.id) {
+        throw new ConflictException('Email is already in use');
+      }
 
-       // Check if the provided email is already in use
-       const existingCustomer = await this.customerRepo.findOne({where:{email:dto.email}});
-       if (existingCustomer && existingCustomer.id !== customer.id) {
-         throw new ConflictException('Email is already in use');
-       }
-      
-      //add the updated data from the dto 
-     
-      customer.LGA_of_Home_Address = dto.LGA_of_Home_Address
-      customer.RegisteredAt = new Date()
-      customer.email = dto.email
-      customer.home_address = dto.home_address
-      customer.firstname = dto.firstname
-      customer.lastname = dto.lastname
-      customer.gender = dto.gender
-  
-      await this.customerRepo.save(customer)
-      return {message:"changes to record made successfully"}
-      
+      //add the updated data from the dto
+
+      customer.LGA_of_Home_Address = dto.LGA_of_Home_Address;
+      customer.RegisteredAt = new Date();
+      customer.email = dto.email;
+      customer.home_address = dto.home_address;
+      customer.firstname = dto.firstname;
+      customer.lastname = dto.lastname;
+      customer.gender = dto.gender;
+
+      await this.customerRepo.save(customer);
+      return { message: 'changes to record made successfully' };
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('something went wrong while updating the user info, please try again later')
-      
+      if (error instanceof ConflictException) {
+        throw new ConflictException(error.message);
+      } else {
+        console.error(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while trying to update the info of a customer. Please try again later.',
+        );
+      }
     }
   }
 
-  // change password 
-  async changeCustomerPassword(dto:ChangePasswordDto,customer:CustomerEntity):Promise<{message:string}>{
-
+  // change password
+  async changeCustomerPassword(
+    dto: ChangePasswordDto,
+    customer: CustomerEntity,
+  ): Promise<{ message: string }> {
     const { oldPassword, password, confirmPassword } = dto;
 
     const comparepass = await this.customerauthservice.comaprePassword(
       dto.oldPassword,
       customer.password,
     );
-    if (!comparepass) throw new NotAcceptableException('the old password provided does not match the existing passworod')
+    if (!comparepass)
+      throw new NotAcceptableException(
+        'the old password provided does not match the existing passworod',
+      );
 
-    const hashpass = await this.customerauthservice.hashpassword(dto.password)
+    const hashpass = await this.customerauthservice.hashpassword(dto.password);
 
-    
-    customer.password = hashpass
+    customer.password = hashpass;
     try {
-       await this.customerRepo.save(customer)
-       return {message:'passwod chanaged successfully'}
+      await this.customerRepo.save(customer);
+      return { message: 'passwod chanaged successfully' };
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('something happened when trying to change password, please try again later')
-      
+      if (error instanceof NotAcceptableException) {
+        throw new NotAcceptableException(error.message);
+      } else {
+        console.error(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while trying to change password. Please try again later.',
+        );
+      }
     }
-
-
   }
 
-  //upload profile pics 
+  //upload profile pics
 
   async UploadCustomerProfilePics(
-    mediafile: Express.Multer.File,customer:CustomerEntity):Promise<{message:string}>{
-      try {
-        const display_pics = await this.uploadservice.uploadFile(mediafile);
-        const mediaurl = `http://localhost:3000/api/v1/ostra-logistics_api/uploadfile/public/${display_pics}`;
-  
-        //update the image url 
-  
-        customer.profile_picture = mediaurl
-  
-        await this.customerRepo.save(customer)
-  
-        return {message:'your profile picture has been uploaded successully '}
-  
-      } catch (error) {
-        console.log(error)
-        throw new InternalServerErrorException('something went wrong during profile picture upload')
-        
-      }
+    mediafile: Express.Multer.File,
+    customer: CustomerEntity,
+  ): Promise<{ message: string }> {
+    try {
+      const display_pics = await this.uploadservice.uploadFile(mediafile);
+      const mediaurl = `http://localhost:3000/api/v1/ostra-logistics_api/uploadfile/public/${display_pics}`;
 
-  
+      //update the image url
 
+      customer.profile_picture = mediaurl;
+
+      await this.customerRepo.save(customer);
+
+      return { message: 'your profile picture has been uploaded successully ' };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong during profile picture upload',
+      );
     }
-
-
-
-
-
-
-
-
- 
+  }
 }

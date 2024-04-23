@@ -3,6 +3,7 @@ import { IRider } from "src/Riders/riders";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OrderEntity } from "./orders.entity";
 import { TaskEntity } from "./ridersTasks.entity";
+import { RequestEntity } from "./requests.entity";
 
 @Entity({name:"Riders",})
 export class RiderEntity implements IRider{
@@ -114,6 +115,10 @@ export class RiderEntity implements IRider{
 
     @OneToMany(()=>TaskEntity, task=>task.rider)
     tasks: TaskEntity[];
+
+    @OneToMany(()=>RequestEntity, request=>request.Rider)
+    my_requests: RequestEntity[];
+    
     
 
     
