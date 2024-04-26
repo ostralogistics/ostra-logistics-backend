@@ -13,9 +13,6 @@ export class Notifications implements INotification{
     account:string
 
 
-    @Column({nullable:true,type:"enum", enum:NotificationType})
-    notification_type:NotificationType
-
     @Column({nullable:false})
     message:string
 
@@ -32,7 +29,6 @@ export class Notifications implements INotification{
 export interface INotification{
     id:number
     account:string
-    notification_type:NotificationType
     message:string
     subject:string
     date:Date

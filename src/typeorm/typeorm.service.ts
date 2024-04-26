@@ -11,6 +11,7 @@ import { UserOtp } from 'src/Entity/otp.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
 import { RiderEntity } from 'src/Entity/riders.entity';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
+import { VehicleEntity } from 'src/Entity/vehicle.entity';
 
 @Injectable()
 export class TypeOrmService {
@@ -38,6 +39,7 @@ export class TypeOrmService {
         CardEntity,
         TaskEntity,
         RequestEntity,
+        VehicleEntity,
       ],
       migrations: [],
       subscribers: [],

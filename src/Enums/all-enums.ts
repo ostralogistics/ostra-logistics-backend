@@ -76,9 +76,13 @@ export enum Role{
 
 export enum AdminType{
     CEO ="ceo",
-    DESK_ATTENDANT="desk_attendant",
-    OFFICE_MANAGER ="office_manager" 
+    STAFF ="staff"
 
+}
+
+export enum ReturnedVehicle{
+    YES="yes",
+    NOT_YET ="not_yet"
 }
 export enum AdminAccessLevels{
     LEVEL1="level_1",
@@ -215,6 +219,22 @@ export enum NotificationType {
    
     LOGGED_IN = 'logged_in',
   }
+
+export enum OrderBasedOnDates{
+    TODAY="today",
+    LAST_WEEK="lastweek",
+    LAST_MONTH="lastmonth",
+    LAST_YEAR="lastyear"
+}
+
+export enum DeliveryVolume{
+    WEEk="week",
+    DAY ="day",
+    MONTH="month",
+   
+}
+
+
 
 
 

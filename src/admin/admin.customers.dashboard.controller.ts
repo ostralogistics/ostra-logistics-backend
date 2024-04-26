@@ -11,6 +11,7 @@ import {
 import { AdminCustomerDashBoardService } from './admin.customers.dashboard.service';
 import { AdminPlaceBidDto, counterBidDto } from 'src/common/common.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
+import { DeliveryVolume, OrderBasedOnDates } from 'src/Enums/all-enums';
 
 @UseGuards(JwtGuard)
 @Controller('admin-customer-dashboard')
@@ -36,10 +37,7 @@ export class AdminCustomerDashBoardController {
   }
 
   @Patch('counter-bid/:BidID')
-  async CounterBid(
-    @Body() dto: counterBidDto,
-    @Param('BidID') BidID: number,
-  ) {
+  async CounterBid(@Body() dto: counterBidDto, @Param('BidID') BidID: number) {
     return await this.admincustomerservice.counterCustomerCouterBid(BidID, dto);
   }
 
@@ -92,5 +90,76 @@ export class AdminCustomerDashBoardController {
   @Get('track-order/')
   async TrackOrder(@Query('keyword') keyword: string | any) {
     await this.admincustomerservice.TrackOrder(keyword);
+  }
+
+  @Get('orders-based-on-dates')
+  async GetOrdersBasedOnDates(
+    @Query('timeRange') timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return await this.admincustomerservice.GetOrdersBasedOnDates(
+      page,
+      limit,
+      timeRange,
+    );
+  }
+
+  @Get('delivery-volume')
+  async GetDeliveryVolume(
+    @Query('timeRange') timeRange: DeliveryVolume = DeliveryVolume.DAY,
+  ) {
+    return await this.admincustomerservice.GetDeliveryVolume(timeRange);
+  }
+
+  //counts 
+  @Get('active-orders-count')
+  async GetAllActiveOrdersCount(){
+    return await this.admincustomerservice.getAllActiveOrdersCount()
+
+  }
+
+  @Get('pending-orders-count')
+  async GetAllPendingOrdersCount(){
+    return await this.admincustomerservice.getAllPendingOrderCount()
+
+  }
+
+  @Get('completed-orders-count')
+  async GetAllCompletedOrdersCount(){
+    return await this.admincustomerservice.getAllCompletedOrderCount()
+
+  }
+
+  @Get('branding-orders-count')
+  async GetAllInOfficeForrandingOrdersCount(){
+    return await this.admincustomerservice.getAllOrdersInTheOfficeCount()
+
+  }
+
+  //counts based on dates
+
+  @Get('active-orders-count-based-on-dates')
+  async GetActiveOrdersBasedOnDates(
+    @Query('timeRange') timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,) {
+    return await this.admincustomerservice.getActiveOrderCountBasedOnDate( timeRange);
+  }
+
+  @Get('pending-orders-count-based-on-dates')
+  async GetPendingOrdersBasedOnDates(
+    @Query('timeRange') timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,) {
+    return await this.admincustomerservice.getPendingOrderCountBasedOnDate( timeRange);
+  }
+
+  @Get('completed-orders-count-based-on-dates')
+  async GetCompletedOrdersBasedOnDates(
+    @Query('timeRange') timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,) {
+    return await this.admincustomerservice.getCompletedOrderCountBasedOnDate( timeRange);
+  }
+
+  @Get('inshop-branding-orders-count-based-on-dates')
+  async GetBrandingOrdersBasedOnDates(
+    @Query('timeRange') timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,) {
+    return await this.admincustomerservice.getofficeBrandingOrderCountBasedOnDate( timeRange);
   }
 }

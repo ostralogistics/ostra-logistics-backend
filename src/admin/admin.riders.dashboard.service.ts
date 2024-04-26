@@ -80,16 +80,16 @@ export class AdminRiderDashboardService {
       const genpassword = await this.generatePassword();
       const hashedpassword =
         await this.customerauthservice.hashpassword(genpassword);
-  
+
       const genEmailsuffix = await this.generatEmailSuffixNumber();
       const emailfromfirstname = dto.firstname;
       const emaildomain = '_rider@ostralogistics.com';
       const emailnow = emailfromfirstname + genEmailsuffix + emaildomain;
-  
+
       const dob = new Date(dto.DOB);
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
-  
+
       //register new rider
       const rider = new RiderEntity();
       (rider.firstname = dto.firstname), (rider.lastname = dto.lastname);
@@ -103,7 +103,7 @@ export class AdminRiderDashboardService {
       (rider.state_of_orgin = dto.state_of_origin),
         (rider.LGA_of_origin = dto.LGA_of_origin),
         (rider.guarantor1_name = dto.guarantor1_name);
-  
+
       rider.guarantor1_relatioship_with_rider =
         dto.guarantor1_relatioship_with_rider;
       rider.gurantor1_mobile = dto.mobile;
@@ -112,7 +112,7 @@ export class AdminRiderDashboardService {
         dto.guarantor2_relatioship_with_rider;
       //verify the account
       (rider.isVerified = true), (rider.isRegistered = true);
-  
+
       //find if rider already exists
       const findrider = await this.riderripo.findOne({
         where: { email: emailnow },
@@ -121,30 +121,29 @@ export class AdminRiderDashboardService {
         throw new NotAcceptableException(
           `email: ${emailnow} already exists, please generate another one`,
         );
-  
+
       await this.riderripo.save(rider);
-  
+
       //save notification
       const notification = new Notifications();
       notification.account = 'admin';
       notification.subject = 'Admin Registered a Rider !';
       notification.message = `a new rider has ben created on ostra logistics platform `;
       await this.notificationripo.save(notification);
-  
+
       return {
         message: 'the rider has been Registered Successfully',
         response: rider,
       };
     } catch (error) {
       if (error instanceof NotFoundException)
-      throw new NotFoundException(error.message);
-    else {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'something went wrong while trying to Register a Rider, please try again later',
-      );
-    }
-      
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to Register a Rider, please try again later',
+        );
+      }
     }
   }
 
@@ -155,10 +154,10 @@ export class AdminRiderDashboardService {
     dto: UpdateRiderInfoByAdminDto,
   ) {
     try {
-      const findriderbyid = await this.riderripo.findOne({
+      const rider = await this.riderripo.findOne({
         where: { id: riderId },
       });
-      if (!findriderbyid)
+      if (!rider)
         throw new NotFoundException(
           `rider with id:${riderId} is not found in the ostra logistics rider database`,
         );
@@ -170,11 +169,9 @@ export class AdminRiderDashboardService {
       const age = today.getFullYear() - dob.getFullYear();
 
       //update record
-      const rider = new RiderEntity();
+
       (rider.firstname = dto.firstname),
         (rider.lastname = dto.lastname),
-        (rider.DOB = dto.DOB),
-        (rider.age = age),
         (rider.mobile = dto.mobile),
         (rider.marital_status = dto.marital_status);
       rider.home_address = dto.home_address;
@@ -196,7 +193,6 @@ export class AdminRiderDashboardService {
       const notification = new Notifications();
       notification.account = 'super admin';
       notification.subject = 'Admin Updated The Record of a Rider !';
-      notification.notification_type = NotificationType.RIDER_INFO_UPDATED;
       notification.message = `the record of the rider with the id ${riderId} has been updated  on ostra logistics platform `;
       await this.notificationripo.save(notification);
 

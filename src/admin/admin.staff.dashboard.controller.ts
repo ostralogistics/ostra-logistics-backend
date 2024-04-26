@@ -13,14 +13,14 @@ export class AdminStaffDashBoardController{
     constructor(private readonly adminstaffservice:AdminStaffDasboardService){}
 
 
-    @Post('/regster')
-    async AdminRegisterStaff(dto:RegisterOtherAdminByAdminDto,){
+    @Post('/register')
+    async AdminRegisterStaff(@Body()dto:RegisterOtherAdminByAdminDto,){
         return await this.adminstaffservice.RegisterStaff(dto)
 
         
     }
 
-    @Patch('/update-staff-info/:adminId/:staffId')
+    @Patch('/update-staff-info/:staffId')
     async UpdateRiderInfo(@Param('staffId')staffId:string,@Body()dto:UpdateOtherAdminInfoByAdminDto){
         return await this.adminstaffservice.UpdateStaffInfoByAdmin(staffId,dto)
     }
@@ -35,18 +35,18 @@ export class AdminStaffDashBoardController{
         return await this.adminstaffservice.AdminChangeStaffPassword(staffID)
     }
 
-    @Get('/all-riders')
+    @Get('/all-staffs')
     async GetAllRiders(@Query('page')page:number, @Query('limit')limit:number){
         return await this.adminstaffservice.GetAllStaffs(page, limit);
         
     }
 
-    @Get('/one-rider/:staffID')
+    @Get('/one-staff/:staffID')
     async GetOneRider(staffID:string) {
         return await this.adminstaffservice.GetOneStaffByID(staffID)
     }
 
-    @Get('/search-riders')
+    @Get('/search-staff')
     async SearchRider(@Query('keyword')keyword:string|any){
         return await this.adminstaffservice.SearchForStaff(keyword)
     }

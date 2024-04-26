@@ -15,7 +15,12 @@ import { CustomerEntity } from 'src/Entity/customers.entity';
 import { LessThan, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { NotificationType, Role } from 'src/Enums/all-enums';
+import {
+  AdminAccessLevels,
+  AdminType,
+  NotificationType,
+  Role,
+} from 'src/Enums/all-enums';
 import { UserOtp } from 'src/Entity/otp.entity';
 import {
   NotificationRepository,
@@ -23,7 +28,6 @@ import {
 } from 'src/common/common.repositories';
 import { Notifications } from 'src/Entity/notifications.entity';
 import {
-  
   Logindto,
   RequestOtpResendDto,
   SendPasswordResetLinkDto,
@@ -52,23 +56,22 @@ export class AdminAuthService {
   ) {}
 
   // get customer profile
-  async getProfile(adminId: string): Promise<IAdmin> {
+  async getProfile(Admin: AdminEntity): Promise<IAdmin> {
     try {
-      const admin = await this.adminrepo.findOne({ where: { id: adminId } });
+      const admin = await this.adminrepo.findOne({ where: { id: Admin.id } });
       if (!admin) {
         throw new NotFoundException('Super admin not found');
       }
       return admin;
     } catch (error) {
       if (error instanceof NotFoundException)
-      throw new NotFoundException(error.message);
-    else {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'something went wrong while fetching admin profile, please try again later',
-      );
-    }
-      
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching admin profile, please try again later',
+        );
+      }
     }
   }
 
@@ -77,316 +80,406 @@ export class AdminAuthService {
   async RegisterSuperAdmin(
     dto: RegisterAdminDto,
   ): Promise<{ message: string }> {
-    const checkemail = await this.adminrepo.findOne({
-      where: { email: dto.email },
-    });
-    if (checkemail)
-      throw new ConflictException(
-        'This super admin already exists',
+    try {
+      // Check if a CEO already exists
+      const existingCEO = await this.adminrepo.findOne({
+        where: { admintype: AdminType.CEO },
+      });
+
+      if (existingCEO) {
+        throw new ConflictException('oops! A CEO already exists in ostra logitics and only one CEO can exist.');
+      }
+      const checkemail = await this.adminrepo.findOne({
+        where: { email: dto.email },
+      });
+      if (checkemail)
+        throw new ConflictException('This super admin already exists');
+
+      const hashedpassword = await this.customerauthservice.hashpassword(
+        dto.password,
       );
 
-      const hashedpassword = await this.customerauthservice.hashpassword(dto.password)
+      const admin = new AdminEntity();
+      admin.email = dto.email;
+      admin.fullname = dto.fullname;
+      admin.password = hashedpassword;
+      admin.mobile = dto.mobile;
+      admin.role = Role.ADMIN;
+      admin.adminAccessLevels = AdminAccessLevels.LEVEL3;
+      admin.admintype = AdminType.CEO;
+      admin.RegisteredAt = new Date();
+      admin.isRegistered = true;
 
-    const admin = new AdminEntity();
-    admin.email = dto.email;
-    admin.fullname = dto.fullname;
-    admin.password =hashedpassword
-    admin.mobile =dto.mobile
-    admin.role = Role.ADMIN;
-    admin.RegisteredAt = new Date();
-    admin.isRegistered = true;
+      await this.adminrepo.save(admin);
 
-    await this.adminrepo.save(admin);
+      //2fa authentication
+      const emiailverificationcode =
+        await this.customerauthservice.generateEmailToken();
 
-    //2fa authentication
-    const emiailverificationcode =
-      await this.customerauthservice.generateEmailToken();
-
-  
-    //otp
-    const otp = new UserOtp();
-    otp.email = dto.email;
-    otp.otp = emiailverificationcode;
-    otp.role = admin.role;
-    const twominuteslater = new Date();
-    await twominuteslater.setMinutes(twominuteslater.getMinutes() + 10);
-    otp.expiration_time = twominuteslater;
-    await this.otprepo.save(otp);
+      //otp
+      const otp = new UserOtp();
+      otp.email = dto.email;
+      otp.otp = emiailverificationcode;
+      otp.role = admin.role;
+      const twominuteslater = new Date();
+      await twominuteslater.setMinutes(twominuteslater.getMinutes() + 2);
+      otp.expiration_time = twominuteslater;
+      await this.otprepo.save(otp);
 
       // mail
-      await this.mailerservice.SendVerificationeMail(dto.email, dto.fullname,emiailverificationcode,twominuteslater);
+      await this.mailerservice.SendVerificationeMail(
+        dto.email,
+        dto.fullname,
+        emiailverificationcode,
+        twominuteslater,
+      );
 
-    //save the notification
-    const notification = new Notifications();
-    notification.account = admin.fullname;
-    notification.subject = 'New Super Admin Created!';
-    notification.message = `new admin created successfully `;
-    await this.notificationrepo.save(notification);
+      //save the notification
+      const notification = new Notifications();
+      notification.account = admin.fullname;
+      notification.subject = 'New Super Admin Created!';
+      notification.message = `new admin created successfully `;
+      await this.notificationrepo.save(notification);
 
-    return {
-      message:
-        'You have successfully registered as a super admin, please check your email for the otp verification',
-    };
+      return {
+        message:
+          'You have successfully registered as a super admin, please check your email for the otp verification',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof ConflictException) throw new ConflictException(error.message)
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something happen while trying to sign up',
+        );
+      }
+    }
   }
-
-
 
   async verifyEmail(
     dto: VerifyOtpDto,
   ): Promise<{ isValid: boolean; accessToken: any }> {
+    try {
+      //find the otp provided if it matches with the otp stored
+      const findotp = await this.otprepo.findOne({ where: { otp: dto.otp } });
+      if (!findotp)
+        throw new NotFoundException(
+          'you provided an invalid OTP,please go back to your email and confirm the OTP sent to you',
+        );
 
-    //find the otp provided if it matches with the otp stored
-    const findotp = await this.otprepo.findOne({ where: { otp: dto.otp } });
-    if (!findotp)
-      throw new NotFoundException(
-        'you provided an invalid OTP,please go back to your email and confirm the OTP sent to you',
+      //find if the otp is expired
+      if (findotp.expiration_time <= new Date())
+        throw new RequestTimeoutException(
+          'OTP is expired, please request for another one',
+        );
+
+      // Find the admin associated with the OTP
+      const admin = await this.adminrepo.findOne({
+        where: { email: findotp.email },
+      });
+      if (!admin)
+        throw new NotFoundException('No admin found for the provided OTP.');
+
+      // Verify and update the customer's status
+      admin.isVerified = true;
+      admin.isLoggedIn = true;
+      await this.adminrepo.save(admin);
+
+      const notification = new Notifications();
+      (notification.account = admin.fullname),
+        (notification.subject = 'Super Admin Verified!');
+      notification.message = `Hello ${admin.fullname}, your email has been successfully verified `;
+      await this.notificationrepo.save(notification);
+
+      //await this.mailerservice.SendWelcomeEmail(admin.email,admin.brandname)
+
+      await this.adminrepo.save(admin);
+
+      //send welcome mail
+      await this.mailerservice.WelcomeMail(admin.email, admin.fullname);
+
+      const accessToken = await this.customerauthservice.signToken(
+        admin.id,
+        admin.email,
+        admin.role,
       );
 
-    //find if the otp is expired
-    if (findotp.expiration_time <= new Date())
-      throw new RequestTimeoutException(
-        'OTP is expired, please request for another one',
-      );
-
-    // Find the customer associated with the OTP
-    const admin = await this.adminrepo.findOne({
-      where: { email: findotp.email },
-    });
-    if (!admin)
-      throw new HttpException(
-        'No user found for the provided OTP.',
-        HttpStatus.NOT_FOUND,
-      );
-
-    // Verify and update the customer's status
-    admin.isVerified = true;
-    admin.isLoggedIn = true;
-    await this.adminrepo.save(admin);
-
-    const notification = new Notifications();
-    (notification.account = admin.fullname),
-      (notification.subject = 'Super Admin Verified!');
-    notification.message = `Hello ${admin.fullname}, your email has been successfully verified `;
-    await this.notificationrepo.save(notification);
-
-    //await this.mailerservice.SendWelcomeEmail(admin.email,admin.brandname)
-
-    await this.adminrepo.save(admin);
-
-    //send welcome mail 
-    await this.mailerservice.WelcomeMail(admin.email, admin.fullname)
-
-    const accessToken = await this.customerauthservice.signToken(
-      admin.id,
-      admin.email,
-      admin.role,
-    );
-
-    return { isValid: true, accessToken };
+      return { isValid: true, accessToken };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof RequestTimeoutException)
+        throw new RequestTimeoutException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'an error occured while verifying the email of the admin pls try again',
+        );
+      }
+    }
   }
 
   // resend email verification otp
 
-  async ResendExpiredOtp(
-    email: string | any,
-  ): Promise<{ message: string }> {
-    const emailexsist = await this.adminrepo.findOne({
-      where: { email: email },
-    });
-    if (!emailexsist)
-      throw new HttpException(
-        `customer with email: ${email}doesn't exists, please use an already registered email`,
-        HttpStatus.CONFLICT,
+  async ResendExpiredOtp(email: string | any): Promise<{ message: string }> {
+    try {
+      const emailexsist = await this.adminrepo.findOne({
+        where: { email: email },
+      });
+      if (!emailexsist)
+        throw new ConflictException(
+          `customer with email: ${email}doesn't exists, please use an already registered email`,
+        );
+
+      // Check if there is an expired OTP for the user
+      const expiredOtp = await this.otprepo.findOne({
+        where: { email: email, expiration_time: LessThan(new Date()) },
+      });
+      if (!expiredOtp) {
+        throw new NotFoundException('No expired OTP found for this user.');
+      }
+      // Generate a new OTP
+      const emiailverificationcode =
+        await this.customerauthservice.generateEmailToken(); // Your OTP generated tokens
+
+      // Save the token with expiration time
+      const twominuteslater = new Date();
+      await twominuteslater.setMinutes(twominuteslater.getMinutes() + 2);
+
+      //save the token
+      const newOtp = this.otprepo.create({
+        email: email,
+        otp: emiailverificationcode,
+        expiration_time: twominuteslater,
+        role: emailexsist.role,
+      });
+      await this.otprepo.save(newOtp);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = emailexsist.fullname;
+      notification.subject = 'Otp Resent!';
+      notification.message = `Hello ${emailexsist.fullname}, a new verification Link has been resent to your mail `;
+      await this.notificationrepo.save(notification);
+
+      //send mail
+      await this.mailerservice.SendVerificationeMail(
+        newOtp.email,
+        emailexsist.fullname,
+        emiailverificationcode,
+        twominuteslater,
       );
 
-    // Check if there is an expired OTP for the user
-    const expiredOtp = await this.otprepo.findOne({
-      where: { email: email, expiration_time: LessThan(new Date()) },
-    });
-    if (!expiredOtp) {
-      throw new NotFoundException(
-        'No expired OTP found for this user.',
-        
-      );
+      return {
+        message: 'New Otp verification code has been sent successfully',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof ConflictException)
+        throw new ConflictException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'somethig went wrong when trying to resend otp, please try again',
+        );
+      }
     }
-    // Generate a new OTP
-    const emiailverificationcode =
-      await this.customerauthservice.generateEmailToken(); // Your OTP generated tokens
-
-    // Save the token with expiration time
-    const twominuteslater = new Date();
-    await twominuteslater.setMinutes(twominuteslater.getMinutes() + 10);
-
-    //save the token
-    const newOtp = this.otprepo.create({
-      email: email,
-      otp: emiailverificationcode,
-      expiration_time: twominuteslater,
-      role: emailexsist.role,
-    });
-    await this.otprepo.save(newOtp);
-
-    //save the notification
-    const notification = new Notifications();
-    notification.account = emailexsist.fullname
-    notification.subject = 'Otp Resent!';
-    notification.message = `Hello ${emailexsist.fullname}, a new verification Link has been resent to your mail `;
-    await this.notificationrepo.save(notification);
-
-    //send mail
-    await this.mailerservice.SendVerificationeMail(
-      newOtp.email,
-      emailexsist.fullname,
-      emiailverificationcode,
-      twominuteslater
-    );
-
-    return { message: 'New Otp verification code has been sent successfully' };
   }
 
   async sendPasswordResetLink(
     dto: SendPasswordResetLinkDto,
   ): Promise<{ message: string }> {
-    const isEmailReistered = await this.adminrepo.findOne({
-      where: { email: dto.email },
-    });
-    if (!isEmailReistered)
-      throw new NotFoundException(
-        `this email ${dto.email} does not exist in our system, please try another email address`,
-        
+    try {
+      const isEmailReistered = await this.adminrepo.findOne({
+        where: { email: dto.email },
+      });
+      if (!isEmailReistered)
+        throw new NotFoundException(
+          `this email ${dto.email} does not exist in our system, please try another email address`,
+        );
+
+      const resetlink = await this.customerauthservice.generateEmailToken();
+      const expirationTime = new Date();
+      expirationTime.setHours(expirationTime.getHours() + 1);
+
+      //send reset link to the email provided
+      await this.mailerservice.SendPasswordResetLinkMail(
+        dto.email,
+        resetlink,
+        isEmailReistered.fullname,
       );
 
-    const resetlink = await this.customerauthservice.generateEmailToken();
-    const expirationTime = new Date();
-    expirationTime.setHours(expirationTime.getHours() + 1);
+      //save the reset link and the expiration time to the database
+      isEmailReistered.password_reset_link = resetlink;
+      isEmailReistered.reset_link_exptime = expirationTime;
+      await this.adminrepo.save(isEmailReistered);
 
-    //send reset link to the email provided
-    await this.mailerservice.SendPasswordResetLinkMail(
-      dto.email,
-      resetlink,
-      isEmailReistered.fullname,
-    );
+      const notification = new Notifications();
+      (notification.account = isEmailReistered.fullname),
+        (notification.subject = 'password Reset link!');
+      notification.message = `Hello ${isEmailReistered.fullname}, password resent link sent `;
+      await this.notificationrepo.save(notification);
 
-    //save the reset link and the expiration time to the database
-    isEmailReistered.password_reset_link = resetlink;
-    isEmailReistered.reset_link_exptime = expirationTime;
-    await this.adminrepo.save(isEmailReistered);
-
-    const notification = new Notifications();
-    (notification.account = isEmailReistered.fullname),
-      (notification.subject = 'password Reset link!');
-    notification.notification_type = NotificationType.EMAIL_VERIFICATION;
-    notification.message = `Hello ${isEmailReistered.fullname}, password resent link sent `;
-    await this.notificationrepo.save(notification);
-
-    return { message: 'The password reset link has been sent successfully' };
+      return { message: 'The password reset link has been sent successfully' };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'somethig went wrong when trying to request for password reset link, please try again',
+        );
+      }
+    }
   }
-
-
 
   //verify token sent when trying to reset password
   async VerifyResetPasswordOtp(
     dto: VerifyOtpForResetPasswordDto,
   ): Promise<{ message: string }> {
+    try {
+      //find the user who has the reset otp sent
+      const verifyuser = await this.adminrepo.findOne({
+        where: { password_reset_link: dto.otp },
+      });
+      if (!verifyuser)
+        throw new NotAcceptableException(
+          'the reset password token is incorrect please retry or request for another token',
+        );
 
-    //find the user who has the reset otp sent 
-    const verifyuser = await this.adminrepo.findOne({where: { password_reset_link:dto.otp }});
-    if (!verifyuser)
-      throw new NotAcceptableException(
-        'the reset password token is incorrect please retry or request for another token',
-      );
+      //find if the otp is expired
+      if (verifyuser.reset_link_exptime <= new Date())
+        throw new RequestTimeoutException(
+          'reset token is expired, please request for another one',
+        );
 
-     //find if the otp is expired
-     if (verifyuser.reset_link_exptime <= new Date())
-     throw new RequestTimeoutException(
-       'reset token is expired, please request for another one',
-     );
+      const notification = new Notifications();
+      (notification.account = verifyuser.fullname),
+        (notification.subject = 'Verify Password Reset Token!');
+      notification.message = `Hello ${verifyuser.fullname}, password reset link verified and the password has been recently reseted `;
+      await this.adminrepo.save(verifyuser);
 
-
-    const notification = new Notifications();
-    (notification.account = verifyuser.fullname ),
-      (notification.subject = 'Verify Password Reset Token!');
-    notification.message = `Hello ${verifyuser.fullname}, password reset link verified and the password has been recently reseted `;
-    await this.adminrepo.save(verifyuser);
-
-    return { message: 'otp has been verified' };
+      return { message: 'otp has been verified' };
+    } catch (error) {
+      if (error instanceof NotAcceptableException)
+        throw new NotAcceptableException(error.message);
+      else if (error instanceof RequestTimeoutException)
+        throw new RequestTimeoutException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'somethig went wrong when trying to verify reset link sent , please try again',
+        );
+      }
+    }
   }
 
-//reset password 
-async FinallyResetPasswordAfterVerification(adminID:string|any, dto:addPasswordDto):Promise<{message:string}>{
+  //reset password
+  async FinallyResetPasswordAfterVerification(
+    adminID: string | any,
+    dto: addPasswordDto,
+  ): Promise<{ message: string }> {
     try {
-      const checkcustomer = await this.adminrepo.findOne({where:{id:adminID}})
-      if (!checkcustomer.isVerified) throw new UnauthorizedException('sorry this customer has not been verified yet, please request for an otp to verify your account')
-  
-      const hashedpassword = await this.customerauthservice.hashpassword(dto.password)
-  
-      //add the password 
-      checkcustomer.password = hashedpassword
-  
-      await this.adminrepo.save(checkcustomer)
-  
-      return {message:'password has been reset successfully'}
- 
+      const checkcustomer = await this.adminrepo.findOne({
+        where: { id: adminID },
+      });
+      if (!checkcustomer.isVerified)
+        throw new UnauthorizedException(
+          'sorry this customer has not been verified yet, please request for an otp to verify your account',
+        );
+
+      const hashedpassword = await this.customerauthservice.hashpassword(
+        dto.password,
+      );
+
+      //add the password
+      checkcustomer.password = hashedpassword;
+
+      await this.adminrepo.save(checkcustomer);
+
+      return { message: 'password has been reset successfully' };
     } catch (error) {
-     throw  new InternalServerErrorException('an error occured while reseting password',error)
-     
+      if (error instanceof UnauthorizedException)
+        throw new UnauthorizedException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'somethig went wrong when trying to reset password , please try again',
+        );
+      }
     }
-   }
+  }
 
   //login admin
 
   async login(logindto: Logindto) {
-    const findadmin = await this.adminrepo.findOne({
-      where: { email: logindto.email },
-    });
-    if (!findadmin)
-      throw new HttpException(`invalid credential`, HttpStatus.NOT_FOUND);
-    const comparepass = await this.customerauthservice.comaprePassword(
-      logindto.password,
-      findadmin.password,
-    );
-    if (!comparepass) {
-      findadmin.loginCount += 1;
+    try {
+      const findadmin = await this.adminrepo.findOne({
+        where: { email: logindto.email },
+      });
+      if (!findadmin) throw new NotFoundException(`invalid credential`);
+      const comparepass = await this.customerauthservice.comaprePassword(
+        logindto.password,
+        findadmin.password,
+      );
+      if (!comparepass) {
+        findadmin.loginCount += 1;
 
-      if (findadmin.loginCount >= 5) {
-        findadmin.isLocked = true;
-        findadmin.locked_until = new Date(Date.now() + 24 * 60 * 60 * 1000); //lock for 24 hours
+        if (findadmin.loginCount >= 5) {
+          findadmin.isLocked = true;
+          findadmin.locked_until = new Date(Date.now() + 24 * 60 * 60 * 1000); //lock for 24 hours
+          await this.adminrepo.save(findadmin);
+          throw new NotFoundException('invalid credential');
+        }
+
+        //  If the customer hasn't reached the maximum login attempts, calculate the number of attempts left
+        const attemptsleft = 5 - findadmin.loginCount;
         await this.adminrepo.save(findadmin);
-        throw new UnauthorizedException(`invalid credential`);
+
+        throw new UnauthorizedException(
+          `invalid credentials ${attemptsleft} attempts left before your account is locked.`,
+        );
       }
 
-      //  If the customer hasn't reached the maximum login attempts, calculate the number of attempts left
-      const attemptsleft = 5 - findadmin.loginCount;
+      if (!findadmin.isVerified)
+        // If the account is not verified, throw an exception
+        throw new ForbiddenException(
+          `Your account has not been verified. Please verify your account by requesting a verification code.`,
+        );
+
+      //If the password matches, reset the login_count and unlock the account if needed
+      findadmin.loginCount = 0;
+      findadmin.isLoggedIn = true;
       await this.adminrepo.save(findadmin);
 
-      throw new UnauthorizedException(
-        `invalid credentials ${attemptsleft} attempts left before your account is locked.`,
+      //save the notification
+      const notification = new Notifications();
+      notification.account = findadmin.fullname;
+      notification.subject = ' login!';
+      notification.message = `Hello ${findadmin.fullname}, just logged in `;
+      await this.notificationrepo.save(notification);
+
+      return await this.customerauthservice.signToken(
+        findadmin.id,
+        findadmin.email,
+        findadmin.role,
       );
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof UnauthorizedException)
+        throw new UnauthorizedException(error.message);
+      else if (error instanceof ForbiddenException)
+        throw new ForbiddenException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'somethig went wrong when trying to login , please try again',
+        );
+      }
     }
-
-    if (!findadmin.isVerified) {
-      // If the account is not verified, throw an exception
-      throw new ForbiddenException(
-        `Your account has not been verified. Please verify your account by requesting a verification code.`,
-      );
-    }
-
-    //If the password matches, reset the login_count and unlock the account if needed
-    findadmin.loginCount = 0;
-    findadmin.isLoggedIn = true;
-    await this.adminrepo.save(findadmin);
-
-    //save the notification
-    const notification = new Notifications();
-    notification.account = findadmin.fullname;
-    notification.subject = ' login!';
-    notification.message = `Hello ${findadmin.fullname}, just logged in `;
-    await this.notificationrepo.save(notification);
-
-    return await this.customerauthservice.signToken(
-      findadmin.id,
-      findadmin.email,
-      findadmin.role,
-    );
   }
 }

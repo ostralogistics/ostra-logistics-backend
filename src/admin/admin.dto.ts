@@ -1,5 +1,5 @@
 import { IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsStrongPassword, Matches, matches } from "class-validator";
-import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, RiderTask, StateOFOrigin, VehicleType } from "src/Enums/all-enums";
+import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, ReturnedVehicle, RiderTask, StateOFOrigin, VehicleState, VehicleType } from "src/Enums/all-enums";
 
 
 
@@ -82,11 +82,6 @@ export class RegisterRiderByAdminDto{
     @IsNotEmpty()
     DOB:string
 
-
-    @IsString()
-    @IsOptional()
-    profile_picture:string
-
     @IsEnum(MaritalStatus)
     @IsNotEmpty()
     marital_status: MaritalStatus
@@ -100,9 +95,6 @@ export class RegisterRiderByAdminDto{
    // @Matches(/^NGR\+234\d{10}$/,{message:"mobile number must be a valid Nigerian service operator's cell number"})
     mobile:string
 
-    @IsString()
-    @IsOptional()
-    driver_license:string
 
     @IsString()
     @IsNotEmpty()
@@ -125,9 +117,6 @@ export class RegisterRiderByAdminDto{
     //@Matches(/^NGR\+234\d{10}$/,{message:"mobile number must be a valid Nigerian service operator's cell number"})
     gurantor1_mobile:string
 
-    @IsString()
-    @IsOptional()
-    guarantor1_picture:string
 
     @IsString()
     @IsNotEmpty()
@@ -141,10 +130,6 @@ export class RegisterRiderByAdminDto{
     @IsNotEmpty()
     //@Matches(/^NGR\+234\d{10}$/,{message:"mobile number must be a valid Nigerian service operator's cell number"})
     gurantor2_mobile:string
-
-    @IsString()
-    @IsOptional()
-    guarantor2_picture:string
 
 }
 
@@ -230,10 +215,6 @@ export class RegisterOtherAdminByAdminDto{
 
     @IsString()
     @IsNotEmpty()
-    fullname:string
-
-    @IsString()
-    @IsNotEmpty()
     firstname:string
 
     @IsString()
@@ -243,11 +224,6 @@ export class RegisterOtherAdminByAdminDto{
     @IsDateString()
     @IsNotEmpty()
     DOB:string
-
-
-    @IsString()
-    @IsNotEmpty()
-    profile_picture:string
 
     @IsEnum(MaritalStatus)
     @IsNotEmpty()
@@ -259,7 +235,7 @@ export class RegisterOtherAdminByAdminDto{
 
     @IsString()
     @IsNotEmpty()
-    @Matches(/^NGR\+234\d{10}$/,{message:"mobile number must be a valid Nigerian service operator's cell number"})
+    //@Matches(/^NGR\+234\d{10}$/,{message:"mobile number must be a valid Nigerian service operator's cell number"})
     mobile:string
 
     @IsString()
@@ -274,9 +250,6 @@ export class RegisterOtherAdminByAdminDto{
     @IsNotEmpty()
     accesslevel : AdminAccessLevels
 
-    @IsEnum(AdminType)
-    @IsNotEmpty()
-    admintype:AdminType
 
 }
 
@@ -321,14 +294,69 @@ export class UpdateOtherAdminInfoByAdminDto{
     @IsOptional()
     LGA_of_origin:string
 
-    @IsEnum(AdminAccessLevels)
+    @IsString()
     @IsOptional()
-    accesslevel : AdminAccessLevels
+    LGA_of_Home_Address:string
 
-    @IsEnum(AdminType)
+    @IsEnum(Gender)
     @IsOptional()
-    admintype:AdminType
+    gender:Gender
+
+  
 
 }
 
+
+export class RegisterVehicleDto{
+    @IsString()
+    @IsOptional()
+    vehicle_model: string
+
+    @IsEnum(VehicleType)
+    @IsNotEmpty()
+    vehicle_type: VehicleType
+
+    @IsString()
+    @IsNotEmpty()
+    color: string
+
+    @IsString()
+    @IsNotEmpty()
+    registration_number: string
+
+    @IsEnum(VehicleState)
+    @IsNotEmpty()
+    state_of_vehicle: VehicleState
+    
+}
+
+
+export class UpdateVehicleDto{
+    @IsString()
+    @IsOptional()
+    vehicle_model: string
+
+    @IsEnum(VehicleType)
+    @IsOptional()
+    vehicle_type: VehicleType
+
+    @IsString()
+    @IsOptional()
+    color: string
+
+    @IsString()
+    @IsOptional()
+    registration_number: string
+
+    @IsEnum(VehicleState)
+    @IsOptional()
+    state_of_vehicle: VehicleState
+    
+}
+
+export class ReturnedVehicleDto{
+    @IsEnum(ReturnedVehicle)
+    @IsNotEmpty()
+    returned : ReturnedVehicle
+}
 

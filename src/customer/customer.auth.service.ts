@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   HttpException,
   HttpStatus,
@@ -141,7 +142,6 @@ export class CustomerAuthService {
       const notification = new Notifications();
       notification.account = customer.firstname;
       notification.subject = 'New Customer Created!';
-      notification.notification_type = NotificationType.ADMIN_CREATED;
       notification.message = `new admin created successfully `;
       await this.notificationrepo.save(notification);
 
@@ -150,11 +150,14 @@ export class CustomerAuthService {
           'You have successfully registered as a customer, please check your email for the otp verification',
       };
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'an error occured while trying register as a customer',
-        error,
-      );
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something happen while trying to sign up',
+        );
+      }
     }
   }
 
@@ -181,10 +184,14 @@ export class CustomerAuthService {
 
       return { message: 'password has been added successfully' };
     } catch (error) {
-      throw new InternalServerErrorException(
-        'an error occured while adding password',
-        error,
-      );
+      if (error instanceof UnauthorizedException)
+        throw new UnauthorizedException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'an error occured while adding password',
+        );
+      }
     }
   }
 
@@ -222,7 +229,6 @@ export class CustomerAuthService {
       const notification = new Notifications();
       (notification.account = customer.firstname),
         (notification.subject = 'Customer Verified!');
-      notification.notification_type = NotificationType.EMAIL_VERIFICATION;
       notification.message = `Hello ${customer.firstname}, your email has been successfully verified `;
       await this.notificationrepo.save(notification);
 
@@ -242,64 +248,83 @@ export class CustomerAuthService {
       return { isValid: true, accessToken };
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException(
-        'an error occured while verifying the email of the customer ',
-        error,
-      );
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof RequestTimeoutException)
+        throw new RequestTimeoutException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'an error occured while verifying the email of the customer, please try again',
+        );
+      }
     }
   }
 
   // resend email verification otp when the one sent is expired
   async ResendExpiredOtp(email: string | any): Promise<{ message: string }> {
-    const emailexsist = await this.customerrepo.findOne({
-      where: { email: email },
-    });
-    if (!emailexsist)
-      throw new HttpException(
-        `customer with email: ${email}doesn't exists, please use an already registered email`,
-        HttpStatus.CONFLICT,
+    try {
+      const emailexsist = await this.customerrepo.findOne({
+        where: { email: email },
+      });
+      if (!emailexsist)
+        throw new ConflictException(
+          `customer with email: ${email}doesn't exists, please use an already registered email`,
+        );
+
+      // Check if there is an expired OTP for the user
+      const expiredOtp = await this.otprepo.findOne({
+        where: { email: email, expiration_time: LessThan(new Date()) },
+      });
+      if (!expiredOtp) {
+        throw new NotFoundException('No expired OTP found for this user.');
+      }
+      // Generate a new OTP
+      const emiailverificationcode = await this.generateEmailToken(); // Your OTP generated tokens
+
+      // Save the token with expiration time
+      const twominuteslater = new Date();
+      await twominuteslater.setMinutes(twominuteslater.getMinutes() + 10);
+
+      //save the token
+      const newOtp = this.otprepo.create({
+        email: email,
+        otp: emiailverificationcode,
+        expiration_time: twominuteslater,
+        role: emailexsist.role,
+      });
+      await this.otprepo.save(newOtp);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = emailexsist.firstname;
+      notification.subject = 'Otp Resent!';
+      notification.message = `Hello ${emailexsist.firstname}, a new verification Link has been resent to your mail `;
+      await this.notificationrepo.save(notification);
+
+      //send mail
+      await this.mailerservice.SendVerificationeMail(
+        newOtp.email,
+        emailexsist.firstname,
+        emiailverificationcode,
+        twominuteslater,
       );
 
-    // Check if there is an expired OTP for the user
-    const expiredOtp = await this.otprepo.findOne({
-      where: { email: email, expiration_time: LessThan(new Date()) },
-    });
-    if (!expiredOtp) {
-      throw new NotFoundException('No expired OTP found for this user.');
+      return {
+        message: 'New Otp verification code has been sent successfully',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof ConflictException)
+        throw new ConflictException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'somethig went wrong when trying to resend otp, please try again',
+        );
+      }
     }
-    // Generate a new OTP
-    const emiailverificationcode = await this.generateEmailToken(); // Your OTP generated tokens
-
-    // Save the token with expiration time
-    const twominuteslater = new Date();
-    await twominuteslater.setMinutes(twominuteslater.getMinutes() + 10);
-
-    //save the token
-    const newOtp = this.otprepo.create({
-      email: email,
-      otp: emiailverificationcode,
-      expiration_time: twominuteslater,
-      role: emailexsist.role,
-    });
-    await this.otprepo.save(newOtp);
-
-    //save the notification
-    const notification = new Notifications();
-    notification.account = emailexsist.firstname;
-    notification.subject = 'Otp Resent!';
-    notification.notification_type = NotificationType.EMAIL_VERIFICATION;
-    notification.message = `Hello ${emailexsist.firstname}, a new verification Link has been resent to your mail `;
-    await this.notificationrepo.save(notification);
-
-    //send mail
-    await this.mailerservice.SendVerificationeMail(
-      newOtp.email,
-      emailexsist.firstname,
-      emiailverificationcode,
-      twominuteslater,
-    );
-
-    return { message: 'New Otp verification code has been sent successfully' };
   }
 
   //request for an otp to verify the user before resetting the password
@@ -333,17 +358,20 @@ export class CustomerAuthService {
 
       const notification = new Notifications();
       (notification.account = isEmailReistered.firstname),
-        (notification.subject = 'password Reset link!');
-      notification.notification_type = NotificationType.EMAIL_VERIFICATION;
+        (notification.subject = 'password Reset link!')
       notification.message = `Hello ${isEmailReistered.firstname}, password resent link sent `;
       await this.notificationrepo.save(notification);
 
       return { message: 'The password reset link has been sent successfully' };
     } catch (error) {
-      throw new InternalServerErrorException(
-        'an error occured while trying to request for a password rest token',
-        error,
-      );
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'somethig went wrong when trying to request for password reset link, please try again',
+        );
+      }
     }
   }
 
@@ -351,29 +379,41 @@ export class CustomerAuthService {
   async VerifyResetPasswordOtp(
     dto: VerifyOtpForResetPasswordDto,
   ): Promise<{ message: string }> {
-    //find the user who has the reset otp sent
-    const verifyuser = await this.customerrepo.findOne({
-      where: { password_reset_link: dto.otp },
-    });
-    if (!verifyuser)
-      throw new NotAcceptableException(
-        'the reset password token is incorrect please retry or request for another token',
-      );
+    try {
+      //find the user who has the reset otp sent
+      const verifyuser = await this.customerrepo.findOne({
+        where: { password_reset_link: dto.otp },
+      });
+      if (!verifyuser)
+        throw new NotAcceptableException(
+          'the reset password token is incorrect please retry or request for another token',
+        );
 
-    //find if the otp is expired
-    if (verifyuser.reset_link_exptime <= new Date())
-      throw new RequestTimeoutException(
-        'reset token is expired, please request for another one',
-      );
+      //find if the otp is expired
+      if (verifyuser.reset_link_exptime <= new Date())
+        throw new RequestTimeoutException(
+          'reset token is expired, please request for another one',
+        );
 
-    const notification = new Notifications();
-    (notification.account = verifyuser.firstname),
-      (notification.subject = 'Verify Password Reset Token!');
-    notification.notification_type = NotificationType.EMAIL_VERIFICATION;
-    notification.message = `Hello ${verifyuser.firstname}, password reset link verified and the password has been recently reseted `;
-    await this.customerrepo.save(verifyuser);
+      const notification = new Notifications();
+      (notification.account = verifyuser.firstname),
+        (notification.subject = 'Verify Password Reset Token!');
+      notification.message = `Hello ${verifyuser.firstname}, password reset link verified and the password has been recently reseted `;
+      await this.customerrepo.save(verifyuser);
 
-    return { message: 'otp has been verified' };
+      return { message: 'otp has been verified' };
+    } catch (error) {
+      if (error instanceof NotAcceptableException)
+        throw new NotAcceptableException(error.message);
+      else if (error instanceof RequestTimeoutException)
+        throw new RequestTimeoutException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'somethig went wrong when trying to verify reset link sent , please try again',
+        );
+      }
+    }
   }
 
   //reset password
@@ -399,69 +439,79 @@ export class CustomerAuthService {
 
       return { message: 'password has been reset successfully' };
     } catch (error) {
-      throw new InternalServerErrorException(
-        'an error occured while reseting password',
-        error,
-      );
+      if (error instanceof UnauthorizedException)
+        throw new UnauthorizedException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'somethig went wrong when trying to reset password , please try again',
+        );
+      }
     }
   }
 
   //login admin
 
   async login(logindto: Logindto) {
-    const findcustomer = await this.customerrepo.findOne({
-      where: { email: logindto.email },
-    });
-    if (!findcustomer)
-      throw new HttpException(`invalid credential`, HttpStatus.NOT_FOUND);
-    const comparepass = await this.comaprePassword(
-      logindto.password,
-      findcustomer.password,
-    );
-    if (!comparepass) {
-      findcustomer.loginCount += 1;
-
-      if (findcustomer.loginCount >= 5) {
-        findcustomer.isLocked = true;
-        findcustomer.locked_until = new Date(Date.now() + 24 * 60 * 60 * 1000); //lock for 24 hours
-        await this.customerrepo.save(findcustomer);
-        throw new HttpException(`invalid password`, HttpStatus.UNAUTHORIZED);
+    try {
+      const findcustomer = await this.customerrepo.findOne({
+        where: { email: logindto.email },
+      });
+      if (!findcustomer) {
+        throw new NotFoundException('Invalid credentials');
       }
-
-      //  If the customer hasn't reached the maximum login attempts, calculate the number of attempts left
-      const attemptsleft = 5 - findcustomer.loginCount;
+  
+      const comparepass = await this.comaprePassword(
+        logindto.password,
+        findcustomer.password,
+      );
+      if (!comparepass) {
+        findcustomer.loginCount += 1;
+  
+        if (findcustomer.loginCount >= 5) {
+          findcustomer.isLocked = true;
+          findcustomer.locked_until = new Date(
+            Date.now() + 24 * 60 * 60 * 1000,
+          ); // Lock for 24 hours
+        }
+  
+        // If the customer hasn't reached the maximum login attempts, calculate the number of attempts left
+        if (findcustomer.loginCount < 5) {
+          const attemptsLeft = 5 - findcustomer.loginCount;
+          throw new UnauthorizedException(`Invalid credentials. ${attemptsLeft} attempts left before your account is locked.`);
+        }
+  
+        await this.customerrepo.save(findcustomer);
+        throw new NotFoundException('Invalid credentials');
+      }
+  
+      if (!findcustomer.isVerified) {
+        throw new ForbiddenException('Your account has not been verified. Please verify your account by requesting a verification code.');
+      }
+  
+      // If the password matches and account is not locked, reset the login_count and unlock the account if needed
+      findcustomer.loginCount = 0;
+      findcustomer.isLoggedIn = true;
+      findcustomer.isLocked = false;
       await this.customerrepo.save(findcustomer);
-
-      throw new HttpException(
-        `invalid credentials ${attemptsleft} attempts left before your account is locked.`,
-        HttpStatus.UNAUTHORIZED,
-      );
+  
+      // Save the notification
+      const notification = new Notifications();
+      notification.account = findcustomer.firstname;
+      notification.subject = 'Customer just logged in!';
+      notification.message = `Hello ${findcustomer.firstname}, just logged in `;
+      await this.notificationrepo.save(notification);
+  
+      // Generate and return JWT token
+      return await this.signToken(findcustomer.id, findcustomer.email, findcustomer.role);
+    } catch (error) {
+      console.log(error);
+      if (error instanceof NotFoundException || error instanceof UnauthorizedException || error instanceof ForbiddenException) {
+        throw error; // Re-throw specific exceptions
+      } else {
+        throw new InternalServerErrorException('Something went wrong when trying to login, please try again.');
+      }
     }
-
-    if (!findcustomer.isVerified) {
-      // If the account is not verified, throw an exception
-      throw new ForbiddenException(
-        `Your account has not been verified. Please verify your account by requesting a verification code.`,
-      );
-    }
-
-    //If the password matches, reset the login_count and unlock the account if needed
-    findcustomer.loginCount = 0;
-    findcustomer.isLoggedIn = true;
-    await this.customerrepo.save(findcustomer);
-
-    //save the notification
-    const notification = new Notifications();
-    notification.account = findcustomer.firstname;
-    notification.subject = 'Photographer just logged in!';
-    notification.notification_type = NotificationType.LOGGED_IN;
-    notification.message = `Hello ${findcustomer.firstname}, just logged in `;
-    await this.notificationrepo.save(notification);
-
-    return await this.signToken(
-      findcustomer.id,
-      findcustomer.email,
-      findcustomer.role,
-    );
   }
+  
 }

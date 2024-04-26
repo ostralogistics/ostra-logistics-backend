@@ -16,7 +16,7 @@ export class AdminEntity implements IAdmin{
     @Column({nullable:false, type:'enum', enum:AdminAccessLevels, default:AdminAccessLevels.LEVEL1})
     adminAccessLevels: AdminAccessLevels;
 
-    @Column({nullable:false, type:'enum', enum:AdminType, default:AdminType.DESK_ATTENDANT})
+    @Column({nullable:false, type:'enum', enum:AdminType})
     admintype: AdminType;
 
     @Column({nullable:true})
