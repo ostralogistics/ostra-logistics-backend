@@ -1,5 +1,5 @@
 import {  ReturnedVehicle, Role, VehicleState, VehicleType } from "src/Enums/all-enums";
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { RiderEntity } from "./riders.entity";
 
 
@@ -33,7 +33,7 @@ export class VehicleEntity implements IVehicle{
     @Column({nullable:true})
     vehicle_model: string;
 
-    @Column({nullable:true, type:'enum', enum:Role})
+    @Column({nullable:true, type:'enum', enum:VehicleType})
     vehicle_type: VehicleType;
 
     @Column({nullable:false})
@@ -56,7 +56,7 @@ export class VehicleEntity implements IVehicle{
     @Column({nullable:true, type:'timestamp'})
     DeletedAt: Date; 
 
-    @OneToMany(()=>RiderEntity,rider=>rider.vehicle_for_the_day)
+    @ManyToOne(()=>RiderEntity,rider=>rider.vehicle_for_the_day)
     assigned_Rider: RiderEntity;
 
     @Column({nullable:true,type:'timestamp'})
@@ -65,7 +65,7 @@ export class VehicleEntity implements IVehicle{
     @Column({nullable:true})
     vehiclePics:string
 
-    @Column({nullable:false,type:'enum', enum:ReturnedVehicle})
+    @Column({nullable:true,type:'enum', enum:ReturnedVehicle})
     returned_vehicle: ReturnedVehicle;
 
     @Column({nullable:true,type:'timestamp'})

@@ -1,4 +1,6 @@
 import {
+  BadGatewayException,
+  BadRequestException,
   ConflictException,
   ConsoleLogger,
   Injectable,
@@ -32,15 +34,21 @@ export class AdminService {
   //register vehicle
   async RegisterVehicle(dto: RegisterVehicleDto, file: Express.Multer.File) {
     try {
-      const uploadfile = await this.uploadservice.uploadFile(file);
-
-      const imageurl = `https://localhost:3000/api/v1/ostralogistics/${uploadfile}`;
+      let imageurl: string | null = null;
+      if (file) {
+        const uploadfile = await this.uploadservice.uploadFile(file);
+        imageurl = `https://localhost:3000/api/v1/ostralogistics/${uploadfile}`;
+      }
 
       const newVehicle = new VehicleEntity();
+      newVehicle.vehicle_type = dto.vehicle_type;
       newVehicle.color = dto.color;
       newVehicle.registration_number = dto.registration_number;
       newVehicle.state_of_vehicle = dto.state_of_vehicle;
-      newVehicle.vehiclePics = imageurl;
+      if (imageurl) {
+        newVehicle.vehiclePics = imageurl;
+      }
+
       newVehicle.vehicle_model = dto.vehicle_model;
       newVehicle.RegisteredAt = new Date();
 
@@ -69,14 +77,19 @@ export class AdminService {
           `the vehicle with id ${vehicleiD} does not exist`,
         );
 
-      const uploadfile = await this.uploadservice.uploadFile(file);
-
-      const imageurl = `https://localhost:3000/api/v1/ostralogistics/${uploadfile}`;
+      let imageurl: string | null = null;
+      if (file) {
+        const uploadfile = await this.uploadservice.uploadFile(file);
+        imageurl = `https://localhost:3000/api/v1/ostralogistics/${uploadfile}`;
+      }
 
       vehicle.color = dto.color;
+      vehicle.vehicle_type = dto.vehicle_type;
       vehicle.registration_number = dto.registration_number;
       vehicle.state_of_vehicle = dto.state_of_vehicle;
-      vehicle.vehiclePics = imageurl;
+      if (imageurl) {
+        vehicle.vehiclePics = imageurl;
+      }
       vehicle.vehicle_model = dto.vehicle_model;
       vehicle.UpdatedAt = new Date();
 
@@ -190,6 +203,7 @@ export class AdminService {
       vehicle.assigned_Rider = rider;
       vehicle.assignedAT = new Date();
       await this.vehiclerepo.save(vehicle);
+      return vehicle;
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -218,8 +232,15 @@ export class AdminService {
           `the vehicle with id ${vehicleID} does not exist`,
         );
 
+      //if the case is when the vehicle is not assigned
+      if (vehicle && vehicle.assigned_Rider === null)
+        throw new BadRequestException(
+          'this vehicle is not yet assigned to any rider, so you cannot return what was not assigned',
+        );
+
       const rider = await this.riderrepo.findOne({
-        where: { vehicle_for_the_day: vehicle, id: riderID },
+        where: { vehicle_for_the_day: { id: vehicleID } },
+        relations: ['vehicle_for_the_day'],
       });
       if (!rider)
         throw new ConflictException(
@@ -250,6 +271,8 @@ export class AdminService {
         throw new ConflictException(error.message);
       else if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
+      else if (error instanceof BadRequestException)
+        throw new BadRequestException(error.message);
       else {
         console.log(error);
         throw new InternalServerErrorException(

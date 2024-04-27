@@ -321,7 +321,7 @@ export class AdminRiderDashboardService {
   //admin delete rider
   async AdminDeleteRider(
     riderID: string,
-  ): Promise<{ message: string | BadRequestException }> {
+  ): Promise<{ message: string}> {
     try {
       const findriderbyid = await this.riderripo.findOne({
         where: { id: riderID },
@@ -562,6 +562,7 @@ export class AdminRiderDashboardService {
           { lastname: ILike(`%${keyword}%`) },
           { email: ILike(`%${keyword}%`) },
         ],
+        relations:['vehicle_for_the_day'],
         cache: false,
         comment:
           'searching for a rider with either of the keywords , lastname or firstname or email',

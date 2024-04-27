@@ -360,3 +360,8 @@ export class ReturnedVehicleDto{
     returned : ReturnedVehicle
 }
 
+export class AdminchangestaffAccessLevelDto{
+    @IsEnum(AdminAccessLevels)
+    accesslevel:AdminAccessLevels
+}
+

@@ -3,8 +3,14 @@ import { AdminService } from "./admin.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { RegisterVehicleDto, ReturnedVehicleDto, UpdateVehicleDto } from "./admin.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { RoleGuard } from "src/auth/guard/role.guard";
+import { Roles } from "src/auth/decorator/role.decorator";
+import { Role } from "src/Enums/all-enums";
 
 @UseGuards(JwtGuard)
+@UseGuards(RoleGuard)
+@Roles(Role.ADMIN)
+
 @Controller('admin')
 export class Admincontroller{
     constructor(private readonly adminservice:AdminService){}
@@ -36,13 +42,13 @@ export class Admincontroller{
         return await this.adminservice.fetchOneVehicle(vehicleID)
     }
 
-    @Post('assign-vehicle')
-    async AssignVehicle(@Param('vehicleID')vehicleID:number,@Param('vehicleID')riderID:string){
+    @Post('assign-vehicle/:vehicleID/:riderID')
+    async AssignVehicle(@Param('vehicleID')vehicleID:number,@Param('riderID')riderID:string){
         return await this.adminservice.assignAVhicleToADriver(riderID,vehicleID)
     }
 
-    @Patch('report-vehicle-return')
-    async ReturnVehile(@Param('vehicleID')vehicleID:number,@Param('vehicleID')riderID:string,@Body()dto:ReturnedVehicleDto){
+    @Patch('report-vehicle-return/:vehicleID/:riderID')
+    async ReturnVehile(@Param('vehicleID')vehicleID:number,@Param('riderID')riderID:string,@Body()dto:ReturnedVehicleDto){
         return await this.adminservice.ReportVehicleReturnStatus(dto,vehicleID,riderID)
     }
 

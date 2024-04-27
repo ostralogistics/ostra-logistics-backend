@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
@@ -22,6 +23,7 @@ import {
   Role,
 } from 'src/Enums/all-enums';
 import {
+  AdminchangestaffAccessLevelDto,
   RegisterOtherAdminByAdminDto,
   UpdateOtherAdminInfoByAdminDto,
 } from './admin.dto';
@@ -74,8 +76,7 @@ export class AdminStaffDasboardService {
       (newadmin.state_of_origin = dto.state_of_origin),
         (newadmin.LGA_of_origin = dto.LGA_of_origin);
       (newadmin.role = Role.ADMIN),
-        (newadmin.adminAccessLevels = dto.accesslevel)
-      
+        (newadmin.adminAccessLevels = dto.accesslevel);
 
       //find if rider already exists
       const findadmin = await this.adminripo.findOne({
@@ -151,16 +152,16 @@ export class AdminStaffDasboardService {
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
 
-    // Update other admin record directly from DTO
-    admin.firstname = dto.firstname;
-    admin.lastname = dto.lastname;
-    admin.mobile = dto.mobile;
-    admin.marital_status = dto.marital_status;
-    admin.home_address = dto.home_address;
-    admin.state_of_origin = dto.state_of_origin;
-    admin.LGA_of_origin = dto.LGA_of_origin;
-    admin.gender = dto.gender;
-    admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
+      // Update other admin record directly from DTO
+      admin.firstname = dto.firstname;
+      admin.lastname = dto.lastname;
+      admin.mobile = dto.mobile;
+      admin.marital_status = dto.marital_status;
+      admin.home_address = dto.home_address;
+      admin.state_of_origin = dto.state_of_origin;
+      admin.LGA_of_origin = dto.LGA_of_origin;
+      admin.gender = dto.gender;
+      admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
 
       await this.adminripo.save(admin);
 
@@ -191,7 +192,7 @@ export class AdminStaffDasboardService {
   async AdminDeleteStaff(adminID: string) {
     try {
       const findotheradmin = await this.adminripo.findOne({
-        where: { id: adminID },
+        where: { id: adminID, admintype: AdminType.STAFF },
       });
       if (!findotheradmin)
         throw new NotFoundException(
@@ -209,7 +210,7 @@ export class AdminStaffDasboardService {
       await this.notificationripo.save(notification);
 
       return {
-        message: ` ${findotheradmin.firstname}  has been deleted  by the super admin `,
+        message: ` staff deleted  by the CEO `,
       };
     } catch (error) {
       if (error instanceof NotFoundException)
@@ -229,12 +230,12 @@ export class AdminStaffDasboardService {
     staffID: string,
   ): Promise<{ message: string; response: IChangeRiderPassword }> {
     try {
-      const findstaff = await this.riderripo.findOne({
-        where: { id: staffID },
+      const findstaff = await this.adminripo.findOne({
+        where: { id: staffID, admintype: AdminType.STAFF },
       });
       if (!findstaff)
         throw new NotFoundException(
-          `rider with id:${staffID} is not found in the ostra logistics rider database`,
+          `staff with id:${staffID} is not found in the ostra logistics staff database`,
         );
 
       //change tthe password
@@ -304,14 +305,25 @@ export class AdminStaffDasboardService {
 
   //admin get one staff by id
   async GetOneStaffByID(staffID: string) {
-    const staff = await this.riderripo.findOne({
-      where: { id: staffID },
-    });
-    if (!staff)
-      throw new NotFoundException(
-        `staff with id:${staffID} is not found in the ostra logistics rider database`,
-      );
-    return staff;
+    try {
+      const staff = await this.adminripo.findOne({
+        where: { id: staffID, admintype: AdminType.STAFF },
+      });
+      if (!staff)
+        throw new NotFoundException(
+          `staff with id:${staffID} is not found in the ostra logistics staff database`,
+        );
+      return staff;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while tryig to get one staff by id, please try again later',
+        );
+      }
+    }
   }
 
   //admin search for an admin
@@ -339,6 +351,40 @@ export class AdminStaffDasboardService {
       throw new InternalServerErrorException(
         'An error occured while searching for staff',
       );
+    }
+  }
+
+  //admin change astaff access level
+  async ChangeStaffAccessLevel(
+    staffID: string,
+    dto: AdminchangestaffAccessLevelDto,
+  ): Promise<{ message: string; response: IAdmin }> {
+    try {
+      const staff = await this.adminripo.findOne({
+        where: { id: staffID, admintype: AdminType.STAFF },
+      });
+      if (!staff)
+        throw new NotFoundException(
+          `staff with id:${staffID} is not found in the ostra logistics staff database`,
+        );
+
+      //change accesslevel
+      staff.adminAccessLevels = dto.accesslevel;
+      await this.adminripo.save(staff);
+
+      return {
+        message: 'staff accesslevel has been changed successfully',
+        response: staff,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to chnge the accesslevel of this staff, please try again later',
+        );
+      }
     }
   }
 }

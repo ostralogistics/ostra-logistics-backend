@@ -8,6 +8,8 @@ import { AdminEntity } from 'src/Entity/admins.entity';
 import { JwtGuard } from './guard/jwt.guard';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RoleGuard } from './guard/role.guard';
+import { AdminTypeGuard } from './guard/admintype.guard';
+import { Roles } from './decorator/role.decorator';
 
 @Module({
   imports: [
@@ -19,6 +21,6 @@ import { RoleGuard } from './guard/role.guard';
       }),
     }),
   ],
-  providers: [AuthService,JwtGuard,JwtStrategy,RoleGuard],
+  providers: [AuthService,JwtGuard,JwtStrategy,RoleGuard,AdminTypeGuard],
 })
 export class AuthModule {}
