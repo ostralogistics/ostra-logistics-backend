@@ -10,6 +10,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { RoleGuard } from './guard/role.guard';
 import { AdminTypeGuard } from './guard/admintype.guard';
 import { Roles } from './decorator/role.decorator';
+import { AdminAcessLevelGuard } from './guard/accesslevel.guard';
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { Roles } from './decorator/role.decorator';
       }),
     }),
   ],
-  providers: [AuthService,JwtGuard,JwtStrategy,RoleGuard,AdminTypeGuard],
+  providers: [AuthService,JwtGuard,JwtStrategy,RoleGuard,AdminTypeGuard,AdminAcessLevelGuard],
 })
 export class AuthModule {}

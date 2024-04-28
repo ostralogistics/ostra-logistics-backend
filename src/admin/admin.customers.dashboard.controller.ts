@@ -11,9 +11,18 @@ import {
 import { AdminCustomerDashBoardService } from './admin.customers.dashboard.service';
 import { AdminPlaceBidDto, counterBidDto } from 'src/common/common.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
-import { DeliveryVolume, OrderBasedOnDates } from 'src/Enums/all-enums';
+import { AdminType, DeliveryVolume, OrderBasedOnDates, Role } from 'src/Enums/all-enums';
+import { RoleGuard } from 'src/auth/guard/role.guard';
+import { Roles } from 'src/auth/decorator/role.decorator';
+import { AdminTypeGuard } from 'src/auth/guard/admintype.guard';
+import { AdminTypes } from 'src/auth/decorator/admintype.decorator';
 
-@UseGuards(JwtGuard)
+
+
+@UseGuards(JwtGuard,RoleGuard,AdminTypeGuard)
+@Roles(Role.ADMIN)
+@AdminTypes(AdminType.STAFF,AdminType.CEO)
+
 @Controller('admin-customer-dashboard')
 export class AdminCustomerDashBoardController {
   constructor(

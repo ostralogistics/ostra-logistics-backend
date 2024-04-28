@@ -2,8 +2,12 @@ import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nest
 import { RiderService } from "./riders.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { AcceptOrDeclineTaskDto, DropOffCodeDto } from "./riders.dto";
+import { RoleGuard } from "src/auth/guard/role.guard";
+import { Roles } from "src/auth/decorator/role.decorator";
+import { Role } from "src/Enums/all-enums";
 
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard,RoleGuard)
+@Roles(Role.RIDER)
 @Controller('rider')
 export class RiderController{
     constructor(private readonly riderservice:RiderService){}

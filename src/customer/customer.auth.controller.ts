@@ -7,7 +7,6 @@ import { Request } from "express";
 
 @Controller('customer-auth')
 export class CustomerAuthController{
-    adminservice: any;
     constructor(private readonly customerauthservice:CustomerAuthService){}
 
 

@@ -6,11 +6,21 @@ import { ICreateAdmins } from "./admin";
 import { AdminEntity } from "src/Entity/admins.entity";
 import { IChangeRiderPassword } from "src/Riders/riders";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
+import { RoleGuard } from "src/auth/guard/role.guard";
+import { Roles } from "src/auth/decorator/role.decorator";
+import { AdminAccessLevels, Role } from "src/Enums/all-enums";
+import { AdminAcessLevelGuard } from "src/auth/guard/accesslevel.guard";
+import { AdminAccessLevel } from "src/auth/decorator/accesslevel.decorator";
 
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard,RoleGuard,AdminAcessLevelGuard)
+@Roles(Role.ADMIN)
+@AdminAccessLevel(AdminAccessLevels.LEVEL3)
+
+
 @Controller('admin-staff-dashboard')
 export class AdminStaffDashBoardController{
     constructor(private readonly adminstaffservice:AdminStaffDasboardService){}
+
 
 
     @Post('/register')

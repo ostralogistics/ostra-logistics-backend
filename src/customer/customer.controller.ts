@@ -6,8 +6,13 @@ import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { CardDetailsDto, ChangePasswordDto, UpdateCustomerDto } from "./customer.dto";
 import { CustomerEntity } from "src/Entity/customers.entity";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { RoleGuard } from "src/auth/guard/role.guard";
+import { Roles } from "src/auth/decorator/role.decorator";
+import { Role } from "src/Enums/all-enums";
 
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard,RoleGuard)
+@Roles(Role.CUSTOMER)
+
 @Controller('customer-action')
 export class CustomerController{
     constructor(private readonly customerservice:CustomerService){}
