@@ -208,12 +208,12 @@ export class Mailer {
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
 
-  async WelcomeMail(email: string, name: string): Promise<void> {
+  async WelcomeMail(email: string, name: string, promocode:string): Promise<void> {
     const subject = 'Welcome To Ostra Logistics';
     const content = `<!DOCTYPE html>
     <html>
       <head>
-        <title>welocme to ostra logistics</title>
+        <title>Welcome to Ostra Logistics</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -244,11 +244,84 @@ export class Mailer {
             font-size: 16px;
             margin-bottom: 20px;
           }
-          .otp {
+          .instructions {
+            font-size: 16px;
+            line-height: 1.4;
+          }
+          .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #0293D2;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+          }
+          .footer {
             text-align: center;
-            font-size: 30px;
+            margin-top: 20px;
+            color: #777777;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="logo">
+            <h1>OSTRA LOGISTICS</h1>
+          </div>
+          <h1 class="verification-heading">Welcome OnBoard!</h1>
+          <p class="message"><span class="username">HI ${name},</span></p>
+          <div class="instructions">
+            <p>We are thrilled to have you join our platform. With Ostra Logistics, you can easily manage your deliveries, track orders in real-time, and more.</p>
+            <p>As a special promotion for new users like yourself, we are offering a limited-time promo code:</p>
+            <p><strong>Promo Code: ${promocode}</strong></p>
+            <p>This promo code is valid for multiple orders and offers a 25% discount on delivery fees. Make sure to use it when placing multiple orders within the next 3 months to enjoy the discount.</p>
+            <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
+            <p>Happy delivering!</p>
+            <p>For any questions or assistance, contact our support team at <a class="button" href="mailto:nedunestjs@gmail.com">support@ostralogistics.com</a></p>
+          </div>
+          <p class="footer">Ostra Logistics</p>
+        </div>
+      </body>
+    </html>
+    `;
+  
+    await this.mailerservice.sendMail({ to: email, subject, html: content });
+  }
+  
+  async WelcomeMailAdmin(email: string, name: string): Promise<void> {
+    const subject = 'Welcome To Ostra Logistics';
+    const content = `<!DOCTYPE html>
+    <html>
+      <head>
+        <title>Welcome to Ostra Logistics</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            color: #333333;
+            line-height: 1.6;
+          }
+          .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          }
+          .logo {
+            text-align: center;
+            margin-bottom: 10px;
+          }
+          .verification-heading {
+            text-align: center;
             color: #0293D2;
-            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 10px;
+          }
+          .message {
+            text-align: center;
+            font-size: 16px;
             margin-bottom: 20px;
           }
           .instructions {
@@ -273,28 +346,25 @@ export class Mailer {
       <body>
         <div class="container">
           <div class="logo">
-          <h1> OSTRA LOGISTICS </h1>
+            <h1>OSTRA LOGISTICS</h1>
           </div>
-            
           <h1 class="verification-heading">Welcome OnBoard!</h1>
-          <p class="message"><span class="username">HI ${name}</span>,</p>
-          
+          <p class="message"><span class="username">HI ${name},</span></p>
           <div class="instructions">
-          <p>We are thrilled to have you join our platform. With Ostra Logistics, you can easily manage your deliveries, track orders in real-time, and more.</p>
-          <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
-          <p>Happy delivering!</p>
-            <p >
-            For any questions or assistance, contact our support team at <a class="button" href="mailto:nedunestjs@gmail.com">support@ostralogistics.com</a>
-            </p>
+            <p>We are thrilled to have you join our platform. With Ostra Logistics, you can easily manage your deliveries, track orders in real-time, and more.</p>
+            <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
+            <p>Happy delivering!</p>
+            <p>For any questions or assistance, contact our support team at <a class="button" href="mailto:nedunestjs@gmail.com">support@ostralogistics.com</a></p>
           </div>
-          <p class="footer">ostra logistics</p>
+          <p class="footer">Ostra Logistics</p>
         </div>
       </body>
     </html>
     `;
-
+  
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
+  
 
   async OrderAcceptedMail(
     email: string,

@@ -24,6 +24,7 @@ export class CustomerEntity implements ICustomer{
     @Column({nullable:false})
     firstname: string;
 
+
     @Column({nullable:false})
     lastname: string;
 
@@ -35,6 +36,9 @@ export class CustomerEntity implements ICustomer{
 
     @CreateDateColumn({nullable:false})
     RegisteredAt:Date
+
+    @Column({nullable:true})
+    promoCode: string;
 
 
     @Column({nullable:true})

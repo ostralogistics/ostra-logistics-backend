@@ -204,7 +204,7 @@ export class AdminAuthService {
       await this.adminrepo.save(admin);
 
       //send welcome mail
-      await this.mailerservice.WelcomeMail(admin.email, admin.fullname);
+      await this.mailerservice.WelcomeMailAdmin(admin.email, admin.fullname);
 
       const accessToken = await this.genratorservice.signToken(
         admin.id,

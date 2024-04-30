@@ -14,6 +14,7 @@ export interface ICustomer {
     RegisteredAt : Date
     UpdatedAt : Date
     role:Role
+    promoCode:string
     isLoggedIn:boolean
     isVerified:boolean
     isRegistered:boolean

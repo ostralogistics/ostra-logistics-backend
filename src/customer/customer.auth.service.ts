@@ -86,7 +86,8 @@ export class CustomerAuthService {
         throw new NotFoundException('This customer already exists');
 
       const customer = new CustomerEntity();
-      //customer.customerID = `#OslC-${await this.customerservice.generateUserID()}`;
+      customer.customerID = `#OslC-${await this.generatorservice.generateUserID()}`;
+      
       customer.email = dto.email;
       customer.mobile = dto.mobile;
       customer.firstname = dto.firstname;
@@ -204,6 +205,7 @@ export class CustomerAuthService {
       // Verify and update the customer's status
       customer.isVerified = true;
       customer.isLoggedIn = true;
+      customer.promoCode = await this.generatorservice.generatePromoCode()
       await this.customerrepo.save(customer);
 
       const notification = new Notifications();
@@ -217,7 +219,7 @@ export class CustomerAuthService {
       await this.customerrepo.save(customer);
 
       //send welcome email
-      await this.mailerservice.WelcomeMail(customer.email, customer.firstname);
+      await this.mailerservice.WelcomeMail(customer.email, customer.firstname, customer.promoCode);
 
       const accessToken = await this.generatorservice.signToken(
         customer.id,

@@ -47,6 +47,11 @@ export class GeneatorService{
         const gen = nanoid.customAlphabet('1234567890', 3);
         return gen();
       }
+
+      public generatePromoCode(): string {
+        const gen = nanoid.customAlphabet('1234567890', 6);
+        return gen();
+      }
     
       public generateOrderID(): string {
         const gen = nanoid.customAlphabet('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 8);
