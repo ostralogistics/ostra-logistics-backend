@@ -27,9 +27,12 @@ import { RequestEntity } from 'src/Entity/requests.entity';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { Admincontroller } from './admin.controller';
 import { AdminService } from './admin.service';
+import { GeneatorService } from 'src/common/services/generator.service';
+
 
 @Module({
   imports: [
+  
     TypeOrmModule.forFeature([
       AdminEntity,
       Notifications,
@@ -57,11 +60,11 @@ import { AdminService } from './admin.service';
     AdminRiderDashboardService,
     AdminStaffDasboardService,
     UploadService,
-    CustomerAuthService,
+    GeneatorService,
     AdminAuthService,
     AdminCustomerDashBoardService,
     BidEventsService,
-    AdminService
+    AdminService,
   ],
 })
 export class AdminModule {}

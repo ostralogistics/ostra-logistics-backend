@@ -7,6 +7,9 @@ export class AdminEntity implements IAdmin{
     @PrimaryGeneratedColumn()
     id:string
 
+    @Column({nullable:true})
+    adminID:string
+
     @Column({nullable:false,unique:true})
     email: string;
 

@@ -29,6 +29,8 @@ import {
 } from './admin.dto';
 import { IChangeRiderPassword } from 'src/Riders/riders';
 import { ILike } from 'typeorm';
+import { AdminService } from './admin.service';
+import { GeneatorService } from 'src/common/services/generator.service';
 
 @Injectable()
 export class AdminStaffDasboardService {
@@ -38,8 +40,9 @@ export class AdminStaffDasboardService {
     @InjectRepository(Notifications)
     private readonly notificationripo: NotificationRepository,
     private uploadservice: UploadService,
-    private customerauthservice: CustomerAuthService,
+    private generatorservice:GeneatorService,
     private adminriderservice: AdminRiderDashboardService,
+  
   ) {}
 
   //admin register rider
@@ -47,12 +50,12 @@ export class AdminStaffDasboardService {
     dto: RegisterOtherAdminByAdminDto,
   ): Promise<{ message: string; response: ICreateAdmins }> {
     try {
-      const genpassword = await this.adminriderservice.generatePassword();
+      const genpassword = await this.generatorservice.generatePassword();
       const hashedpassword =
-        await this.customerauthservice.hashpassword(genpassword);
+        await this.generatorservice.hashpassword(genpassword);
 
       const genEmailsuffix =
-        await this.adminriderservice.generatEmailSuffixNumber();
+        await this.generatorservice.generatEmailSuffixNumber();
       const emailfromfirstname = dto.firstname;
       const emaildomain = '_staff@ostralogistics.com';
       const emailnow = emailfromfirstname + genEmailsuffix + emaildomain;
@@ -62,61 +65,61 @@ export class AdminStaffDasboardService {
       const age = today.getFullYear() - dob.getFullYear();
 
       //register new rider
-      const newadmin = new AdminEntity();
-      (newadmin.firstname = dto.firstname), (newadmin.lastname = dto.lastname);
-      newadmin.email = emailnow;
-      newadmin.password = hashedpassword;
-      newadmin.admintype = AdminType.STAFF;
+      const staff = new AdminEntity();
+      (staff.firstname = dto.firstname), (staff.lastname = dto.lastname);
+      staff.email = emailnow;
+      staff.password = hashedpassword;
+      staff.admintype = AdminType.STAFF;
 
-      (newadmin.DOB = dto.DOB),
-        (newadmin.age = age),
-        (newadmin.mobile = dto.mobile),
-        (newadmin.marital_status = dto.marital_status);
-      newadmin.home_address = dto.home_address;
-      (newadmin.state_of_origin = dto.state_of_origin),
-        (newadmin.LGA_of_origin = dto.LGA_of_origin);
-      (newadmin.role = Role.ADMIN),
-        (newadmin.adminAccessLevels = dto.accesslevel);
+      (staff.DOB = dto.DOB),
+        (staff.age = age),
+        (staff.mobile = dto.mobile),
+        (staff.marital_status = dto.marital_status);
+      staff.home_address = dto.home_address;
+      (staff.state_of_origin = dto.state_of_origin),
+        (staff.LGA_of_origin = dto.LGA_of_origin);
+      (staff.role = Role.ADMIN),
+        (staff.adminAccessLevels = dto.accesslevel);
 
       //find if rider already exists
-      const findadmin = await this.adminripo.findOne({
+      const findstaff = await this.adminripo.findOne({
         where: { email: emailnow },
       });
-      if (findadmin)
+      if (findstaff)
         throw new NotAcceptableException(
           `email: ${emailnow} already exists, please generate another one`,
         );
 
-      await this.adminripo.save(newadmin);
+      await this.adminripo.save(staff);
 
       //customize return response
       const riderresponse: ICreateAdmins = {
-        id: newadmin.id,
-        firstname: newadmin.firstname,
-        lastname: newadmin.lastname,
-        profile_picture: newadmin.profile_picture,
-        email: newadmin.email,
+        id: staff.id,
+        firstname: staff.firstname,
+        lastname: staff.lastname,
+        profile_picture: staff.profile_picture,
+        email: staff.email,
         password: genpassword,
-        DOB: newadmin.DOB,
-        age: newadmin.age,
-        mobile: newadmin.mobile,
-        home_address: newadmin.home_address,
-        state_of_origin: newadmin.state_of_origin,
-        LGA_of_origin: newadmin.LGA_of_origin,
-        RegisteredAt: newadmin.RegisteredAt,
-        role: newadmin.role,
-        marital_status: newadmin.marital_status,
-        adminAccessLevels: newadmin.adminAccessLevels,
-        admintype: newadmin.admintype,
-        gender: newadmin.gender,
-        LGA_of_Home_Address: newadmin.LGA_of_Home_Address,
+        DOB: staff.DOB,
+        age: staff.age,
+        mobile: staff.mobile,
+        home_address: staff.home_address,
+        state_of_origin: staff.state_of_origin,
+        LGA_of_origin: staff.LGA_of_origin,
+        RegisteredAt: staff.RegisteredAt,
+        role: staff.role,
+        marital_status: staff.marital_status,
+        adminAccessLevels: staff.adminAccessLevels,
+        admintype: staff.admintype,
+        gender: staff.gender,
+        LGA_of_Home_Address: staff.LGA_of_Home_Address,
       };
 
       //save notification
       const notification = new Notifications();
       notification.account = 'super admin';
       notification.subject = 'Admin Registered staff  !';
-      notification.message = `a new staff  has ben created on ostra logistics platform `;
+      notification.message = `a new staff  have been created on ostra logistics platform `;
       await this.notificationripo.save(notification);
 
       return {
@@ -239,9 +242,9 @@ export class AdminStaffDasboardService {
         );
 
       //change tthe password
-      const genpassword = await this.adminriderservice.generatePassword();
+      const genpassword = await this.generatorservice.generatePassword();
       const hashedpassword =
-        await this.customerauthservice.hashpassword(genpassword);
+        await this.generatorservice.hashpassword(genpassword);
 
       findstaff.password = hashedpassword;
       await this.adminripo.save(findstaff);

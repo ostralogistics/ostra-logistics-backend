@@ -28,13 +28,14 @@ import { RequestResetPasswordDto } from './riders.dto';
 import { customAlphabet } from 'nanoid';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { RequestEntity } from 'src/Entity/requests.entity';
+import { GeneatorService } from 'src/common/services/generator.service';
 
 @Injectable()
 export class RiderAuthService {
   constructor(
     private jwt: JwtService,
     private configservice: ConfigService,
-    private customerauthservice: CustomerAuthService,
+    private genratorservice: GeneatorService,
     @InjectRepository(RiderEntity) private readonly riderrepo: RidersRepository,
     @InjectRepository(UserOtp) private readonly otprepo: OtpRepository,
     @InjectRepository(RequestEntity)
@@ -69,7 +70,7 @@ export class RiderAuthService {
         where: { email: logindto.email },
       });
       if (!findrider) throw new NotFoundException('invalid login credential');
-      const comparepass = await this.customerauthservice.comaprePassword(
+      const comparepass = await this.genratorservice.comaprePassword(
         logindto.password,
         findrider.password,
       );
@@ -111,7 +112,7 @@ export class RiderAuthService {
       notification.message = `Hello ${findrider.firstname}, just logged in `;
       await this.notificationrepo.save(notification);
   
-      return await this.customerauthservice.signToken(
+      return await this.genratorservice.signToken(
         findrider.id,
         findrider.email,
         findrider.role,

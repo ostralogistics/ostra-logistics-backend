@@ -6,6 +6,7 @@ import { RiderEntity } from "./riders.entity";
 
 export interface IVehicle{
     id:number,
+    vehicleID:string
     vehicle_model: string,
     vehicle_type: VehicleType,
     color: string,
@@ -29,6 +30,9 @@ export interface IVehicle{
 export class VehicleEntity implements IVehicle{
     @PrimaryGeneratedColumn()
     id:number
+
+    @Column({nullable:true})
+    vehicleID:string
 
     @Column({nullable:true})
     vehicle_model: string;

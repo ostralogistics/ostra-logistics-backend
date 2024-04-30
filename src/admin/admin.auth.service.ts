@@ -41,6 +41,9 @@ import { RegisterAdminDto } from './admin.dto';
 import { CustomerAuthService } from 'src/customer/customer.auth.service';
 import { IAdmin } from './admin';
 import { addPasswordDto } from 'src/customer/customer.dto';
+import { CustomerService } from 'src/customer/customer.service';
+import { AdminService } from './admin.service';
+import { GeneatorService } from 'src/common/services/generator.service';
 
 @Injectable()
 export class AdminAuthService {
@@ -50,9 +53,11 @@ export class AdminAuthService {
     @InjectRepository(Notifications)
     private readonly notificationrepo: NotificationRepository,
     private configservice: ConfigService,
-    private customerauthservice: CustomerAuthService,
+    private genratorservice: GeneatorService,
     private jwt: JwtService,
     private mailerservice: Mailer,
+    private adminservice:AdminService
+  
   ) {}
 
   // get customer profile
@@ -95,11 +100,12 @@ export class AdminAuthService {
       if (checkemail)
         throw new ConflictException('This super admin already exists');
 
-      const hashedpassword = await this.customerauthservice.hashpassword(
+      const hashedpassword = await this.genratorservice.hashpassword(
         dto.password,
       );
 
       const admin = new AdminEntity();
+      admin.adminID = `#OslA-${await this.adminservice.generateUserID()}`
       admin.email = dto.email;
       admin.fullname = dto.fullname;
       admin.password = hashedpassword;
@@ -114,7 +120,7 @@ export class AdminAuthService {
 
       //2fa authentication
       const emiailverificationcode =
-        await this.customerauthservice.generateEmailToken();
+        await this.genratorservice.generateEmailToken();
 
       //otp
       const otp = new UserOtp();
@@ -200,7 +206,7 @@ export class AdminAuthService {
       //send welcome mail
       await this.mailerservice.WelcomeMail(admin.email, admin.fullname);
 
-      const accessToken = await this.customerauthservice.signToken(
+      const accessToken = await this.genratorservice.signToken(
         admin.id,
         admin.email,
         admin.role,
@@ -242,7 +248,7 @@ export class AdminAuthService {
       }
       // Generate a new OTP
       const emiailverificationcode =
-        await this.customerauthservice.generateEmailToken(); // Your OTP generated tokens
+        await this.genratorservice.generateEmailToken(); // Your OTP generated tokens
 
       // Save the token with expiration time
       const twominuteslater = new Date();
@@ -301,7 +307,7 @@ export class AdminAuthService {
           `this email ${dto.email} does not exist in our system, please try another email address`,
         );
 
-      const resetlink = await this.customerauthservice.generateEmailToken();
+      const resetlink = await this.genratorservice.generateEmailToken();
       const expirationTime = new Date();
       expirationTime.setHours(expirationTime.getHours() + 1);
 
@@ -391,7 +397,7 @@ export class AdminAuthService {
           'sorry this customer has not been verified yet, please request for an otp to verify your account',
         );
 
-      const hashedpassword = await this.customerauthservice.hashpassword(
+      const hashedpassword = await this.genratorservice.hashpassword(
         dto.password,
       );
 
@@ -421,7 +427,7 @@ export class AdminAuthService {
         where: { email: logindto.email },
       });
       if (!findadmin) throw new NotFoundException(`invalid credential`);
-      const comparepass = await this.customerauthservice.comaprePassword(
+      const comparepass = await this.genratorservice.comaprePassword(
         logindto.password,
         findadmin.password,
       );
@@ -462,7 +468,7 @@ export class AdminAuthService {
       notification.message = `Hello ${findadmin.fullname}, just logged in `;
       await this.notificationrepo.save(notification);
 
-      return await this.customerauthservice.signToken(
+      return await this.genratorservice.signToken(
         findadmin.id,
         findadmin.email,
         findadmin.role,

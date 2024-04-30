@@ -50,6 +50,11 @@ export enum BiddingAction {
     
 }
 
+export enum TransactionType{
+    ORDER_PAYMENT ="order_payment",
+    SALARY_PAYMENT ="salary_payment"
+}
+
 
 
 export enum BidEvent {

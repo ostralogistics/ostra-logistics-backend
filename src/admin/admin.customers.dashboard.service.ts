@@ -169,7 +169,7 @@ export class AdminCustomerDashBoardService {
     try {
       const skip = (page - 1) * limit;
       const customers = await this.customerRepo.findAndCount({
-        relations: ['my_orders'],
+        relations: ['my_orders','my_cards'],
         skip: skip,
         take: limit,
       });
@@ -195,7 +195,7 @@ export class AdminCustomerDashBoardService {
     try {
       const customers = await this.customerRepo.findOne({
         where: { id: customerID },
-        relations: ['my_orders'],
+        relations: ['my_orders','my_cards']
       });
       if (!customers)
         throw new NotFoundException(
@@ -617,6 +617,11 @@ export class AdminCustomerDashBoardService {
       throw new Error('Error occurred while fetching parcel in office for rebranding order count.');
     }
   }
+
+
+  //in office orders for multiple and non multiple
+
+  
 
 
 }

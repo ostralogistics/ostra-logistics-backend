@@ -20,6 +20,9 @@ import { UploadService } from 'src/common/helpers/upload.service';
 import { RiderEntity } from 'src/Entity/riders.entity';
 import { RidersRepository } from 'src/Riders/riders.repository';
 import { ReturnedVehicle } from 'src/Enums/all-enums';
+import { CustomerService } from 'src/customer/customer.service';
+import { customAlphabet } from 'nanoid';
+import * as nanoid from 'nanoid'
 
 @Injectable()
 export class AdminService {
@@ -31,6 +34,11 @@ export class AdminService {
     private uploadservice: UploadService,
   ) {}
 
+  public generateUserID(): string {
+    const gen = nanoid.customAlphabet('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6);
+    return gen();
+  }
+
   //register vehicle
   async RegisterVehicle(dto: RegisterVehicleDto, file: Express.Multer.File) {
     try {
@@ -41,6 +49,7 @@ export class AdminService {
       }
 
       const newVehicle = new VehicleEntity();
+      newVehicle.vehicleID =`#OslV-${await this.generateUserID()}`
       newVehicle.vehicle_type = dto.vehicle_type;
       newVehicle.color = dto.color;
       newVehicle.registration_number = dto.registration_number;

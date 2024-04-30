@@ -5,6 +5,7 @@ import { MaritalStatus, StateOFOrigin, TaskStatus, VehicleType } from "src/Enums
 
 export interface IRider{
     id:string
+    riderID:string
     firstname:string
     lastname:string
     profile_picture:string

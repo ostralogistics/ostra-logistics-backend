@@ -39,6 +39,7 @@ import { ICustomer } from './customer';
 import { CustomerAuthService } from './customer.auth.service';
 import { UploadService } from 'src/common/helpers/upload.service';
 import { Mailer } from 'src/common/mailer/mailer.service';
+import { GeneatorService } from 'src/common/services/generator.service';
 
 @Injectable()
 export class CustomerService {
@@ -53,19 +54,15 @@ export class CustomerService {
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private BidEvents: BidEventsService,
-    private customerauthservice: CustomerAuthService,
     private uploadservice: UploadService,
-    private mailer: Mailer,
+    private genratorservice:GeneatorService
   ) {}
 
-  public generateBidGroupID(): string {
-    const gen = nanoid.customAlphabet('1234567890', 3);
-    return gen();
-  }
+ 
 
   async PlaceOrder(customer: CustomerEntity, dto: OrderDto | OrderDto[]) {
     try {
-      const bidGroupID = this.generateBidGroupID();
+      const bidGroupID = this.genratorservice.generateBidGroupID();
 
       if (Array.isArray(dto)) {
         const existingOrders = await this.orderRepo.find({
@@ -86,7 +83,7 @@ export class CustomerService {
         }
         return createdOrders;
       } else {
-        return await this.createOrder(customer, dto);
+        return await this.createOrder(customer, dto,bidGroupID);
       }
     } catch (error) {
       if (error instanceof NotAcceptableException)
@@ -100,9 +97,11 @@ export class CustomerService {
     }
   }
 
-  private async createOrder(
+  public async createOrder(
     customer: CustomerEntity,
     dto: OrderDto,
+    bidGroupID?: string // Optional parameter for groupId 
+    
   ): Promise<OrderEntity> {
     try {
       const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
@@ -112,7 +111,7 @@ export class CustomerService {
         await this.geocodingservice.getYahooCoordinates(dto.dropOff_address);
 
       if (!pickupCoordinates || !dropOffCoordinates) {
-        throw new NotAcceptableException('cordeinates not found');
+        throw new NotAcceptableException('cordinates not found');
       }
 
       const distance = this.distanceservice.calculateDistance(
@@ -123,6 +122,10 @@ export class CustomerService {
       const flatRate = roundDistance * 4.25;
 
       const order = new OrderEntity();
+      order.orderID = `#OslO-${await this.genratorservice.generateOrderID()}`
+      if (bidGroupID) { // Only set groupId if bidGroupID is provided (multiple orders)
+        order.groupId = bidGroupID;
+      }
       order.customer = customer;
       order.parcel_name = dto.parcel_name;
       order.product_category = dto.product_category;
@@ -151,7 +154,7 @@ export class CustomerService {
 
       order.pickupLat = pickupCoordinates.lat;
       order.pickupLong = pickupCoordinates.lon;
-      order.dropOffLat = dropOffCoordinates.lat;
+      order.dropOffLat = dropOffCoordinates.lat;  
       order.dropOffLong = dropOffCoordinates.lon;
       order.distance = roundDistance;
 
@@ -637,7 +640,7 @@ export class CustomerService {
   ): Promise<{ message: string }> {
     const { oldPassword, password, confirmPassword } = dto;
 
-    const comparepass = await this.customerauthservice.comaprePassword(
+    const comparepass = await this.genratorservice.comaprePassword(
       dto.oldPassword,
       customer.password,
     );
@@ -646,7 +649,7 @@ export class CustomerService {
         'the old password provided does not match the existing passworod',
       );
 
-    const hashpass = await this.customerauthservice.hashpassword(dto.password);
+    const hashpass = await this.genratorservice.hashpassword(dto.password);
 
     customer.password = hashpass;
     try {

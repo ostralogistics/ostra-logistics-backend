@@ -9,6 +9,9 @@ export class CustomerEntity implements ICustomer{
     @PrimaryGeneratedColumn()
     id:string
 
+    @Column({nullable:true})
+    customerID:string
+
     @Column({nullable:false,unique:true})
     email: string;
 

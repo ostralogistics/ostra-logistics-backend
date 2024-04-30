@@ -11,6 +11,9 @@ export class RiderEntity implements IRider{
     @PrimaryGeneratedColumn()
     id:string
 
+    @Column({nullable:true})
+    riderID:string
+
     @Column({nullable:false,unique:true})
     email: string;
 

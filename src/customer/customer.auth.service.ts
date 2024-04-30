@@ -37,6 +37,8 @@ import {
 } from 'src/common/common.dto';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import exp from 'constants';
+import { CustomerService } from './customer.service';
+import { GeneatorService } from 'src/common/services/generator.service';
 
 @Injectable()
 export class CustomerAuthService {
@@ -46,38 +48,15 @@ export class CustomerAuthService {
     @InjectRepository(UserOtp) private readonly otprepo: OtpRepository,
     @InjectRepository(Notifications)
     private readonly notificationrepo: NotificationRepository,
-    private configservice: ConfigService,
-    private jwt: JwtService,
     private mailerservice: Mailer,
+    private generatorservice:GeneatorService
+    
   ) {}
 
-  public async hashpassword(password): Promise<string> {
-    return await bcrypt.hash(password, 12);
-  }
 
-  public async comaprePassword(userpassword, dbpassword): Promise<boolean> {
-    return await bcrypt.compare(userpassword, dbpassword);
-  }
+ 
 
-  public generateEmailToken(): string {
-    const gen = customAlphabet('12345678990', 6);
-    return gen();
-  }
 
-  //access token
-  public async signToken(id: string, email: string, role: string) {
-    const payload = {
-      sub: id,
-      email,
-      role,
-    };
-    const secret = this.configservice.get('SECRETKEY');
-    const token = await this.jwt.signAsync(payload, {
-      expiresIn: this.configservice.get('EXPIRESIN'),
-      secret: secret,
-    });
-    return { token: token };
-  }
 
   // get customer profile
   async getProfile(customer: CustomerEntity): Promise<ICustomer> {
@@ -107,6 +86,7 @@ export class CustomerAuthService {
         throw new NotFoundException('This customer already exists');
 
       const customer = new CustomerEntity();
+      //customer.customerID = `#OslC-${await this.customerservice.generateUserID()}`;
       customer.email = dto.email;
       customer.mobile = dto.mobile;
       customer.firstname = dto.firstname;
@@ -118,7 +98,7 @@ export class CustomerAuthService {
       await this.customerrepo.save(customer);
 
       //2fa authentication
-      const emiailverificationcode = await this.generateEmailToken();
+      const emiailverificationcode = await this.generatorservice.generateEmailToken();
 
       //otp
       const otp = new UserOtp();
@@ -175,7 +155,7 @@ export class CustomerAuthService {
           'sorry this customer has not been verified yet, please request for an otp to verify your account',
         );
 
-      const hashedpassword = await this.hashpassword(dto.password);
+      const hashedpassword = await this.generatorservice.hashpassword(dto.password);
 
       //add the password
       checkcustomer.password = hashedpassword;
@@ -239,7 +219,7 @@ export class CustomerAuthService {
       //send welcome email
       await this.mailerservice.WelcomeMail(customer.email, customer.firstname);
 
-      const accessToken = await this.signToken(
+      const accessToken = await this.generatorservice.signToken(
         customer.id,
         customer.email,
         customer.role,
@@ -280,7 +260,7 @@ export class CustomerAuthService {
         throw new NotFoundException('No expired OTP found for this user.');
       }
       // Generate a new OTP
-      const emiailverificationcode = await this.generateEmailToken(); // Your OTP generated tokens
+      const emiailverificationcode = await this.generatorservice.generateEmailToken(); // Your OTP generated tokens
 
       // Save the token with expiration time
       const twominuteslater = new Date();
@@ -340,7 +320,7 @@ export class CustomerAuthService {
           `this email ${dto.email} does not exist in our system, please try another email address`,
         );
 
-      const resetlink = await this.generateEmailToken();
+      const resetlink = await this.generatorservice.generateEmailToken();
       const expirationTime = new Date();
       expirationTime.setHours(expirationTime.getHours() + 1);
 
@@ -430,7 +410,7 @@ export class CustomerAuthService {
           'sorry this customer has not been verified yet, please request for an otp to verify your account',
         );
 
-      const hashedpassword = await this.hashpassword(dto.password);
+      const hashedpassword = await this.generatorservice.hashpassword(dto.password);
 
       //add the password
       checkcustomer.password = hashedpassword;
@@ -461,7 +441,7 @@ export class CustomerAuthService {
         throw new NotFoundException('Invalid credentials');
       }
   
-      const comparepass = await this.comaprePassword(
+      const comparepass = await this.generatorservice.comaprePassword(
         logindto.password,
         findcustomer.password,
       );
@@ -503,7 +483,7 @@ export class CustomerAuthService {
       await this.notificationrepo.save(notification);
   
       // Generate and return JWT token
-      return await this.signToken(findcustomer.id, findcustomer.email, findcustomer.role);
+      return await this.generatorservice.signToken(findcustomer.id, findcustomer.email, findcustomer.role);
     } catch (error) {
       console.log(error);
       if (error instanceof NotFoundException || error instanceof UnauthorizedException || error instanceof ForbiddenException) {

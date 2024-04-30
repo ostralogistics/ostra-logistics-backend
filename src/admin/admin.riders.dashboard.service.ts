@@ -43,6 +43,7 @@ import { OrderEntity } from 'src/Entity/orders.entity';
 import { OrderRepository } from 'src/order/order.reposiroty';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { IRequests, RequestEntity } from 'src/Entity/requests.entity';
+import { GeneatorService } from 'src/common/services/generator.service';
 
 @Injectable()
 export class AdminRiderDashboardService {
@@ -57,31 +58,20 @@ export class AdminRiderDashboardService {
     @InjectRepository(RequestEntity)
     private readonly requestrepo: RequestRepository,
     private uploadservice: UploadService,
-    private customerauthservice: CustomerAuthService,
     private mailer: Mailer,
+    private genratorservice:GeneatorService
   ) {}
 
-  public generatePassword(): string {
-    const nanoid = customAlphabet(
-      '1234567890abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMOPQRSTUVWXYZ@#*!(){}[]/|``^&$',
-      12,
-    );
-    return nanoid();
-  }
-
-  public generatEmailSuffixNumber(): string {
-    const nanoid = customAlphabet('1234567890', 2);
-    return nanoid();
-  }
+ 
 
   //admin register rider
   async RegisterRider(dto: RegisterRiderByAdminDto) {
     try {
-      const genpassword = await this.generatePassword();
+      const genpassword = await this.genratorservice.generatePassword();
       const hashedpassword =
-        await this.customerauthservice.hashpassword(genpassword);
+        await this.genratorservice.hashpassword(genpassword);
 
-      const genEmailsuffix = await this.generatEmailSuffixNumber();
+      const genEmailsuffix = await this.genratorservice.generatEmailSuffixNumber();
       const emailfromfirstname = dto.firstname;
       const emaildomain = '_rider@ostralogistics.com';
       const emailnow = emailfromfirstname + genEmailsuffix + emaildomain;
@@ -92,6 +82,7 @@ export class AdminRiderDashboardService {
 
       //register new rider
       const rider = new RiderEntity();
+      rider.riderID = `#OslR-${await this.genratorservice.generateUserID}`;
       (rider.firstname = dto.firstname), (rider.lastname = dto.lastname);
       rider.email = emailnow;
       rider.password = hashedpassword;
@@ -162,7 +153,7 @@ export class AdminRiderDashboardService {
           `rider with id:${riderId} is not found in the ostra logistics rider database`,
         );
 
-      const genpassword = await this.generatePassword();
+      const genpassword = await this.genratorservice.generatePassword();
 
       const dob = new Date(dto.DOB);
       const today = new Date();
@@ -211,6 +202,7 @@ export class AdminRiderDashboardService {
       }
     }
   }
+
 
   async UploadRiderProfilePics(
     mediafile: Express.Multer.File,
@@ -371,9 +363,9 @@ export class AdminRiderDashboardService {
         );
 
       //change tthe password
-      const genpassword = await this.generatePassword();
+      const genpassword = await this.genratorservice.generatePassword();
       const hashedpassword =
-        await this.customerauthservice.hashpassword(genpassword);
+        await this.genratorservice.hashpassword(genpassword);
 
       findriderbyid.password = hashedpassword;
       await this.riderripo.save(findriderbyid);
@@ -458,9 +450,9 @@ export class AdminRiderDashboardService {
         );
 
       //change tthe password
-      const genpassword = await this.generatePassword();
+      const genpassword = await this.genratorservice.generatePassword();
       const hashedpassword =
-        await this.customerauthservice.hashpassword(genpassword);
+        await this.genratorservice.hashpassword(genpassword);
 
       findriderbyid.password = hashedpassword;
       await this.riderripo.save(findriderbyid);

@@ -7,6 +7,8 @@ import { BidStatus, VehicleType } from "src/Enums/all-enums"
 
 export interface IOrder{
     id:number
+    orderID:string
+    groupId: string;
 
     //parcel information and  pick up details
     parcel_name :string,
@@ -64,11 +66,6 @@ export interface IOrder{
    
 }
 
-interface ICustomerInfo{
-    firstname:string,
-    profile_pics:string
-
-}
 
 export interface IOrderPreview{
     id:number

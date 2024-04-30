@@ -2,6 +2,7 @@ import { AdminAccessLevels, AdminType, Gender, MaritalStatus, Role, StateOFOrigi
 
 export interface IAdmin {
     id:string 
+    adminID:string
     fullname:string
     firstname:string
     lastname:string

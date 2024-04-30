@@ -12,6 +12,12 @@ export class OrderEntity implements IOrder {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({nullable:true})
+    orderID:string
+
+    @Column({ nullable: true })
+    groupId: string; // New field to store the group ID for multiple orders
+
     //pick up data 
 
     @Column({nullable:false})

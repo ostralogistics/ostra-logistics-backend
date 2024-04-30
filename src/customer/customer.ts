@@ -4,6 +4,7 @@ import { Gender, Role, StateOFOrigin } from "src/Enums/all-enums"
 
 export interface ICustomer {
     id:string 
+    customerID:string
     firstname:string
     lastname:string
     home_address:string 
