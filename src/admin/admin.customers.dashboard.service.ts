@@ -3,7 +3,7 @@ import { AdminEntity } from 'src/Entity/admins.entity';
 import { AdminRepository } from './admin.repository';
 import { CustomerEntity } from 'src/Entity/customers.entity';
 import { CustomerRepository } from 'src/customer/customer.repository';
-import { BidRepository } from 'src/common/common.repositories';
+import { BidRepository, NotificationRepository } from 'src/common/common.repositories';
 import { BidEntity, IBids, IInitialBidsResponse } from 'src/Entity/bids.entity';
 import { IOrder, IOrderRequestFromCustomerToAdmin } from 'src/order/order';
 import { OrderRepository } from 'src/order/order.reposiroty';
@@ -24,6 +24,7 @@ import {
 import { AdminPlaceBidDto, counterBidDto } from 'src/common/common.dto';
 import { BidEventsService } from 'src/common/Events/bid.events.service';
 import { Between, ILike, In } from 'typeorm';
+import { Notifications } from 'src/Entity/notifications.entity';
 
 @Injectable()
 export class AdminCustomerDashBoardService {
@@ -33,6 +34,8 @@ export class AdminCustomerDashBoardService {
     private readonly customerRepo: CustomerRepository,
     @InjectRepository(OrderEntity) private readonly orderRepo: OrderRepository,
     @InjectRepository(BidEntity) private readonly bidRepo: BidRepository,
+    @InjectRepository(Notifications)
+    private readonly notificationripo: NotificationRepository,
     private readonly bidevent: BidEventsService,
   ) {}
 
@@ -79,7 +82,7 @@ export class AdminCustomerDashBoardService {
     try {
       const order = await this.orderRepo.findOne({
         where: { id: orderID },
-        relations: ['bid'],
+        relations: ['bid','customer'],
       });
       if (!order)
         throw new NotFoundException(
@@ -104,6 +107,14 @@ export class AdminCustomerDashBoardService {
         initialBidPlacedAt: bid.initialBidPlacedAt,
         order: bid.order,
       };
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = order.customer.id;
+      notification.subject = 'Openning Bid made !';
+      notification.message = `an openning bid have been sent on order with id ${orderID} on the admin portal of ostra ogistics by superadmin  `;
+      await this.notificationripo.save(notification);
+
       return bidresponse;
     } catch (error) {
       if (error instanceof NotFoundException)
@@ -148,6 +159,14 @@ export class AdminCustomerDashBoardService {
       bid.bidStatus = BidStatus.COUNTERED;
       bid.counteredAt = new Date();
       await this.bidRepo.save(bid);
+
+       //save the notification
+       const notification = new Notifications();
+       notification.account = bid.order.customer.id;
+       notification.subject = 'Counter Bid made !';
+       notification.message = `an counter bid  bid have been sent on bid with id ${bidID} on the admin portal of ostra ogistics by superadmin  `;
+       await this.notificationripo.save(notification);
+       
 
       return bid;
     } catch (error) {

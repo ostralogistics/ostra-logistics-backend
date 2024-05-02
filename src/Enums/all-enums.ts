@@ -33,14 +33,28 @@ export enum RiderTask{
 
 
 export enum RiderMileStones{
+    ENROUTE_TO_PICKUP_LOCATION= "enroute_to_pickup_location",
     AT_PICKUP_LOCATION ="at_pickup_location",
     PICKED_UP_PARCEL ="picked_up_parcel",
+    ENROUTE_TO_THE_OFFICE_FOR_REBRANDING= "enroute_to_office_for_rebranding",
     AT_THE_OFFICE_FOR_REBRANDING ="at_the_office_for_rebranding",
+    ENROUTE_TO_DROPOFF_LOCATION= "enroute_to_dropoff_location",
     AT_DROPOFF_LOCATION ="at_dropoff_location",
-    DROPPED_OFF_PARCEL ="dropped_off-parcel"
+    DROPPED_OFF_PARCEL ="dropped_off-parcel",
 
 }
 
+export enum complainResolutionStatus{
+    RESOLVED="resolved",
+    ON_HOLD="on_hold",
+    IN_PROGRESS ="in_progress"
+
+}
+
+export enum channelforconversation{
+    CLOSE="close",
+    OPEN="open"
+}
 
 
 export enum BiddingAction {
@@ -55,6 +69,10 @@ export enum TransactionType{
     SALARY_PAYMENT ="salary_payment"
 }
 
+export enum BankDetailsStatus{
+    PRIMARY ="primary",
+    SECONDARY="secondary"
+}
 
 
 export enum BidEvent {
@@ -110,7 +128,8 @@ export enum PaymentStatus{
 
 export enum RequestType{
     PASSWORD_RESET= "password reset",
-    PROFILE_CORRECTION="password correction"
+    PROFILE_CORRECTION="password correction",
+    BANK_DETAILS_CHANGE ="bank details change"
 }
 
 

@@ -76,5 +76,11 @@ export class GeneatorService{
         const nanoid = customAlphabet('1234567890', 2);
         return nanoid();
       }
+
+
+      public generateComplaintTcket(): string {
+        const nanoid = customAlphabet('1234567890', 10);
+        return nanoid();
+      }
     
 }

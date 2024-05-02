@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
-import { AcceptOrDeclineTask, RiderMileStones } from "src/Enums/all-enums";
+import { AcceptOrDeclineTask, BankDetailsStatus, RiderMileStones } from "src/Enums/all-enums";
 
 export class RequestResetPasswordDto{
     @IsEmail()
@@ -15,4 +15,16 @@ export class DropOffCodeDto{
 export class AcceptOrDeclineTaskDto{
     @IsEnum(AcceptOrDeclineTask)
     action:AcceptOrDeclineTask
+}
+
+export class ChangeBankPreferenceDto{
+    @IsEnum(BankDetailsStatus)
+    @IsNotEmpty()
+    preference:BankDetailsStatus
+}
+
+export class MakeRequestDto{
+    @IsString()
+    @IsNotEmpty()
+    body:string
 }

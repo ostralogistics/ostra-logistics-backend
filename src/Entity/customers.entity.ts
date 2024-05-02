@@ -3,6 +3,7 @@ import { ICustomer } from "src/customer/customer";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OrderEntity } from "./orders.entity";
 import { CardEntity } from "./card.entity";
+import { ComplaintEntity } from "./complaints.entity";
 
 @Entity({name:"Customer",})
 export class CustomerEntity implements ICustomer{
@@ -87,6 +88,9 @@ export class CustomerEntity implements ICustomer{
 
     @OneToMany(()=>CardEntity,card => card.card_owner )
     my_cards :CardEntity[]
+
+    @OneToMany(()=>ComplaintEntity,complain=>complain.customer)
+    my_complains: ComplaintEntity[];
     
 
 

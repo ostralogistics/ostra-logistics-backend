@@ -1,7 +1,58 @@
-import { IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsStrongPassword, Matches, matches } from "class-validator";
-import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, ReturnedVehicle, RiderTask, StateOFOrigin, VehicleState, VehicleType } from "src/Enums/all-enums";
+import { IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, IsStrongPassword, Matches, matches } from "class-validator";
+import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, ReturnedVehicle, RiderTask, StateOFOrigin, VehicleState, VehicleType, channelforconversation, complainResolutionStatus } from "src/Enums/all-enums";
 
 
+export class ReplyDto{
+    @IsNotEmpty()
+    @IsString()
+    reply:string
+}
+
+export class ChannelDto{
+    @IsEnum(channelforconversation)
+    @IsNotEmpty()
+    action:channelforconversation
+}
+
+export class updateResolutionStatusDto{
+    @IsEnum(complainResolutionStatus)
+    @IsNotEmpty()
+    action : complainResolutionStatus
+}
+
+export class BankDetailsDto{
+
+    @IsNotEmpty()
+    @IsString()
+    bank_name :string
+
+    @IsNotEmpty()
+    @IsString()
+    account_name :string
+
+
+    @IsNotEmpty()
+    @IsNumber()
+    account_number :number
+
+}
+
+export class EditBankDetailsDto{
+
+    @IsOptional()
+    @IsString()
+    bank_name :string
+
+    @IsOptional()
+    @IsString()
+    account_name :string
+
+
+    @IsOptional()
+    @IsNumber()
+    account_number:number
+
+}
 
 export class AssignTaskDto{
     @IsEnum(RiderTask)

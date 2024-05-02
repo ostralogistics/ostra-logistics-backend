@@ -8,8 +8,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminEntity } from 'src/Entity/admins.entity';
 import { CustomerEntity } from 'src/Entity/customers.entity';
-import { RiderEntity } from 'src/Entity/riders.entity';
-import { RidersRepository, TaskRepository } from 'src/Riders/riders.repository';
+import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
+import { RidersRepository, TaskRepository, riderBankDetailsRepository } from 'src/Riders/riders.repository';
 import { CustomerRepository } from 'src/customer/customer.repository';
 import { AdminRepository } from './admin.repository';
 import { Notifications } from 'src/Entity/notifications.entity';
@@ -23,11 +23,12 @@ import { Mailer } from 'src/common/mailer/mailer.service';
 import { customAlphabet } from 'nanoid';
 import {
   IChangeRiderPassword,
-  IRegisterRider,
   IRider,
 } from 'src/Riders/riders';
 import {
   AssignTaskDto,
+  BankDetailsDto,
+  EditBankDetailsDto,
   RegisterRiderByAdminDto,
   UpdateRiderInfoByAdminDto,
 } from './admin.dto';
@@ -57,6 +58,8 @@ export class AdminRiderDashboardService {
     @InjectRepository(TaskEntity) private readonly taskRepo: TaskRepository,
     @InjectRepository(RequestEntity)
     private readonly requestrepo: RequestRepository,
+    @InjectRepository(RiderBankDetailsEntity)
+    private readonly riderbankdetailsRepo: riderBankDetailsRepository,
     private uploadservice: UploadService,
     private mailer: Mailer,
     private genratorservice:GeneatorService
@@ -117,7 +120,7 @@ export class AdminRiderDashboardService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = 'admin';
+      notification.account = rider.id;
       notification.subject = 'Admin Registered a Rider !';
       notification.message = `a new rider has ben created on ostra logistics platform `;
       await this.notificationripo.save(notification);
@@ -182,7 +185,7 @@ export class AdminRiderDashboardService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = 'super admin';
+      notification.account = rider.id;
       notification.subject = 'Admin Updated The Record of a Rider !';
       notification.message = `the record of the rider with the id ${riderId} has been updated  on ostra logistics platform `;
       await this.notificationripo.save(notification);
@@ -217,13 +220,20 @@ export class AdminRiderDashboardService {
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
       const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `http://localhost:3000/api/v1/ostra-logistics_api/uploadfile/public/${display_pics}`;
+      const mediaurl = `${process.env.BASE_URL}/uploadfile/public/${display_pics}`;
 
       //update the image url
 
       findriderbyid.profile_picture = mediaurl;
 
       await this.riderripo.save(findriderbyid);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = findriderbyid.id;
+      notification.subject = 'Rider Profile Pics Uploaded !';
+      notification.message = `the Rider with id ${riderID} proile picture have been uploaded on the admin portal of ostra ogistics by superadmin  `;
+      await this.notificationripo.save(notification);
 
       return { message: 'your profile picture has been uploaded successully ' };
     } catch (error) {
@@ -251,13 +261,20 @@ export class AdminRiderDashboardService {
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
       const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `http://localhost:3000/api/v1/ostra-logistics_api/uploadfile/public/${display_pics}`;
+      const mediaurl = `${process.env.BASE_URL}/uploadfile/public/uploadfile/public/${display_pics}`;
 
       //update the image url
 
       findriderbyid.driver_license = mediaurl;
 
       await this.riderripo.save(findriderbyid);
+
+       //save the notification
+       const notification = new Notifications();
+       notification.account = findriderbyid.id;
+       notification.subject = 'Rider driver license Uploaded !';
+       notification.message = `the Rider with id ${riderID} front driver lisence  have been uploaded on the admin portal of ostra ogistics by superadmin  `;
+       await this.notificationripo.save(notification);
 
       return {
         message: 'your driver license front has been uploaded successully ',
@@ -287,13 +304,20 @@ export class AdminRiderDashboardService {
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
       const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `http://localhost:3000/api/v1/ostra-logistics_api/uploadfile/public/${display_pics}`;
+      const mediaurl = `${process.env.BASE_URL}/uploadfile/public/${display_pics}`;
 
       //update the image url
 
       findriderbyid.driver_license = mediaurl;
 
       await this.riderripo.save(findriderbyid);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = findriderbyid.id;
+      notification.subject = 'Rider driver license Uploaded !';
+      notification.message = `the Rider with id ${riderID} back driver lisence  have been uploaded on the admin portal of ostra ogistics by superadmin  `;
+      await this.notificationripo.save(notification);
 
       return {
         message: 'your driver license back has been uploaded successully ',
@@ -328,13 +352,13 @@ export class AdminRiderDashboardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = 'super admin';
+      notification.account = findriderbyid.id;
       notification.subject = 'Rider deleted !';
       notification.message = `the rider with id ${riderID}  has been deleted from the ostra logistics application by superAdmin  `;
       await this.notificationripo.save(notification);
 
       return {
-        message: ` ${findriderbyid.firstname}  has been deleted  by the super admin `,
+        message: ` ${riderID}  has been deleted  by the super admin `,
       };
     } catch (error) {
       if (error instanceof NotFoundException)
@@ -372,7 +396,7 @@ export class AdminRiderDashboardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = 'super admin';
+      notification.account = findriderbyid.id;
       notification.subject = 'Rider password changed !';
       notification.message = `the rider with id ${riderID} password has been changed on the admin portal of ostra ogistics by superadmin `;
       await this.notificationripo.save(notification);
@@ -466,7 +490,7 @@ export class AdminRiderDashboardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = 'super admin';
+      notification.account = findriderbyid.id;
       notification.subject = 'Rider password changed !';
       notification.message = `the rider with id ${riderID} password has been changed on the admin portal of ostra ogistics by superadmin `;
       await this.notificationripo.save(notification);
@@ -502,6 +526,7 @@ export class AdminRiderDashboardService {
       //fetch riders with pagination
       const findallriders = await this.riderripo.findAndCount({
         order: { RegisteredAt: 'DESC' },
+        relations:['vehicle_for_the_day','tasks','my_requests'],
         take: limit,
         skip: skip,
       });
@@ -523,16 +548,17 @@ export class AdminRiderDashboardService {
   //admin get one rider by id
   async GetOneRiderByID(
     riderID: string,
-  ): Promise<RiderEntity | InternalServerErrorException> {
+  ): Promise<IRider> {
     try {
       const findriderbyid = await this.riderripo.findOne({
         where: { id: riderID },
+        relations:['vehicle_for_the_day','tasks','my_requests'],
       });
       if (!findriderbyid)
         throw new NotFoundException(
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
-      return;
+      return findriderbyid;
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -554,7 +580,7 @@ export class AdminRiderDashboardService {
           { lastname: ILike(`%${keyword}%`) },
           { email: ILike(`%${keyword}%`) },
         ],
-        relations:['vehicle_for_the_day'],
+        relations:['vehicle_for_the_day','tasks','my_requests'],
         cache: false,
         comment:
           'searching for a rider with either of the keywords , lastname or firstname or email',
@@ -621,6 +647,13 @@ export class AdminRiderDashboardService {
 
       await this.taskRepo.save(task);
 
+      //save the notification
+      const notification = new Notifications();
+      notification.account = rider.id;
+      notification.subject = 'Rider Assigned Task!';
+      notification.message = `the Rider with id ${riderID} have been assigned a task on the admin portal of ostra ogistics by superadmin  `;
+      await this.notificationripo.save(notification);
+
       return task;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -630,6 +663,105 @@ export class AdminRiderDashboardService {
       else {
         throw new InternalServerErrorException(
           'Something went wrong when trying to assign a task to a rider. Please try again later.',
+        );
+      }
+    }
+  }
+
+  //add rider bank details 
+  async addRiderBankDetails(
+    dto:BankDetailsDto,
+    riderID: string,
+  ){
+    try {
+      const findriderbyid = await this.riderripo.findOne({
+        where: { id: riderID },
+      });
+      if (!findriderbyid)
+        throw new NotFoundException(
+          `rider with id:${riderID} is not found in the ostra logistics rider database`,
+        );
+
+        //save rider bank details 
+        const bankdetails = new RiderBankDetailsEntity()
+        bankdetails.Bank_account_name =dto.account_name
+        bankdetails.Bank_account_number = dto.account_number
+        bankdetails.Bank_name =dto.bank_name
+        bankdetails.owner = findriderbyid
+
+        await this.riderbankdetailsRepo.save(bankdetails)
+
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = findriderbyid.id;
+      notification.subject = 'Rider bank details added !';
+      notification.message = `the Rider with id ${riderID} bank details have been added  on the admin portal of ostra ogistics by superadmin  `;
+      await this.notificationripo.save(notification);
+
+      return { message: 'your bank details has been added successfully',bankdetails };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to add the bank details of the rider, please try again later',
+        );
+      }
+    }
+  }
+
+
+
+  //change or update driver bank details based on request
+
+  async EditRiderBankDetails(
+    dto:EditBankDetailsDto,
+    bankdetailsID:number,
+    riderID: string,
+  ) {
+    try {
+      const findriderbyid = await this.riderripo.findOne({
+        where: { id: riderID },
+      });
+      if (!findriderbyid)
+        throw new NotFoundException(
+          `rider with id:${riderID} is not found in the ostra logistics rider database`,
+        );
+
+        const bankdetails = await this.riderbankdetailsRepo.findOne({
+          where: { id: bankdetailsID, owner:{id:riderID} },
+          relations:['owner']
+        });
+        if (!bankdetails)
+          throw new NotFoundException(
+            `bankdetails with id:${bankdetailsID} is not found in the ostra logistics rider database`,
+          );
+
+        //save rider bank details 
+        bankdetails.Bank_account_name =dto.account_name
+        bankdetails.Bank_account_number = dto.account_number
+        bankdetails.Bank_account_name =dto.account_name
+        bankdetails.owner = findriderbyid
+
+        await this.riderbankdetailsRepo.save(bankdetails)
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = findriderbyid.id;
+      notification.subject = 'Rider bank details added !';
+      notification.message = `the Rider with id ${riderID} bank details have been updated based on request  on the admin portal of ostra ogistics by superadmin  `;
+      await this.notificationripo.save(notification);
+
+      return { message: 'your bank details has been updated successfully',bankdetails };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to update  the bank details  based on request of the Rider, please try again later',
         );
       }
     }

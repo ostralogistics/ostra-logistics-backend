@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { RiderService } from "./riders.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
-import { AcceptOrDeclineTaskDto, DropOffCodeDto } from "./riders.dto";
+import { AcceptOrDeclineTaskDto, ChangeBankPreferenceDto, DropOffCodeDto, MakeRequestDto } from "./riders.dto";
 import { RoleGuard } from "src/auth/guard/role.guard";
 import { Roles } from "src/auth/decorator/role.decorator";
 import { Role } from "src/Enums/all-enums";
@@ -27,6 +27,12 @@ export class RiderController{
         return await this.riderservice.AcceptOrDeclineAssignedTask(dto,req.user,taskID)   
     }
 
+
+    @Patch('checkin-enroute-to-pickup-location/:taskID/:orderID')
+    async RiderChecksINEnrouteToPickupLocInWhenHeGetation (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
+        return await this.riderservice.RiderCheckswhenEnrouteToPickupLocation(taskID,orderID,req.user)
+    }
+
     @Patch('checkin-pickup-location/:taskID/:orderID')
     async RiderChecksToPickupLocInWhenHeGetation (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
         return await this.riderservice.RiderChecksToPickupLocInWhenHeGetation(taskID,orderID,req.user)
@@ -37,14 +43,25 @@ export class RiderController{
         return await this.riderservice.RiderCheckInWhenHePicksUp(taskID,orderID,req.user)
     }
 
+
+    @Patch('checkin-enroute-to-the-office/:taskID/:orderID')
+    async RiderChecksWhenRiderIsEnrouteToOfficeForReranding (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
+        return await this.riderservice.RiderCheckInWhenRiderEnrouteTotheOfficeForRebranding(taskID,orderID,req.user)
+    }
+
     @Patch('checkin-at-the-office/:taskID/:orderID')
     async RiderChecksWhenRiderIsAtOfficeForReranding (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
         return await this.riderservice.RiderCheckInWhenRiderArrivesATTheOfficeForRebranding(taskID,orderID,req.user)
     }
 
+    @Patch('checkin-enroute-to-dropoff-location/:taskID/:orderID')
+    async RiderChecksinWhenEnrouteToDropOffLocation (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
+        return await this.riderservice.RiderCheckInWhenHeGetsToDropoffLocation(taskID,orderID,req.user)
+    }
+
     @Patch('checkin-dropoff-location/:taskID/:orderID')
     async RiderChecksinWhenHegetsToDropOffLocation (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
-        return await this.riderservice.RiderCheckInWhenHeGetsToDropoffLocation(taskID,orderID,req.user)
+        return await this.riderservice.RiderCheckInWhenHeISEnrouteToDropoffLocation(taskID,orderID,req.user)
     }
 
     @Patch('checkin-dropoff-parcel/:taskID/:orderID')
@@ -70,11 +87,45 @@ export class RiderController{
         
     }
 
-    @Get('all-ongoing-task')
+    @Get('all-concluded-task')
     async GetAllConcludedTasks(@Req()req){
         return await this.riderservice.fetchAllConcludedTasks(req.user)
         
     }
+
+
+    @Get('my-bank-details')
+    async GetMybankDetials(@Req()req){
+        return await this.riderservice.GetMyBankDetials(req.user)
+        
+    }
+
+    @Get('one-bank-detail/:detailsID')
+    async GetOnebankDetial(@Req()req,@Param('detailsID')detailsID:number){
+        return await this.riderservice.GetOneBankDetials(detailsID,req.user.id)
+        
+    }
+
+    @Patch('bank-preference-status/:detailsID')
+    async BankPreferenceStatus(@Req()req,@Param('detailsID')detailsID:number,@Body()dto:ChangeBankPreferenceDto){
+        return await this.riderservice.BankPreferenceStatus(detailsID,req.user.id,dto)
+        
+    }
+
+    @Post('request-bank-details-change/')
+    async BankDetailschangeRequest(@Req()req,@Body()dto:MakeRequestDto){
+        return await this.riderservice.RequestBankinfoChange(req.user.id,dto)
+        
+    }
+
+    @Get('all-my-notification')
+     async GetAllMyNotification(@Req()req){
+      return await this.riderservice.AllNotificationsRelatedTocustomer(req.user)
+     }
+
+     
+
+    
 
 
 }

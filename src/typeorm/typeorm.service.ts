@@ -4,12 +4,15 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AdminEntity } from 'src/Entity/admins.entity';
 import { BidEntity } from 'src/Entity/bids.entity';
 import { CardEntity } from 'src/Entity/card.entity';
+import { ComplaintEntity } from 'src/Entity/complaints.entity';
 import { CustomerEntity } from 'src/Entity/customers.entity';
+import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { Notifications } from 'src/Entity/notifications.entity';
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { UserOtp } from 'src/Entity/otp.entity';
+import { RepliesEntity } from 'src/Entity/replies.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
-import { RiderEntity } from 'src/Entity/riders.entity';
+import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 
@@ -40,6 +43,10 @@ export class TypeOrmService {
         TaskEntity,
         RequestEntity,
         VehicleEntity,
+        RiderBankDetailsEntity,
+        RepliesEntity,
+        ComplaintEntity,
+        NewsLetterEntity
       ],
       migrations: [],
       subscribers: [],

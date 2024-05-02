@@ -41,7 +41,7 @@ export class RiderAuthService {
     @InjectRepository(RequestEntity)
     private readonly requestrepo: RequestRepository,
     @InjectRepository(Notifications)
-    private readonly notificationrepo: NotificationRepository,
+    private readonly notificationripo: NotificationRepository,
     private mailer: Mailer,
   ) {}
 
@@ -110,7 +110,7 @@ export class RiderAuthService {
       notification.account = findrider.firstname;
       notification.subject = ' login!';
       notification.message = `Hello ${findrider.firstname}, just logged in `;
-      await this.notificationrepo.save(notification);
+      await this.notificationripo.save(notification);
   
       return await this.genratorservice.signToken(
         findrider.id,
@@ -154,6 +154,13 @@ export class RiderAuthService {
       request.body =
         "Please kindly reset my password, I couldn't get access into my ostralogistics Rider Account, Thanks.";
       await this.requestrepo.save(request);
+
+       //save notification
+       const notification = new Notifications();
+       notification.account = rideremial.id;
+       notification.subject = 'Rider Requested for password change!';
+       notification.message = `Rider with the  id ${rideremial.id} has requested for a pssword reset `;
+       await this.notificationripo.save(notification);
   
       return {
         message:

@@ -1,7 +1,8 @@
 import { RequestEntity } from "src/Entity/requests.entity"
+import { RiderEntity } from "src/Entity/riders.entity"
 import { TaskEntity } from "src/Entity/ridersTasks.entity"
 import { VehicleEntity } from "src/Entity/vehicle.entity"
-import { MaritalStatus, StateOFOrigin, TaskStatus, VehicleType } from "src/Enums/all-enums"
+import { BankDetailsStatus, MaritalStatus, StateOFOrigin, TaskStatus, VehicleType } from "src/Enums/all-enums"
 
 export interface IRider{
     id:string
@@ -38,31 +39,16 @@ export interface IRider{
     tasks : TaskEntity[]
     my_requests: RequestEntity[];
     vehicle_for_the_day:VehicleEntity
+    bank_details:IMyBankAccountDetails[]
 }
 
-export interface IRegisterRider{
-    id:string,
-    firstname:string,
-    lastname:string,
-    profile_picture:string
-    email:string,
-    password:string,
-    DOB: string
-    age:number
-    mobile: string 
-    driver_licence :string
-    RegisteredAt:Date
-    guarantor1_name:string
-    guarantor1_relatioship_with_rider:string
-    gurantor1_mobile:string
-    guarantor1_picture:string
-    guarantor2_name:string
-    guarantor2_relatioship_with_rider:string
-    gurantor2_mobile:string
-    guarantor2_picture:string
-    home_address:string
-    state_of_origin:StateOFOrigin
-    LGA_of_origin:string
+export interface IMyBankAccountDetails{
+    id:number
+    Bank_account_name :string
+    Bank_name:string
+    Bank_account_number:number
+    status:BankDetailsStatus
+    owner:RiderEntity
 
 }
 

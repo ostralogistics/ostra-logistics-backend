@@ -1,10 +1,17 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { RiderEntity } from 'src/Entity/riders.entity';
-import { RidersRepository, TaskRepository } from './riders.repository';
+import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
+import {
+  RidersRepository,
+  TaskRepository,
+  riderBankDetailsRepository,
+} from './riders.repository';
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { OrderRepository } from 'src/order/order.reposiroty';
 import { Notifications } from 'src/Entity/notifications.entity';
-import { NotificationRepository } from 'src/common/common.repositories';
+import {
+  NotificationRepository,
+  RequestRepository,
+} from 'src/common/common.repositories';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import {
   ConflictException,
@@ -12,15 +19,23 @@ import {
   NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
-import { AcceptOrDeclineTaskDto, DropOffCodeDto } from './riders.dto';
+import {
+  AcceptOrDeclineTaskDto,
+  ChangeBankPreferenceDto,
+  DropOffCodeDto,
+  MakeRequestDto,
+  RequestResetPasswordDto,
+} from './riders.dto';
 import {
   AcceptOrDeclineTask,
   OrderStatus,
+  RequestType,
   RiderMileStones,
   RiderTask,
   TaskStatus,
 } from 'src/Enums/all-enums';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
+import { RequestEntity } from 'src/Entity/requests.entity';
 
 export class RiderService {
   constructor(
@@ -28,7 +43,11 @@ export class RiderService {
     @InjectRepository(OrderEntity) private readonly orderRepo: OrderRepository,
     @InjectRepository(TaskEntity) private readonly taskRepo: TaskRepository,
     @InjectRepository(Notifications)
-    private readonly notificationRepo: NotificationRepository,
+    private readonly notificationripo: NotificationRepository,
+    @InjectRepository(RiderBankDetailsEntity)
+    private readonly riderbankdetailsRepo: riderBankDetailsRepository,
+    @InjectRepository(RequestEntity)
+    private readonly requestrepo: RequestRepository,
     private mailer: Mailer,
   ) {}
 
@@ -37,7 +56,6 @@ export class RiderService {
     try {
       const assigned_order = await this.orderRepo.findAndCount({
         where: { Rider: { id: Rider.id } },
-        
       });
       if (assigned_order[1] === 0)
         throw new NotFoundException(
@@ -49,7 +67,7 @@ export class RiderService {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        console.log(error)
+        console.log(error);
         throw new InternalServerErrorException(
           'Something went wrong when trying to fetch all assigned tasks. Please try again later.',
         );
@@ -74,7 +92,7 @@ export class RiderService {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        console.log(error)
+        console.log(error);
         throw new InternalServerErrorException(
           'Something went wrong when trying to fetch one assigned task. Please try again later.',
         );
@@ -90,34 +108,46 @@ export class RiderService {
     taskID: number,
   ) {
     try {
-   
-        const task = await this.taskRepo.findOne({
-          where: {
-            id: taskID,
-            rider: { id: Rider.id },
-          },
-          relations: ['rider', 'assigned_order'],
-        });
-  
-        if (!task)
-          throw new NotFoundException(
-            `task with the id: ${taskID} is not assigned to this rider`,
-          );
+      const task = await this.taskRepo.findOne({
+        where: {
+          id: taskID,
+          rider: { id: Rider.id },
+        },
+        relations: ['rider', 'assigned_order'],
+      });
+
+      if (!task)
+        throw new NotFoundException(
+          `task with the id: ${taskID} is not assigned to this rider`,
+        );
 
       //accept or decline and update the order status
       if (dto && dto.action === AcceptOrDeclineTask.ACCEPT) {
-        
         task.rider = Rider;
-        task.acceptedAt = new Date(); 
-        (task.status = TaskStatus.ONGOING);
+        task.acceptedAt = new Date();
+        task.status = TaskStatus.ONGOING;
         await this.taskRepo.save(task);
-        return task;
 
+        //save notification
+        const notification = new Notifications();
+        notification.account = Rider.id;
+        notification.subject = 'Rider Accepted a Task !';
+        notification.message = `Rider with the  id ${Rider} has accepted the Task on the ostra logistics rider app `;
+        await this.notificationripo.save(notification);
+
+        return task;
       } else if (dto && dto.action === AcceptOrDeclineTask.DECLINE) {
         //update the task table
         task.rider = Rider;
-        (task.declinedAT = new Date());
+        task.declinedAT = new Date();
         await this.taskRepo.save(task);
+
+        //save notification
+        const notification = new Notifications();
+        notification.account = Rider.id;
+        notification.subject = 'Rider Delined a Task !';
+        notification.message = `Rider with the  id ${Rider} has declined the Task on the ostra logistics rider app `;
+        await this.notificationripo.save(notification);
       }
 
       return task;
@@ -125,13 +155,62 @@ export class RiderService {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        console.log(error)
+        console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to accept or decline this task, please try again later',
         );
       }
     }
   }
+
+
+  //check-in when rider gets to pick up location
+  async RiderCheckswhenEnrouteToPickupLocation(
+    taskID: number,
+    orderID: number,
+    Rider: RiderEntity,
+  ) {
+    try {
+      const task = await this.taskRepo.findOne({
+        where: {
+          id: taskID,
+          rider: { id: Rider.id },
+          assigned_order: { id: orderID },
+        },
+        relations: ['rider', 'assigned_order'],
+      });
+
+      if (!task)
+        throw new NotFoundException(
+          `task with the id: ${taskID} is not assigned to this rider`,
+        );
+
+      //updtae pickup milestone
+      task.milestone = RiderMileStones.ENROUTE_TO_PICKUP_LOCATION;
+      await this.taskRepo.save(task);
+
+      //save notification
+      const notification = new Notifications();
+      notification.account = Rider.id;
+      notification.subject = 'Rider Reached a MileStone !';
+      notification.message = `Rider with the  id ${Rider} is on is way to the pickup location `;
+      await this.notificationripo.save(notification);
+
+      return task;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying update milestone status of being on your way to the pick up location, please try again later',
+        );
+      }
+    }
+  }
+
+
+
 
   //check-in when rider gets to pick up location
   async RiderChecksToPickupLocInWhenHeGetation(
@@ -158,12 +237,19 @@ export class RiderService {
       task.milestone = RiderMileStones.AT_PICKUP_LOCATION;
       await this.taskRepo.save(task);
 
+      //save notification
+      const notification = new Notifications();
+      notification.account = Rider.id;
+      notification.subject = 'Rider Reached a MileStone !';
+      notification.message = `Rider with the  id ${Rider} has gotten to the pickup location `;
+      await this.notificationripo.save(notification);
+
       return task;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        console.log(error)
+        console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying update milestone status of reaching the pick up location, please try again later',
         );
@@ -213,6 +299,13 @@ export class RiderService {
       isOrder.pickupTime = new Date();
       await this.orderRepo.save(isOrder);
 
+      //save notification
+      const notification = new Notifications();
+      notification.account = Rider.id;
+      notification.subject = 'Rider Reached a MileStone !';
+      notification.message = `Rider with the  id ${Rider} has picked up the parcel from the pick up location `;
+      await this.notificationripo.save(notification);
+
       return task;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -220,13 +313,63 @@ export class RiderService {
       } else if (error instanceof NotAcceptableException) {
         throw new NotAcceptableException(error.message);
       } else {
-        console.log(error)
+        console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to update the milestone status of reaching the pickup location, please try again later',
         );
       }
     }
   }
+
+
+
+  async RiderCheckInWhenRiderEnrouteTotheOfficeForRebranding(
+    taskID: number,
+    orderID: number,
+    Rider: RiderEntity,
+  ) {
+    try {
+      const task = await this.taskRepo.findOne({
+        where: {
+          id: taskID,
+          rider: { id: Rider.id },
+          assigned_order: { id: orderID },
+        },
+        relations: ['rider', 'assigned_order'],
+      });
+
+      if (!task)
+        throw new NotFoundException(
+          `task with the id: ${taskID} is not assigned to this rider`,
+        );
+
+      //updtae at the office milestone
+      task.milestone = RiderMileStones.ENROUTE_TO_THE_OFFICE_FOR_REBRANDING;
+      task.status = TaskStatus.ONGOING;
+      await this.taskRepo.save(task);
+
+      //save notification
+      const notification = new Notifications();
+      notification.account = Rider.id;
+      notification.subject = 'Rider Reached a MileStone !';
+      notification.message = `Rider with the  id ${Rider} has picked up the parcel and is now on his way to the office for rebranding of the picked up parcel `;
+      await this.notificationripo.save(notification);
+
+      return task;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying update milestone status of being on your way to  the ofice for rebranding, please try again later',
+        );
+      }
+    }
+  }
+
+
+
 
   //check in when he gets to the office
 
@@ -255,12 +398,19 @@ export class RiderService {
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
+      //save notification
+      const notification = new Notifications();
+      notification.account = Rider.id;
+      notification.subject = 'Rider Reached a MileStone !';
+      notification.message = `Rider with the  id ${Rider} has arived the office for rebranding of the picked up parcel `;
+      await this.notificationripo.save(notification);
+
       return task;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        console.log(error)
+        console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying update milestone status of arriving at the ofice for rebranding, please try again later',
         );
@@ -268,8 +418,54 @@ export class RiderService {
     }
   }
 
+
+  //when rider is on his way to the dropoff location
+  async RiderCheckInWhenHeISEnrouteToDropoffLocation(
+    taskID: number,
+    orderID: number,
+    Rider: RiderEntity,
+  ) {
+    try {
+      const task = await this.taskRepo.findOne({
+        where: {
+          id: taskID,
+          rider: { id: Rider.id },
+          assigned_order: { id: orderID },
+        },
+        relations: ['rider', 'assigned_order'],
+      });
+
+      if (!task)
+        throw new NotFoundException(
+          `task with the id: ${taskID} is not assigned to this rider`,
+        );
+
+      //updtae at dropoff location milestone
+      task.milestone = RiderMileStones.ENROUTE_TO_DROPOFF_LOCATION;
+      task.status = TaskStatus.ONGOING;
+      await this.taskRepo.save(task);
+
+      //save notification
+      const notification = new Notifications();
+      notification.account = Rider.id;
+      notification.subject = 'Rider Reached a MileStone !';
+      notification.message = `Rider with the  id ${Rider} is enroute to the drop off location `;
+      await this.notificationripo.save(notification);
+
+      return task;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying update milestone status of being on your way to the droppoff location, please try again later',
+        );
+      }
+    }
+  }
+
   //when rider arrives at drop off location
-  //check-in during pick up
   async RiderCheckInWhenHeGetsToDropoffLocation(
     taskID: number,
     orderID: number,
@@ -295,12 +491,19 @@ export class RiderService {
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
+      //save notification
+      const notification = new Notifications();
+      notification.account = Rider.id;
+      notification.subject = 'Rider Reached a MileStone !';
+      notification.message = `Rider with the  id ${Rider} has gotten to the drop off location `;
+      await this.notificationripo.save(notification);
+
       return task;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        console.log(error)
+        console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying update milestone status of arriving at the droppoff location, please try again later',
         );
@@ -335,7 +538,7 @@ export class RiderService {
           id: orderID,
           assigned_task: { id: taskID, rider: { id: Rider.id } },
         },
-        relations: ['Rider', 'asssigned_task','customer'],
+        relations: ['Rider', 'asssigned_task', 'customer'],
       });
       if (!isOrder)
         throw new NotAcceptableException(
@@ -358,8 +561,19 @@ export class RiderService {
       isOrder.pickupTime = new Date();
       await this.orderRepo.save(isOrder);
 
-      //send mail 
-      await this.mailer.ParcelDroppedOfMail(isOrder.customer.email,isOrder.customer.firstname,isOrder.trackingID)
+      //send mail
+      await this.mailer.ParcelDroppedOfMail(
+        isOrder.customer.email,
+        isOrder.customer.firstname,
+        isOrder.trackingID,
+      );
+
+      //save notification
+      const notification = new Notifications();
+      notification.account = Rider.id;
+      notification.subject = 'Rider Reached a MileStone !';
+      notification.message = `Rider with the  id ${Rider} has dropped off the prcel and has finally completed that task `;
+      await this.notificationripo.save(notification);
 
       return task;
     } catch (error) {
@@ -370,7 +584,7 @@ export class RiderService {
       } else if (error instanceof ConflictException) {
         throw new ConflictException(error.message);
       } else {
-        console.log(error)
+        console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to update the milestone status for dropping off parcel and concluding your trip, please try again later',
         );
@@ -385,90 +599,247 @@ export class RiderService {
         where: { rider: { id: Rider.id } },
         relations: ['assigned_order', 'rider'],
       });
-  
+
       if (mytasks[1] === 0)
         throw new NotFoundException('no tasks has been assigned to you yet');
       return mytasks;
     } catch (error) {
-      if (error instanceof NotFoundException){
-        throw new NotFoundException(error.message)
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'an error occured when trying to fetch your assigned tasks',
+        );
       }
-      else{
-        console.log(error)
-        throw new InternalServerErrorException('an error occured when trying to fetch your assigned tasks')
-      }
-      
     }
   }
 
-//fetch one assigned task
-  async fetchOneTask(Rider: RiderEntity,taskID:number) {
+  //fetch one assigned task
+  async fetchOneTask(Rider: RiderEntity, taskID: number) {
     try {
       const mytasks = await this.taskRepo.findOne({
-        where: { rider: { id: Rider.id },id:taskID },
+        where: { rider: { id: Rider.id }, id: taskID },
         relations: ['assigned_order', 'rider'],
       });
-  
-      if (!mytasks)
-        throw new NotFoundException('the task does not exist');
+
+      if (!mytasks) throw new NotFoundException('the task does not exist');
       return mytasks;
     } catch (error) {
-      if (error instanceof NotFoundException){
-        throw new NotFoundException(error.message)
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'an error occured when trying to fetch your assigned tasks',
+        );
       }
-      else{
-        console.log(error)
-        throw new InternalServerErrorException('an error occured when trying to fetch your assigned tasks')
-      }
-      
     }
   }
 
-
-  //fetch all ongoing tasks 
+  //fetch all ongoing tasks
   async fetchAllOngoingTasks(Rider: RiderEntity) {
     try {
       const mytasks = await this.taskRepo.findAndCount({
-        where: { rider: { id: Rider.id }, status:TaskStatus.ONGOING },
+        where: { rider: { id: Rider.id }, status: TaskStatus.ONGOING },
         relations: ['assigned_order', 'rider'],
       });
-  
+
       if (mytasks[1] === 0)
         throw new NotFoundException('you have no ongoing tasks at the moment');
       return mytasks;
     } catch (error) {
-      if (error instanceof NotFoundException){
-        throw new NotFoundException(error.message)
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'an error occured when trying to fetch your ongoing tasks',
+        );
       }
-      else{
-        console.log(error)
-        throw new InternalServerErrorException('an error occured when trying to fetch your ongoing tasks')
-      }
-      
     }
   }
-
 
   async fetchAllConcludedTasks(Rider: RiderEntity) {
     try {
       const mytasks = await this.taskRepo.findAndCount({
-        where: { rider: { id: Rider.id }, status:TaskStatus.CONCLUDED },
+        where: { rider: { id: Rider.id }, status: TaskStatus.CONCLUDED },
         relations: ['assigned_order', 'rider'],
       });
-  
+
       if (mytasks[1] === 0)
-        throw new NotFoundException('you have no concluded tasks at the moment');
+        throw new NotFoundException(
+          'you have no concluded tasks at the moment',
+        );
       return mytasks;
     } catch (error) {
-      if (error instanceof NotFoundException){
-        throw new NotFoundException(error.message)
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new InternalServerErrorException(
+          'an error occured when trying to fetch your concluded tasks',
+        );
       }
-      else{
-        throw new InternalServerErrorException('an error occured when trying to fetch your concluded tasks')
-      }
-      
     }
   }
 
-  
+  //get all bankdetails
+  async GetMyBankDetials(Rider: RiderEntity) {
+    try {
+      const details = await this.riderbankdetailsRepo.findAndCount({
+        where: { owner: { id: Rider.id } },
+        relations: ['owner'],
+      });
+
+      if (details[1] === 0)
+        throw new NotFoundException(
+          'you have no bank details registered at the moment',
+        );
+      return details;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new InternalServerErrorException(
+          'an error occured when trying to fetch all bank detials associated with this rider',
+        );
+      }
+    }
+  }
+
+  //get one bankdetails
+  async GetOneBankDetials(detailsId: number, Rider: RiderEntity) {
+    try {
+      const detail = await this.riderbankdetailsRepo.findOne({
+        where: { id: detailsId, owner: { id: Rider.id } },
+        relations: ['owner'],
+      });
+
+      if (!detail)
+        throw new NotFoundException(
+          'there is no bank details associted with this Rider',
+        );
+      return detail;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new InternalServerErrorException(
+          'an error occured when trying to fetch a bank detial of the selected bank',
+        );
+      }
+    }
+  }
+
+  //cange the status of the bank details
+  async BankPreferenceStatus(
+    detailsId: number,
+    Rider: RiderEntity,
+    dto: ChangeBankPreferenceDto,
+  ) {
+    try {
+      const detail = await this.riderbankdetailsRepo.findOne({
+        where: { id: detailsId, owner: { id: Rider.id } },
+        relations: ['owner'],
+      });
+
+      if (!detail)
+        throw new NotFoundException(
+          'there is no bank details associted with this Rider',
+        );
+
+      //upgrade the status
+      detail.status = dto.preference;
+      await this.riderbankdetailsRepo.save(detail);
+
+      //save notification
+      const notification = new Notifications();
+      notification.account = Rider.id;
+      notification.subject = `Rider Changed Bank Preference`;
+      notification.message = `Rider with the  id ${Rider} has changed his bank payment preference status  to bank details with id ${detailsId} `;
+      await this.notificationripo.save(notification);
+
+      return { message: 'prefernce status successfully updated', detail };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new InternalServerErrorException(
+          'an error occured when trying to chnage the preference status of the bank details selected',
+        );
+      }
+    }
+  }
+
+  //request for passsword change
+  async RequestBankinfoChange(
+    Rider: RiderEntity,
+    dto: MakeRequestDto,
+  ): Promise<{ message: string }> {
+    try {
+      //checkemail
+      const rider = await this.riderRepo.findOne({
+        where: { id: Rider.id },
+      });
+
+      if (!rider)
+        throw new NotFoundException(
+          'this  rider is not found on ostra logistics ',
+        );
+
+      // create a new request
+      const request = new RequestEntity();
+      (request.Rider = rider),
+        (request.requestType = RequestType.BANK_DETAILS_CHANGE);
+      request.requestedAt = new Date();
+      request.body = dto.body;
+      await this.requestrepo.save(request);
+
+      //save notification
+      const notification = new Notifications();
+      notification.account = rider.id;
+      notification.subject = 'Rider Requested for bank details change!';
+      notification.message = `Rider with the  id ${rider.id} has requested for a bank details change `;
+      await this.notificationripo.save(notification);
+
+      return {
+        message:
+          'Your request has been sent, the Admin will review and respond in due time, thank you',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong when trying to request for reset password, please try again later',
+        );
+      }
+    }
+  }
+
+  //fetch all transactions 
+
+  //fetch all notifications 
+  async AllNotificationsRelatedTocustomer(rider: RiderEntity) {
+    try {
+      const notification = await this.notificationripo.findAndCount({
+        where: { account: rider.id },
+      });
+      if (notification[1] === 0)
+        throw new NotFoundException(
+          'oops! you have no notifications at this time',
+        );
+      return notification;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch notifications',
+        );
+      }
+    }
+  }
 }

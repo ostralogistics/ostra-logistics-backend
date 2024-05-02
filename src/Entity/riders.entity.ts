@@ -1,5 +1,5 @@
-import { MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums";
-import { IRider } from "src/Riders/riders";
+import { BankDetailsStatus, MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums";
+import { IMyBankAccountDetails, IRider } from "src/Riders/riders";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OrderEntity } from "./orders.entity";
 import { TaskEntity } from "./ridersTasks.entity";
@@ -37,6 +37,7 @@ export class RiderEntity implements IRider{
 
     @Column({nullable:true})
     age:number
+
 
     @Column({nullable:true})
     driver_license: string;
@@ -125,9 +126,34 @@ export class RiderEntity implements IRider{
 
     @OneToOne(()=>VehicleEntity, Vehicle=>Vehicle.assigned_Rider)
     vehicle_for_the_day: VehicleEntity;
-    
-    
-    
 
+    @OneToMany(()=>RiderBankDetailsEntity,details=>details.owner)
+    bank_details : RiderBankDetailsEntity[]
+    
     
 }
+
+@Entity({name:'Rider_Bank_Details'})
+export class RiderBankDetailsEntity implements IMyBankAccountDetails{
+    @PrimaryGeneratedColumn()
+    id:number
+
+     @Column({nullable:true})
+     Bank_account_name: string;
+ 
+     @Column('numeric',{nullable:true})
+     Bank_account_number: number;
+ 
+     @Column({nullable:true})
+     Bank_name: string;
+
+     @Column({nullable:true, type:'enum', enum:BankDetailsStatus})
+     status: BankDetailsStatus;
+
+     @ManyToOne(()=>RiderEntity, rider=>rider.bank_details)
+     owner: RiderEntity;
+ 
+
+
+}
+

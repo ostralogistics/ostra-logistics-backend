@@ -1,3 +1,4 @@
+import { RepliesEntity } from "src/Entity/replies.entity"
 import { AdminAccessLevels, AdminType, Gender, MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums"
 
 export interface IAdmin {
@@ -30,6 +31,8 @@ export interface IAdmin {
     isLoggedOut:boolean 
     loginCount:number
     locked_until : Date
+    replies:RepliesEntity[]
+
 }
 
 export interface ICreateAdmins{

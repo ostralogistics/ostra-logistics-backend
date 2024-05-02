@@ -1,8 +1,8 @@
 import { Controller, UploadedFile, UseInterceptors, Post,Get,Patch,Delete, BadRequestException, Query, InternalServerErrorException, Body, Param, UseGuards } from "@nestjs/common";
 import { AdminRiderDashboardService } from "./admin.riders.dashboard.service";
-import { AssignTaskDto, RegisterRiderByAdminDto, UpdateRiderInfoByAdminDto } from "./admin.dto";
+import { AssignTaskDto, BankDetailsDto, EditBankDetailsDto, RegisterRiderByAdminDto, UpdateRiderInfoByAdminDto } from "./admin.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { IChangeRiderPassword, IRegisterRider } from "src/Riders/riders";
+import { IChangeRiderPassword } from "src/Riders/riders";
 import { RiderEntity } from "src/Entity/riders.entity";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { Multer } from "multer";
@@ -120,6 +120,20 @@ export class AdminRiderDashBoardController{
         return await this.adminriderservice.AssignOrderToRider(riderID,orderID,dto)
     }
 
+
+    @AdminTypes(AdminType.CEO,AdminType.STAFF)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Post('add-rider-bank-details/:riderID')
+    async AddRiderBankDetails( @Param('riderID')riderID:string,@Body()dto:BankDetailsDto){
+        return await this.adminriderservice.addRiderBankDetails(dto,riderID)
+    }
+
+    @AdminTypes(AdminType.CEO,AdminType.STAFF)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Patch('update-rider-bank-details/:riderID')
+    async EditRiderBankDetails( @Param('riderID')riderID:string,@Body()dto:EditBankDetailsDto){
+        return await this.adminriderservice.addRiderBankDetails(dto,riderID)
+    }
     
 
     

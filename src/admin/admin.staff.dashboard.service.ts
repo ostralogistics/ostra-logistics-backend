@@ -41,7 +41,7 @@ export class AdminStaffDasboardService {
     private readonly notificationripo: NotificationRepository,
     private uploadservice: UploadService,
     private generatorservice:GeneatorService,
-    private adminriderservice: AdminRiderDashboardService,
+    
   
   ) {}
 
@@ -117,7 +117,7 @@ export class AdminStaffDasboardService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = 'super admin';
+      notification.account = findstaff.id;
       notification.subject = 'Admin Registered staff  !';
       notification.message = `a new staff  have been created on ostra logistics platform `;
       await this.notificationripo.save(notification);
@@ -170,7 +170,7 @@ export class AdminStaffDasboardService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = 'super admin';
+      notification.account = admin.id;
       notification.subject = 'Staff Record Updated !';
       notification.message = `the record of the rider with the id ${adminId} has been updated  on ostra logistics platform `;
       await this.notificationripo.save(notification);
@@ -207,7 +207,7 @@ export class AdminStaffDasboardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = 'super admin';
+      notification.account = findotheradmin.id;
       notification.subject = 'Staff deleted !';
       notification.message = `the staff with id ${adminID}  has been deleted from the ostra logistics application by superAdmin `;
       await this.notificationripo.save(notification);
@@ -251,7 +251,7 @@ export class AdminStaffDasboardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = 'super admin';
+      notification.account = findstaff.id;
       notification.subject = 'Staff password changed !';
       notification.message = `the Staff with id ${staffID} password has been changed on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
@@ -374,6 +374,13 @@ export class AdminStaffDasboardService {
       //change accesslevel
       staff.adminAccessLevels = dto.accesslevel;
       await this.adminripo.save(staff);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = staff.id;
+      notification.subject = 'Staff accesslevel changed !';
+      notification.message = `the Staff with id ${staffID} accesslevel have been changed on the admin portal of ostra ogistics by CEO  `;
+      await this.notificationripo.save(notification);
 
       return {
         message: 'staff accesslevel has been changed successfully',

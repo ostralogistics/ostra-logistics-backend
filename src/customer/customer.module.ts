@@ -18,6 +18,8 @@ import { BidEventsService } from 'src/common/Events/bid.events.service';
 import { CardEntity } from 'src/Entity/card.entity';
 import { UploadService } from 'src/common/helpers/upload.service';
 import { GeneatorService } from 'src/common/services/generator.service';
+import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
+import { ComplaintEntity } from 'src/Entity/complaints.entity';
 
 @Module({
   imports: [    
@@ -28,6 +30,8 @@ import { GeneatorService } from 'src/common/services/generator.service';
       OrderEntity,
       BidEntity,
       CardEntity,
+      NewsLetterEntity,
+      ComplaintEntity
     ]),
   ],
   providers: [

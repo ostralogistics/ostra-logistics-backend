@@ -12,7 +12,7 @@ export class UploadService{
 
 
 
-async uploadFile  (file: Express.Multer.File): Promise<string>{
+public async uploadFile  (file: Express.Multer.File): Promise<string>{
     const extension = extname(file.originalname).toLowerCase();
     const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.ogg', 'webm'];
 

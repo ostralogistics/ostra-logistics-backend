@@ -1,6 +1,7 @@
 import { AdminAccessLevels, AdminType, Gender, MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums";
 import { IAdmin } from "src/admin/admin";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { RepliesEntity } from "./replies.entity";
 
 @Entity({name:"Admin",})
 export class AdminEntity implements IAdmin{
@@ -104,6 +105,9 @@ export class AdminEntity implements IAdmin{
 
     @Column({nullable:true,type:'timestamp'})
     locked_until: Date;
+
+    @OneToMany(()=>RepliesEntity,replies=>replies.repliedBy)
+    replies: RepliesEntity[];
     
     
 }

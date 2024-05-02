@@ -13,7 +13,7 @@ import { AdminRiderDashBoardController } from './admin.riders.dashboard.controll
 import { AdminStaffDashBoardController } from './admin.staff.dashboard.controller';
 import { UploadService } from 'src/common/helpers/upload.service';
 import { CustomerAuthService } from 'src/customer/customer.auth.service';
-import { RiderEntity } from 'src/Entity/riders.entity';
+import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
 import { CustomerEntity } from 'src/Entity/customers.entity';
 import { BidEntity } from 'src/Entity/bids.entity';
 import { AdminAuthController } from './admin.auth.controller';
@@ -28,6 +28,8 @@ import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { Admincontroller } from './admin.controller';
 import { AdminService } from './admin.service';
 import { GeneatorService } from 'src/common/services/generator.service';
+import { ComplaintEntity } from 'src/Entity/complaints.entity';
+import { RepliesEntity } from 'src/Entity/replies.entity';
 
 
 @Module({
@@ -44,6 +46,10 @@ import { GeneatorService } from 'src/common/services/generator.service';
       TaskEntity,
       RequestEntity,
       VehicleEntity,
+      ComplaintEntity,
+      RepliesEntity,
+      RiderBankDetailsEntity
+
 
     ]),
   ],

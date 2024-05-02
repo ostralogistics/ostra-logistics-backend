@@ -9,7 +9,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CustomerEntity } from 'src/Entity/customers.entity';
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { OrderRepository } from 'src/order/order.reposiroty';
-import { CardRepository, CustomerRepository } from './customer.repository';
+import {
+  CardRepository,
+  CustomerRepository,
+  NewsLetterRepository,
+  complaintRepository,
+} from './customer.repository';
 import { DistanceService } from 'src/common/services/distance.service';
 import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { BidActionDto, OrderDto, counterBidDto } from 'src/common/common.dto';
@@ -19,9 +24,14 @@ import {
   BiddingAction,
   OrderStatus,
   PaymentStatus,
+  channelforconversation,
+  complainResolutionStatus,
 } from 'src/Enums/all-enums';
 import { BidEntity, IBids } from 'src/Entity/bids.entity';
-import { BidRepository } from 'src/common/common.repositories';
+import {
+  BidRepository,
+  NotificationRepository,
+} from 'src/common/common.repositories';
 import axios from 'axios';
 import * as nanoid from 'nanoid';
 import { BidEventsService } from 'src/common/Events/bid.events.service';
@@ -31,6 +41,8 @@ import { find } from 'rxjs';
 import {
   CardDetailsDto,
   ChangePasswordDto,
+  ComplaintDto,
+  NewsLetterDto,
   UpdateCustomerDto,
   addPasswordDto,
 } from './customer.dto';
@@ -40,6 +52,9 @@ import { CustomerAuthService } from './customer.auth.service';
 import { UploadService } from 'src/common/helpers/upload.service';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
+import { INotification, Notifications } from 'src/Entity/notifications.entity';
+import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
+import { ComplaintEntity, IComplaints } from 'src/Entity/complaints.entity';
 
 @Injectable()
 export class CustomerService {
@@ -51,14 +66,18 @@ export class CustomerService {
     private readonly bidRepo: BidRepository,
     @InjectRepository(CardEntity)
     private readonly cardRepo: CardRepository,
+    @InjectRepository(Notifications)
+    private readonly notificationripo: NotificationRepository,
+    @InjectRepository(NewsLetterEntity)
+    private readonly newsletterripo: NewsLetterRepository,
+    @InjectRepository(ComplaintEntity)
+    private readonly complaintripo: complaintRepository,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private BidEvents: BidEventsService,
     private uploadservice: UploadService,
-    private genratorservice:GeneatorService
+    private genratorservice: GeneatorService,
   ) {}
-
- 
 
   async PlaceOrder(customer: CustomerEntity, dto: OrderDto | OrderDto[]) {
     try {
@@ -83,7 +102,7 @@ export class CustomerService {
         }
         return createdOrders;
       } else {
-        return await this.createOrder(customer, dto,bidGroupID);
+        return await this.createOrder(customer, dto, bidGroupID);
       }
     } catch (error) {
       if (error instanceof NotAcceptableException)
@@ -100,8 +119,7 @@ export class CustomerService {
   public async createOrder(
     customer: CustomerEntity,
     dto: OrderDto,
-    bidGroupID?: string // Optional parameter for groupId 
-    
+    bidGroupID?: string, // Optional parameter for groupId
   ): Promise<OrderEntity> {
     try {
       const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
@@ -122,8 +140,9 @@ export class CustomerService {
       const flatRate = roundDistance * 4.25;
 
       const order = new OrderEntity();
-      order.orderID = `#OslO-${await this.genratorservice.generateOrderID()}`
-      if (bidGroupID) { // Only set groupId if bidGroupID is provided (multiple orders)
+      order.orderID = `#OslO-${await this.genratorservice.generateOrderID()}`;
+      if (bidGroupID) {
+        // Only set groupId if bidGroupID is provided (multiple orders)
         order.groupId = bidGroupID;
       }
       order.customer = customer;
@@ -154,7 +173,7 @@ export class CustomerService {
 
       order.pickupLat = pickupCoordinates.lat;
       order.pickupLong = pickupCoordinates.lon;
-      order.dropOffLat = dropOffCoordinates.lat;  
+      order.dropOffLat = dropOffCoordinates.lat;
       order.dropOffLong = dropOffCoordinates.lon;
       order.distance = roundDistance;
 
@@ -166,6 +185,13 @@ export class CustomerService {
       order.orderCreatedAtTime = new Date();
 
       await this.orderRepo.save(order);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = order.customer.id;
+      notification.subject = 'Customer made an order !';
+      notification.message = `the customer with id ${order.customer.id} have made an order from the customer app of otra logistics `;
+      await this.notificationripo.save(notification);
 
       return order;
     } catch (error) {
@@ -190,7 +216,6 @@ export class CustomerService {
     bidID: number,
   ): Promise<IBids> {
     try {
-      
       //check the order
       const order = await this.orderRepo.findOne({
         where: { id: orderID },
@@ -231,6 +256,13 @@ export class CustomerService {
         bid.BidAcceptedAt = new Date();
         await this.bidRepo.save(bid);
 
+        //save the notification
+        const notification = new Notifications();
+        notification.account = order.customer.id;
+        notification.subject = 'Customer accepted a bid!';
+        notification.message = `the customer with id ${order.customer.id} have accepted a bid from the admin in the app of ostra logistics `;
+        await this.notificationripo.save(notification);
+
         //notification for accepted bid
       } else if (dto && dto.action === BiddingAction.DECLINE) {
         this.BidEvents.emitBidEvent(BidEvent.DECLINED, { bidID, orderID });
@@ -243,8 +275,12 @@ export class CustomerService {
         bid.order = order;
         bid.BidDeclinedAt = new Date();
         await this.bidRepo.save(bid);
-
-        //notification for declined bid
+        //save the notification
+        const notification = new Notifications();
+        notification.account = order.customer.id;
+        notification.subject = 'Customer declined a bid!';
+        notification.message = `the customer with id ${order.customer.id} have declined a bid from the admin in the app of ostra logistics `;
+        await this.notificationripo.save(notification);
       }
       return bid;
     } catch (error) {
@@ -275,7 +311,10 @@ export class CustomerService {
         );
 
       // Check if order already has a counter offer (enforces one-time counter)
-      if (bid.bidStatus === BidStatus.COUNTERED || bid.bidStatus === BidStatus.ACCEPTED) {
+      if (
+        bid.bidStatus === BidStatus.COUNTERED ||
+        bid.bidStatus === BidStatus.ACCEPTED
+      ) {
         throw new NotAcceptableException(
           'Counter offer can only be made once for this order',
         );
@@ -285,11 +324,17 @@ export class CustomerService {
       bid.counter_bid_offer = dto.counter_bid;
       bid.counteredAt = new Date();
       bid.bidStatus = BidStatus.COUNTERED;
-      
 
       this.BidEvents.emitBidEvent(BidEvent.COUNTERED, { bid, bidID });
 
       await this.bidRepo.save(bid);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = bid.order.customer.id;
+      notification.subject = 'Customer counter a bid!';
+      notification.message = `the customer with id ${bid.order.customer.id} have countered a bid from the admin in the app of ostra logistics `;
+      await this.notificationripo.save(notification);
 
       //update ordertable
 
@@ -352,6 +397,12 @@ export class CustomerService {
           'Payment initialization failed. Please try again later',
         );
       }
+      //save the notification
+      const notification = new Notifications();
+      notification.account = order.customer.id;
+      notification.subject = 'Payment Order initiated!';
+      notification.message = `the customer with id ${order.customer.id} have initiated payment `;
+      await this.notificationripo.save(notification);
 
       return response.data;
     } catch (error) {
@@ -414,13 +465,13 @@ export class CustomerService {
       return findorder;
     } catch (error) {
       if (error instanceof NotFoundException)
-      throw new NotFoundException(error.message);
-    else {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'something went wrong while fetching all  orders in transit , please try again later',
-      );
-    }
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching all  orders in transit , please try again later',
+        );
+      }
     }
   }
 
@@ -442,13 +493,13 @@ export class CustomerService {
       return findorder;
     } catch (error) {
       if (error instanceof NotFoundException)
-      throw new NotFoundException(error.message);
-    else {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'something went wrong while fetching all picked up orders, please try again later',
-      );
-    }
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching all picked up orders, please try again later',
+        );
+      }
     }
   }
 
@@ -471,13 +522,13 @@ export class CustomerService {
     } catch (error) {
       console.log(error);
       if (error instanceof NotFoundException)
-      throw new NotFoundException(error.message);
-    else {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'something went wrong while fetching all droppedoff orders, please try again later',
-      );
-    }
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching all droppedoff orders, please try again later',
+        );
+      }
     }
   }
 
@@ -497,6 +548,13 @@ export class CustomerService {
       card.addedAT = new Date();
 
       await this.cardRepo.save(card);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = customer.id;
+      notification.subject = 'Customer Added a card!';
+      notification.message = `the customer with id ${customer.id} have added a card from the admin in the app of ostra logistics `;
+      await this.notificationripo.save(notification);
 
       return card;
     } catch (error) {
@@ -580,6 +638,13 @@ export class CustomerService {
       //delete card
       await this.cardRepo.remove(findcard);
 
+      //save the notification
+      const notification = new Notifications();
+      notification.account = customer.id;
+      notification.subject = 'Customer Deleted a card!';
+      notification.message = `the customer with id ${customer.id} have added a card with id: ${cardID}  in the customer app of ostra logistics `;
+      await this.notificationripo.save(notification);
+
       return { message: 'card successfully deleted' };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -620,6 +685,14 @@ export class CustomerService {
       customer.gender = dto.gender;
 
       await this.customerRepo.save(customer);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = customer.id;
+      notification.subject = 'Customer Updated Record!';
+      notification.message = `the customer with id ${customer.id} have updated their record in the customer app of ostra logistics `;
+      await this.notificationripo.save(notification);
+
       return { message: 'changes to record made successfully' };
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -638,22 +711,31 @@ export class CustomerService {
     dto: ChangePasswordDto,
     customer: CustomerEntity,
   ): Promise<{ message: string }> {
-    const { oldPassword, password, confirmPassword } = dto;
-
-    const comparepass = await this.genratorservice.comaprePassword(
-      dto.oldPassword,
-      customer.password,
-    );
-    if (!comparepass)
-      throw new NotAcceptableException(
-        'the old password provided does not match the existing passworod',
-      );
-
-    const hashpass = await this.genratorservice.hashpassword(dto.password);
-
-    customer.password = hashpass;
     try {
+      const { oldPassword, password, confirmPassword } = dto;
+
+      const comparepass = await this.genratorservice.comaprePassword(
+        dto.oldPassword,
+        customer.password,
+      );
+      if (!comparepass)
+        throw new NotAcceptableException(
+          'the old password provided does not match the existing passworod',
+        );
+
+      const hashpass = await this.genratorservice.hashpassword(dto.password);
+
+      customer.password = hashpass;
+
       await this.customerRepo.save(customer);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = customer.id;
+      notification.subject = 'Customer Changed Password!';
+      notification.message = `the customer with id ${customer.id} have made changes to his existing record in the customer app of ostra logistics `;
+      await this.notificationripo.save(notification);
+
       return { message: 'passwod chanaged successfully' };
     } catch (error) {
       if (error instanceof NotAcceptableException) {
@@ -675,13 +757,20 @@ export class CustomerService {
   ): Promise<{ message: string }> {
     try {
       const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `http://localhost:3000/api/v1/ostra-logistics_api/uploadfile/public/${display_pics}`;
+      const mediaurl = `${process.env.BASE_URL}/uploadfile/public/${display_pics}`;
 
       //update the image url
 
       customer.profile_picture = mediaurl;
 
       await this.customerRepo.save(customer);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = customer.id;
+      notification.subject = 'Customer Uploaded Profile Pics!';
+      notification.message = `the customer with id ${customer.id} have uploaded a profile picture in the customer app of ostra logistics `;
+      await this.notificationripo.save(notification);
 
       return { message: 'your profile picture has been uploaded successully ' };
     } catch (error) {
@@ -691,4 +780,168 @@ export class CustomerService {
       );
     }
   }
+
+  // track orderoffline for customer onboarding and for landing page
+  async OfflineTrackOrder(keyword: string | any): Promise<IOrder> {
+    try {
+      //find order
+      const trackorder = await this.orderRepo.findOne({
+        where: { trackingID: ILike(`%${keyword}`) },
+        relations: ['customer', 'bid'],
+        cache: false,
+        comment:
+          'tracking order with the trackingToken generated by the system',
+      });
+      if (!trackorder)
+        throw new NotFoundException(
+          `oops! this trackingID ${keyword} is not associated with any order in ostra logistics`,
+        );
+
+      return trackorder;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trackin an order, please try again later',
+        );
+      }
+    }
+  }
+
+  //get all notifications related to the customer
+
+  async AllNotificationsRelatedTocustomer(customer: CustomerEntity) {
+    try {
+      const notification = await this.notificationripo.findAndCount({
+        where: { account: customer.id },
+      });
+      if (notification[1] === 0)
+        throw new NotFoundException(
+          'oops! you have no notifications at this time',
+        );
+      return notification;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch notifications',
+        );
+      }
+    }
+  }
+
+  // sign up for newsletter
+  async SubsribeToNewsLetter(dto: NewsLetterDto) {
+    try {
+      const emailExists = await this.newsletterripo.findOne({
+        where: { email: dto.email },
+      });
+      if (emailExists)
+        throw new ConflictException(
+          'user with email address already subscribed, please use another email address',
+        );
+
+      //subscribe
+      const newSubscriber = new NewsLetterEntity();
+      newSubscriber.email = dto.email;
+      newSubscriber.firstname = dto.firstname;
+      newSubscriber.lastname = dto.lastname;
+      newSubscriber.SubscribedAt = new Date();
+
+      await this.newsletterripo.save(newSubscriber);
+
+      //notifiction
+      const notification = new Notifications();
+      notification.account = dto.email;
+      notification.subject = 'News Letter Subscription!';
+      notification.message = `the customer with email ${newSubscriber.email} have sunscribed to the ostra logistics news letter `;
+      await this.notificationripo.save(notification);
+
+      return {
+        message:
+          'you have successully subscribed to ostra logistics news letter',
+      };
+    } catch (error) {
+      if (error instanceof ConflictException)
+        throw new ConflictException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while subscribing for news letter, please try again later',
+        );
+      }
+    }
+  }
+
+  //file a complaint and get a ticket
+  async FileComplaint(dto: ComplaintDto, customer: CustomerEntity) {
+    try {
+      const ticket = `#${await this.genratorservice.generateComplaintTcket()}`;
+
+      const findcustomer = await this.customerRepo.findOne({where:{id:customer.id}})
+
+      //file complaint
+      const newcomplaint = new ComplaintEntity();
+      newcomplaint.complaints = dto.complaint;
+      newcomplaint.createdAt = new Date();
+      newcomplaint.customer = customer;
+      newcomplaint.ticket = ticket;
+      newcomplaint.channel = channelforconversation.OPEN
+      newcomplaint.status =complainResolutionStatus.IN_PROGRESS
+
+      await this.complaintripo.save(newcomplaint);
+
+      //notifiction
+      const notification = new Notifications();
+      notification.account = findcustomer.id;
+      notification.subject = 'complaint filed!';
+      notification.message = `the customer with id ${customer.id} have filed a complaint on ostra logistics customer app `;
+      await this.notificationripo.save(notification);
+
+      return {
+        message:
+          'you have succefully filed a complaint, here is your ticket, please query this over time to track the compliant status of your issue.',
+        ticket,
+      };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while filing a complaint, please try again later.',
+      );
+    }
+  }
+
+  async CheckComplaintStatus(keyword: string | any) {
+    try {
+      //find order
+      const complaint = await this.complaintripo.findOne({
+        where: { ticket: ILike(`%${keyword}`) },
+        relations: ['customer','replies'],
+        cache: false,
+        comment:
+          'checking the status of an issue ticket',
+      });
+      if (!complaint)
+        throw new NotFoundException(
+          `oops! this ticket ${keyword} is not associated with any complient filed in ostra logistics`,
+        );
+
+      return complaint;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to get the ststus of a complaint filed, please try again later',
+        );
+      }
+    }
+  }
+
+  // fetch all transaction record related to the customer
 }

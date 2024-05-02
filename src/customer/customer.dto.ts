@@ -143,3 +143,24 @@ export class CardDetailsDto {
   }
 
 
+  export class NewsLetterDto{
+
+    @IsString()
+    @IsOptional()
+    firstname:string
+
+    @IsString()
+    @IsOptional()
+    lastname:string
+
+    @IsString()
+    @IsNotEmpty()
+    email:string
+  }
+
+  export class ComplaintDto{
+    @IsString()
+    @IsNotEmpty()
+    complaint:string
+  }
+

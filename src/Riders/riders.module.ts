@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notifications } from 'src/Entity/notifications.entity';
-import { RiderEntity } from 'src/Entity/riders.entity';
+import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
 import { RiderAuthController } from './riders.auth.controller';
 import { RiderAuthService } from './riders.auth.service';
 import { UserOtp } from 'src/Entity/otp.entity';
@@ -28,6 +28,7 @@ import { GeneatorService } from 'src/common/services/generator.service';
       TaskEntity,
       OrderEntity,
       RequestEntity,
+      RiderBankDetailsEntity
     ]),
   ],
   providers: [

@@ -9,7 +9,7 @@ export class Notifications implements INotification{
     @CreateDateColumn({type:"date",nullable:false})
     date:Date
 
-    @Column({nullable:false})
+    @Column('varchar',{nullable:false})
     account:string
 
 
@@ -28,7 +28,7 @@ export class Notifications implements INotification{
 
 export interface INotification{
     id:number
-    account:string
+    account:string | any
     message:string
     subject:string
     date:Date
