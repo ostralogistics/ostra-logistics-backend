@@ -75,6 +75,12 @@ export class Logindto{
    
 }
 
+export class ApplypromoCodeDto{
+    @IsString()
+    @IsNotEmpty()
+    promoCode:string
+}
+
 
 export class OrderDto {
 

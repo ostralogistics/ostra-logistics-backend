@@ -3,7 +3,10 @@ import { AdminEntity } from 'src/Entity/admins.entity';
 import { AdminRepository } from './admin.repository';
 import { CustomerEntity } from 'src/Entity/customers.entity';
 import { CustomerRepository } from 'src/customer/customer.repository';
-import { BidRepository, NotificationRepository } from 'src/common/common.repositories';
+import {
+  BidRepository,
+  NotificationRepository,
+} from 'src/common/common.repositories';
 import { BidEntity, IBids, IInitialBidsResponse } from 'src/Entity/bids.entity';
 import { IOrder, IOrderRequestFromCustomerToAdmin } from 'src/order/order';
 import { OrderRepository } from 'src/order/order.reposiroty';
@@ -16,6 +19,7 @@ import {
   OrderStatus,
 } from 'src/Enums/all-enums';
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
@@ -76,13 +80,13 @@ export class AdminCustomerDashBoardService {
   //make openning bid based on influenced matrix cost calculations
 
   async MakeOpenningBid(
-    orderID: number,
+    orderID: any,
     dto: AdminPlaceBidDto,
   ): Promise<IInitialBidsResponse> {
     try {
       const order = await this.orderRepo.findOne({
-        where: { id: orderID },
-        relations: ['bid','customer'],
+        where: { id: orderID},
+        relations: ['bid', 'customer'],
       });
       if (!order)
         throw new NotFoundException(
@@ -128,6 +132,82 @@ export class AdminCustomerDashBoardService {
     }
   }
 
+  // async MakeOpenningBid1(
+  //   orderID: number | string,
+  //   dto: AdminPlaceBidDto,
+  // ): Promise<IInitialBidsResponse> {
+  //   try {
+  //     let orders: OrderEntity[] | undefined;
+
+  //     if (typeof orderID === 'number') {
+  //       // If orderID is a number, find the individual order by its ID
+  //       orders = [await this.orderRepo.findOne({
+  //         where: { id: orderID },
+  //         relations: ['bid', 'customer'],
+  //       })]; // Wrap the order in an array for consistency
+  //     } else if (typeof orderID === 'string') {
+  //       // If orderID is a string, find all orders belonging to the group
+  //       orders = await this.orderRepo.find({
+  //         where: { groupId: orderID },
+  //         relations: ['bid', 'customer'],
+  //       });
+  //     }
+
+  //     // Check if the order exists
+  //     if (!orders || orders.length ===0) {
+  //       throw new NotFoundException(`Order with ID ${orderID} not found`);
+  //     }
+
+  //     const bidResponses: IInitialBidsResponse[]=[]
+
+  //     //create openning bid for all orders in the group or single order for number ID
+  //     // Create a new bid for the order
+  //     for (const order of orders){
+  //       const bid = new BidEntity();
+  //     bid.order = order;
+  //     bid.bid_value = dto.bid;
+  //     bid.initialBidPlacedAt = new Date();
+  //     bid.bidStatus = BidStatus.BID_PLACED;
+
+  //     // Save the new bid to the database
+  //     await this.bidRepo.save(bid);
+
+  //     // Prepare the response object with bid details
+  //     const bidResponse: IInitialBidsResponse = {
+  //       id: bid.id,
+  //       bid_value: bid.bid_value,
+  //       bidStatus: bid.bidStatus,
+  //       initialBidPlacedAt: bid.initialBidPlacedAt,
+  //       order: bid.order,
+  //     };
+
+  //     bidResponses.push(bidResponse);
+
+  //     // Save notification for the customer
+  //     const notification = new Notifications();
+  //     notification.account = order.customer.id;
+  //     notification.subject = 'Opening Bid Made';
+  //     notification.message = `An opening bid has been sent for order with ID ${orderID} on the admin portal of Ostra Logistics by the superadmin.`;
+  //     await this.notificationripo.save(notification);
+
+  //     }
+      
+
+  //     return bidResponses;
+  //   } catch (error) {
+  //     // Handle specific exceptions
+  //     if (error instanceof NotFoundException) {
+  //       throw new NotFoundException(error.message);
+  //     } else {
+  //       // Log and throw internal server error for other exceptions
+  //       console.log(error);
+  //       throw new InternalServerErrorException(
+  //         'Something went wrong while making opening bid. Please try again later.',
+  //       );
+  //     }
+  //   }
+  // }
+
   //counter bids sent in
 
   async counterCustomerCouterBid(
@@ -160,13 +240,12 @@ export class AdminCustomerDashBoardService {
       bid.counteredAt = new Date();
       await this.bidRepo.save(bid);
 
-       //save the notification
-       const notification = new Notifications();
-       notification.account = bid.order.customer.id;
-       notification.subject = 'Counter Bid made !';
-       notification.message = `an counter bid  bid have been sent on bid with id ${bidID} on the admin portal of ostra ogistics by superadmin  `;
-       await this.notificationripo.save(notification);
-       
+      //save the notification
+      const notification = new Notifications();
+      notification.account = bid.order.customer.id;
+      notification.subject = 'Counter Bid made !';
+      notification.message = `an counter bid  bid have been sent on bid with id ${bidID} on the admin portal of ostra ogistics by superadmin  `;
+      await this.notificationripo.save(notification);
 
       return bid;
     } catch (error) {
@@ -188,7 +267,7 @@ export class AdminCustomerDashBoardService {
     try {
       const skip = (page - 1) * limit;
       const customers = await this.customerRepo.findAndCount({
-        relations: ['my_orders','my_cards'],
+        relations: ['my_orders', 'my_cards'],
         skip: skip,
         take: limit,
       });
@@ -214,7 +293,7 @@ export class AdminCustomerDashBoardService {
     try {
       const customers = await this.customerRepo.findOne({
         where: { id: customerID },
-        relations: ['my_orders','my_cards']
+        relations: ['my_orders', 'my_cards'],
       });
       if (!customers)
         throw new NotFoundException(
@@ -451,7 +530,7 @@ export class AdminCustomerDashBoardService {
 
   // get counts of orders
 
-  //all active orders count 
+  //all active orders count
   async getAllActiveOrdersCount(): Promise<number> {
     const activeOrder = await this.orderRepo.count({
       where: { order_status: OrderStatus.IN_TRANSIT },
@@ -475,7 +554,6 @@ export class AdminCustomerDashBoardService {
     return activeOrder;
   }
 
-
   //counts of pending
   async getAllPendingOrderCount(): Promise<number> {
     const activeOrder = await this.orderRepo.count({
@@ -486,8 +564,9 @@ export class AdminCustomerDashBoardService {
 
   //counts active based on week, month or year
 
-
-  async getCompletedOrderCountBasedOnDate(timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY): Promise<number> {
+  async getCompletedOrderCountBasedOnDate(
+    timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,
+  ): Promise<number> {
     try {
       let startDate = new Date();
       let endDate = new Date();
@@ -500,7 +579,7 @@ export class AdminCustomerDashBoardService {
           startDate.setMonth(startDate.getMonth() - 1);
           break;
         case OrderBasedOnDates.LAST_YEAR:
-          startDate.setFullYear(startDate.getFullYear()-1)
+          startDate.setFullYear(startDate.getFullYear() - 1);
         default:
           // For 'today', no change needed to startDate
           break;
@@ -512,21 +591,22 @@ export class AdminCustomerDashBoardService {
       const completedOrderCount = await this.orderRepo.count({
         where: {
           order_status: OrderStatus.DROPPED_OFF,
-          dropOffTime: Between(startDate, endDate)
+          dropOffTime: Between(startDate, endDate),
         },
       });
 
       return completedOrderCount;
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException('Error occurred while fetching completed order count.');
+      throw new InternalServerErrorException(
+        'Error occurred while fetching completed order count.',
+      );
     }
   }
 
-
-
-
-  async getPendingOrderCountBasedOnDate(timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY): Promise<number> {
+  async getPendingOrderCountBasedOnDate(
+    timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,
+  ): Promise<number> {
     try {
       let startDate = new Date();
       let endDate = new Date();
@@ -539,7 +619,7 @@ export class AdminCustomerDashBoardService {
           startDate.setMonth(startDate.getMonth() - 1);
           break;
         case OrderBasedOnDates.LAST_YEAR:
-          startDate.setFullYear(startDate.getFullYear()-1)
+          startDate.setFullYear(startDate.getFullYear() - 1);
         default:
           // For 'today', no change needed to startDate
           break;
@@ -551,20 +631,22 @@ export class AdminCustomerDashBoardService {
       const completedOrderCount = await this.orderRepo.count({
         where: {
           order_status: OrderStatus.BIDDING_ONGOING,
-          orderCreatedAtTime: Between(startDate, endDate)
+          orderCreatedAtTime: Between(startDate, endDate),
         },
       });
 
       return completedOrderCount;
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException('Error occurred while fetching pending  order count.');
+      throw new InternalServerErrorException(
+        'Error occurred while fetching pending  order count.',
+      );
     }
   }
 
-
-
-  async getActiveOrderCountBasedOnDate(timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY): Promise<number> {
+  async getActiveOrderCountBasedOnDate(
+    timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,
+  ): Promise<number> {
     try {
       let startDate = new Date();
       let endDate = new Date();
@@ -577,7 +659,7 @@ export class AdminCustomerDashBoardService {
           startDate.setMonth(startDate.getMonth() - 1);
           break;
         case OrderBasedOnDates.LAST_YEAR:
-          startDate.setFullYear(startDate.getFullYear()-1)
+          startDate.setFullYear(startDate.getFullYear() - 1);
         default:
           // For 'today', no change needed to startDate
           break;
@@ -589,19 +671,22 @@ export class AdminCustomerDashBoardService {
       const completedOrderCount = await this.orderRepo.count({
         where: {
           order_status: OrderStatus.IN_TRANSIT,
-          pickupTime: Between(startDate, endDate)
+          pickupTime: Between(startDate, endDate),
         },
       });
 
       return completedOrderCount;
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException('Error occurred while fetching Active order count.');
+      throw new InternalServerErrorException(
+        'Error occurred while fetching Active order count.',
+      );
     }
   }
 
-
-  async getofficeBrandingOrderCountBasedOnDate(timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY): Promise<number> {
+  async getofficeBrandingOrderCountBasedOnDate(
+    timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,
+  ): Promise<number> {
     try {
       let startDate = new Date();
       let endDate = new Date();
@@ -614,7 +699,7 @@ export class AdminCustomerDashBoardService {
           startDate.setMonth(startDate.getMonth() - 1);
           break;
         case OrderBasedOnDates.LAST_YEAR:
-          startDate.setFullYear(startDate.getFullYear()-1)
+          startDate.setFullYear(startDate.getFullYear() - 1);
         default:
           // For 'today', no change needed to startDate
           break;
@@ -626,21 +711,18 @@ export class AdminCustomerDashBoardService {
       const completedOrderCount = await this.orderRepo.count({
         where: {
           order_status: OrderStatus.PARCEL_REBRANDING,
-          pickupTime: Between(startDate, endDate)
+          pickupTime: Between(startDate, endDate),
         },
       });
 
       return completedOrderCount;
     } catch (error) {
       console.log(error);
-      throw new Error('Error occurred while fetching parcel in office for rebranding order count.');
+      throw new Error(
+        'Error occurred while fetching parcel in office for rebranding order count.',
+      );
     }
   }
 
-
   //in office orders for multiple and non multiple
-
-  
-
-
 }

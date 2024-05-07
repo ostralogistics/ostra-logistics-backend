@@ -21,10 +21,10 @@ import { AdminAccessLevel } from 'src/auth/decorator/accesslevel.decorator';
 
 
 
-@UseGuards(JwtGuard,RoleGuard,AdminTypeGuard,AdminAcessLevelGuard)
-@Roles(Role.ADMIN)
-@AdminTypes(AdminType.STAFF,AdminType.CEO)
-@AdminAccessLevel(AdminAccessLevels.LEVEL1, AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL3)
+// @UseGuards(JwtGuard,RoleGuard,AdminTypeGuard,AdminAcessLevelGuard)
+// @Roles(Role.ADMIN)
+// @AdminTypes(AdminType.STAFF,AdminType.CEO)
+// @AdminAccessLevel(AdminAccessLevels.LEVEL1, AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL3)
 
 
 @Controller('admin-customer-dashboard')
@@ -47,6 +47,15 @@ export class AdminCustomerDashBoardController {
     @Param('orderID') orderID: number,
   ) {
     return await this.admincustomerservice.MakeOpenningBid(orderID, dto);
+  }
+
+  @Post('placeOpeningBid/:orderOrGroupID')
+  async placeOpeningBid(
+      @Body() dto: AdminPlaceBidDto,
+      @Param('orderOrGroupID') orderOrGroupID: number | string,
+    
+  ) {
+      return await this.admincustomerservice.MakeOpenningBid(orderOrGroupID, dto);
   }
 
   @Patch('counter-bid/:BidID')

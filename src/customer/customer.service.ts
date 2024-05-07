@@ -30,6 +30,7 @@ import {
 import { BidEntity, IBids } from 'src/Entity/bids.entity';
 import {
   BidRepository,
+  DiscountUsageRepository,
   NotificationRepository,
 } from 'src/common/common.repositories';
 import axios from 'axios';
@@ -55,6 +56,9 @@ import { GeneatorService } from 'src/common/services/generator.service';
 import { INotification, Notifications } from 'src/Entity/notifications.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { ComplaintEntity, IComplaints } from 'src/Entity/complaints.entity';
+import { DiscountRepository } from 'src/admin/admin.repository';
+import { DiscountEntity } from 'src/Entity/discount.entity';
+import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 
 @Injectable()
 export class CustomerService {
@@ -72,6 +76,10 @@ export class CustomerService {
     private readonly newsletterripo: NewsLetterRepository,
     @InjectRepository(ComplaintEntity)
     private readonly complaintripo: complaintRepository,
+    @InjectRepository(DiscountEntity)
+    private readonly discountripo: DiscountRepository,
+    @InjectRepository(DiscountUsageEntity)
+    private readonly discountusageripo: DiscountUsageRepository,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private BidEvents: BidEventsService,
@@ -81,28 +89,39 @@ export class CustomerService {
 
   async PlaceOrder(customer: CustomerEntity, dto: OrderDto | OrderDto[]) {
     try {
+      //generate a bidgroupID
       const bidGroupID = this.genratorservice.generateBidGroupID();
 
       if (Array.isArray(dto)) {
+        // if dto is an array (multiple orders), iterate over each order data and create the orders
         const existingOrders = await this.orderRepo.find({
           where: {
             customer: customer,
             order_status: OrderStatus.BIDDING_ONGOING,
           },
         });
+
+        //check if the total number of existing orders plus the number of new orders exceeds the limit
         if (existingOrders.length + dto.length > 3) {
           throw new NotAcceptableException('the limit for multiple order is 3');
         }
 
+        //create an array to store the created orders
         const createdOrders: OrderEntity[] = [];
+
+        //iterate over each order data in the dto array
         for (const orderData of dto) {
-          const order = await this.createOrder(customer, orderData);
+          //create the order and push it to the createdOrders array
+          const order = await this.createOrder(customer, orderData, bidGroupID);
 
           createdOrders.push(order);
         }
+
+        //return the array of created orders
         return createdOrders;
       } else {
-        return await this.createOrder(customer, dto, bidGroupID);
+        //else if dto is not an array (single order), create the order directly
+        return await this.createOrder(customer, dto);
       }
     } catch (error) {
       if (error instanceof NotAcceptableException)
@@ -882,7 +901,9 @@ export class CustomerService {
     try {
       const ticket = `#${await this.genratorservice.generateComplaintTcket()}`;
 
-      const findcustomer = await this.customerRepo.findOne({where:{id:customer.id}})
+      const findcustomer = await this.customerRepo.findOne({
+        where: { id: customer.id },
+      });
 
       //file complaint
       const newcomplaint = new ComplaintEntity();
@@ -890,8 +911,8 @@ export class CustomerService {
       newcomplaint.createdAt = new Date();
       newcomplaint.customer = customer;
       newcomplaint.ticket = ticket;
-      newcomplaint.channel = channelforconversation.OPEN
-      newcomplaint.status =complainResolutionStatus.IN_PROGRESS
+      newcomplaint.channel = channelforconversation.OPEN;
+      newcomplaint.status = complainResolutionStatus.IN_PROGRESS;
 
       await this.complaintripo.save(newcomplaint);
 
@@ -920,10 +941,9 @@ export class CustomerService {
       //find order
       const complaint = await this.complaintripo.findOne({
         where: { ticket: ILike(`%${keyword}`) },
-        relations: ['customer','replies'],
+        relations: ['customer', 'replies'],
         cache: false,
-        comment:
-          'checking the status of an issue ticket',
+        comment: 'checking the status of an issue ticket',
       });
       if (!complaint)
         throw new NotFoundException(
@@ -938,6 +958,63 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to get the ststus of a complaint filed, please try again later',
+        );
+      }
+    }
+  }
+
+  //apply discount on multiple order only
+  public async ApplyPromocode(code: string, customer: CustomerEntity) {
+    try {
+      const discountcode = await this.discountripo.findOne({
+        where: { OneTime_discountCode: code },
+      });
+      if (!discountcode)
+        throw new NotFoundException('promo code does not exist');
+
+      //check if discount code is expired
+      if (discountcode.isExpired || discountcode.expires_in < new Date())
+        throw new NotAcceptableException(
+          'the promo code is expired, sorry you cannot use it anymore',
+        );
+
+      //check if the customer has applied this code before, cuz it is meant to be applied just once
+      const hasAppliedCodeBefore = await this.discountusageripo.findOne({
+        where: { code: code, appliedBy: { id: customer.id } },
+        relations: ['appliedBy'],
+      });
+
+      if (hasAppliedCodeBefore)
+        throw new NotAcceptableException(
+          'oops we are so sorry, you can only use this code once',
+        );
+
+      //record discount code usage
+      const discountUsage = new DiscountUsageEntity();
+      discountUsage.code = code;
+      discountUsage.appliedAT = new Date();
+      await this.discountusageripo.save(discountUsage);
+
+      //notifiction
+      const notification = new Notifications();
+      notification.account = customer.id;
+      notification.subject = 'Discount promo code applied!';
+      notification.message = `the customer has applied the promocode on ostra logistics `;
+      await this.notificationripo.save(notification);
+
+      return {
+        message: `promo code ${code} applied successfully`,
+        discountUsage,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof NotAcceptableException)
+        throw new NotAcceptableException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to apply discount on multiple orders',
         );
       }
     }

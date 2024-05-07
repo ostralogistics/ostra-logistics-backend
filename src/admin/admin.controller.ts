@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { AdminService } from "./admin.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
-import { ChannelDto, RegisterVehicleDto, ReplyDto, ReturnedVehicleDto, UpdateVehicleDto, updateResolutionStatusDto } from "./admin.dto";
+import { ChannelDto, DiscountDto, PriceListDto, RegisterVehicleDto, ReplyDto, ReturnedVehicleDto, UpdateDiscountDto, UpdatePriceListDto, UpdateVehicleDto, updateResolutionStatusDto } from "./admin.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "src/auth/guard/role.guard";
 import { Roles } from "src/auth/decorator/role.decorator";
@@ -11,6 +11,7 @@ import { AdminTypes } from "src/auth/decorator/admintype.decorator";
 import { AdminAcessLevelGuard } from "src/auth/guard/accesslevel.guard";
 import { AdminAccessLevel } from "src/auth/decorator/accesslevel.decorator";
 import { ComplaintDto } from "src/customer/customer.dto";
+import { ApplypromoCodeDto } from "src/common/common.dto";
 
 @UseGuards(JwtGuard,RoleGuard,AdminTypeGuard,AdminAcessLevelGuard)
 @Roles(Role.ADMIN)
@@ -107,6 +108,71 @@ export class Admincontroller{
     async filecomplaint(@Req()req, @Body()dto:ComplaintDto){
         return await this.adminservice.FileComplaintfromAdmin(dto,req.user.id)
     }
+
+    //dicount 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Post('set-discount')
+    async SetDiscount(@Body()dto:DiscountDto){
+        return await this.adminservice.SetDiscountAndDuration(dto)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Patch('update-discount/:discountID')
+    async UpdateDiscount(@Body()dto:UpdateDiscountDto, @Param('discountID')discountID:number){
+        return await this.adminservice.Updatediscount(dto,discountID)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Delete('delete-discount/:discountID')
+    async DeleteDiscount( @Param('discountID')discountID:number){
+        return await this.adminservice.deleteDiscount(discountID)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Post('apply-promoCode/:groupID')
+    async ApplyPromoCodeFromOffice( @Param('groupID')groupID:string,@Body()dto:ApplypromoCodeDto){
+        return await this.adminservice.ApplyPromocodeFromOffice(dto,groupID)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Post('create-priceList')
+    async CreatePriceist(@Body()dto:PriceListDto){
+        return await this.adminservice.PriceList(dto)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Patch('update-priceList/:pricelistID')
+    async UpdatePriceist(@Body()dto:UpdatePriceListDto, @Param('pricelistID')pricelistId:number){
+        return await this.adminservice.UpdatePriceList(dto,pricelistId)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Delete('delete-priceList/:pricelistID')
+    async DeletePriceist( @Param('pricelistID')pricelistId:number){
+        return await this.adminservice.DeletePriceList(pricelistId)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('all-priceList')
+    async AllPriceLists( @Query('limit')limit:number, @Query('page')page:number){
+        return await this.adminservice.GetAllPriceList(page,limit)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('one-priceList/:pricelistID')
+    async OnePriceLists( @Param("pricelistID")pricelistID:number){
+        return await this.adminservice.GetOnePriceList(pricelistID)
+    }
+
+
+
+
+
+
+    
+
+
+   
 
 
 

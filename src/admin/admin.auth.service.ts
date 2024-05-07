@@ -105,7 +105,7 @@ export class AdminAuthService {
       );
 
       const admin = new AdminEntity();
-      admin.adminID = `#OslA-${await this.adminservice.generateUserID()}`
+      admin.adminID = `#OslA-${await this.genratorservice.generateUserID()}`
       admin.email = dto.email;
       admin.fullname = dto.fullname;
       admin.password = hashedpassword;

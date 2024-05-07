@@ -12,14 +12,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AdminEntity } from 'src/Entity/admins.entity';
 import {
   AdminRepository,
+  DiscountRepository,
+  PriceListRepository,
   RepliesRepository,
   VehicleRepository,
 } from './admin.repository';
 import {
   ChannelDto,
+  DiscountDto,
+  PriceListDto,
   RegisterVehicleDto,
   ReplyDto,
   ReturnedVehicleDto,
+  UpdateDiscountDto,
+  UpdatePriceListDto,
   UpdateVehicleDto,
   updateResolutionStatusDto,
 } from './admin.dto';
@@ -28,6 +34,7 @@ import { UploadService } from 'src/common/helpers/upload.service';
 import { RiderEntity } from 'src/Entity/riders.entity';
 import { RidersRepository } from 'src/Riders/riders.repository';
 import {
+  BidStatus,
   ReturnedVehicle,
   channelforconversation,
   complainResolutionStatus,
@@ -36,12 +43,21 @@ import { CustomerService } from 'src/customer/customer.service';
 import { customAlphabet } from 'nanoid';
 import * as nanoid from 'nanoid';
 import { Notifications } from 'src/Entity/notifications.entity';
-import { NotificationRepository } from 'src/common/common.repositories';
+import {
+  DiscountUsageRepository,
+  NotificationRepository,
+} from 'src/common/common.repositories';
 import { ComplaintEntity } from 'src/Entity/complaints.entity';
 import { complaintRepository } from 'src/customer/customer.repository';
 import { RepliesEntity } from 'src/Entity/replies.entity';
 import { ComplaintDto } from 'src/customer/customer.dto';
 import { GeneatorService } from 'src/common/services/generator.service';
+import { DiscountEntity } from 'src/Entity/discount.entity';
+import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
+import { ApplypromoCodeDto } from 'src/common/common.dto';
+import { PriceListEntity } from 'src/Entity/pricelist.entity';
+import { OrderRepository } from 'src/order/order.reposiroty';
+import { OrderEntity } from 'src/Entity/orders.entity';
 
 @Injectable()
 export class AdminService {
@@ -54,20 +70,19 @@ export class AdminService {
     private readonly notificationripo: NotificationRepository,
     @InjectRepository(ComplaintEntity)
     private readonly complaintripo: complaintRepository,
+    @InjectRepository(DiscountEntity)
+    private readonly discountripo: DiscountRepository,
+    @InjectRepository(DiscountUsageEntity)
+    private readonly discountusageripo: DiscountUsageRepository,
+    @InjectRepository(PriceListEntity)
+    private readonly pricelistripo: PriceListRepository,
+    @InjectRepository(OrderEntity) private readonly orderRepo: OrderRepository,
 
     @InjectRepository(RepliesEntity)
     private readonly repliesripo: RepliesRepository,
     private uploadservice: UploadService,
     private genratorservice: GeneatorService,
   ) {}
-
-  public generateUserID(): string {
-    const gen = nanoid.customAlphabet(
-      '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-      6,
-    );
-    return gen();
-  }
 
   //register vehicle
   async RegisterVehicle(dto: RegisterVehicleDto, file: Express.Multer.File) {
@@ -79,7 +94,7 @@ export class AdminService {
       }
 
       const newVehicle = new VehicleEntity();
-      newVehicle.vehicleID = `#OslV-${await this.generateUserID()}`;
+      newVehicle.vehicleID = `#OslV-${await this.genratorservice.generateUserID()}`;
       newVehicle.vehicle_type = dto.vehicle_type;
       newVehicle.color = dto.color;
       newVehicle.registration_number = dto.registration_number;
@@ -364,12 +379,12 @@ export class AdminService {
   async FetchAllComplaint() {
     try {
       const complaint = await this.complaintripo.findAndCount({
-        relations: ['customer', 'replies',],
+        relations: ['customer', 'replies'],
       });
 
       if (complaint[1] === 0)
         throw new NotFoundException('there are no complaints at the moment');
-      return complaint
+      return complaint;
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -393,7 +408,7 @@ export class AdminService {
         throw new NotFoundException(
           'there are no complaints associated with this complaint ID ',
         );
-        return complaint
+      return complaint;
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -596,23 +611,24 @@ export class AdminService {
     }
   }
 
-
   // create compliant conflict manually from the admin desk
 
   //file a complaint and get a ticket
-  async FileComplaintfromAdmin(dto: ComplaintDto,admin:AdminEntity ) {
+  async FileComplaintfromAdmin(dto: ComplaintDto, admin: AdminEntity) {
     try {
       const ticket = `#${await this.genratorservice.generateComplaintTcket()}`;
 
-      const findadmin = await this.adminRepo.findOne({where:{id:admin.id}})
+      const findadmin = await this.adminRepo.findOne({
+        where: { id: admin.id },
+      });
 
       //file complaint
       const newcomplaint = new ComplaintEntity();
       newcomplaint.complaints = dto.complaint;
       newcomplaint.createdAt = new Date();
       newcomplaint.ticket = ticket;
-      newcomplaint.channel = channelforconversation.OPEN
-      newcomplaint.status =complainResolutionStatus.IN_PROGRESS
+      newcomplaint.channel = channelforconversation.OPEN;
+      newcomplaint.status = complainResolutionStatus.IN_PROGRESS;
 
       await this.complaintripo.save(newcomplaint);
 
@@ -636,8 +652,341 @@ export class AdminService {
     }
   }
 
-
-
   // set discount
+  async SetDiscountAndDuration(dto: DiscountDto) {
+    try {
+      const discount = new DiscountEntity();
+      discount.OneTime_discountCode = dto.discountCode;
+      discount.createdAT = new Date();
+      discount.DiscountDuration_days = dto.DiscountDuration_days;
+      discount.DiscountDuration_weeks = dto.DiscountDuration_weeks;
 
+      // scnerio where discount duration in days was given
+      if (dto.DiscountDuration_days) {
+        discount.expires_in = new Date(
+          discount.createdAT.getTime() +
+            dto.DiscountDuration_days * 24 * 60 * 60 * 100,
+        );
+        //scenerio where duration in weeks is given
+      } else if (dto.DiscountDuration_weeks) {
+        discount.expires_in = new Date(
+          discount.createdAT.getTime() +
+            dto.DiscountDuration_weeks * 7 * 24 * 60 * 60 * 100,
+        );
+      }
+
+      discount.percentageOff = dto.percentageOff;
+      discount.isExpired = false;
+
+      await this.discountripo.save(discount);
+
+      //notifiction
+      const notification = new Notifications();
+      notification.account = 'super admin';
+      notification.subject = 'Discount Created!';
+      notification.message = `the Admin have set a new promo Discout on ostra logistics `;
+      await this.notificationripo.save(notification);
+
+      return discount;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while trying to set a promo discount',
+      );
+    }
+  }
+
+  //update discount
+
+  async Updatediscount(dto: UpdateDiscountDto, discountID: number) {
+    try {
+      const discount = await this.discountripo.findOne({
+        where: { id: discountID },
+      });
+      if (!discount)
+        throw new NotFoundException(
+          `discount with  ${discountID} is not found in the system`,
+        );
+
+      discount.OneTime_discountCode = dto.discountCode;
+      discount.updatedAT = new Date();
+      discount.DiscountDuration_days = dto.DiscountDuration_days;
+      discount.DiscountDuration_weeks = dto.DiscountDuration_weeks;
+
+      // scnerio where discount duration in days was given
+      if (dto.DiscountDuration_days) {
+        discount.expires_in = new Date(
+          discount.updatedAT.getTime() +
+            dto.DiscountDuration_days * 24 * 60 * 60 * 100,
+        );
+        //scenerio where duration in weeks is given
+      } else if (dto.DiscountDuration_weeks) {
+        discount.expires_in = new Date(
+          discount.updatedAT.getTime() +
+            dto.DiscountDuration_weeks * 7 * 24 * 60 * 60 * 100,
+        );
+      }
+
+      discount.percentageOff = dto.percentageOff;
+      discount.isExpired = false;
+
+      await this.discountripo.save(discount);
+
+      //notifiction
+      const notification = new Notifications();
+      notification.account = 'super admin';
+      notification.subject = 'Discount updated!';
+      notification.message = `the Admin have update a promo discount  on ostra logistics `;
+      await this.notificationripo.save(notification);
+
+      return discount;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to update the promo discount ',
+        );
+      }
+    }
+  }
+
+  //delete discount
+  async deleteDiscount(discountID: number) {
+    try {
+      const discount = await this.discountripo.findOne({
+        where: { id: discountID },
+      });
+      if (!discount)
+        throw new NotFoundException(
+          `discount with  ${discountID} is not found in ostra logistics`,
+        );
+
+      //remove the discount
+      await this.discountripo.remove(discount);
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to delete a promo discount ',
+        );
+      }
+    }
+  }
+
+  //apply promo code in office
+  async ApplyPromocodeFromOffice(dto: ApplypromoCodeDto, groupId: string) {
+    try {
+      const discountcode = await this.discountripo.findOne({
+        where: { OneTime_discountCode: dto.promoCode },
+      });
+      if (!discountcode)
+        throw new NotFoundException('promo code does not exist');
+
+      //check if discount code is expired
+      if (discountcode.isExpired || discountcode.expires_in < new Date())
+        throw new NotAcceptableException(
+          'the promo code is expired, sorry you cannot use it anymore',
+        );
+
+      //check assocated order and the bid must have been accepted first
+      const findgrouporder = await this.orderRepo.find({
+        where: { groupId: groupId, bidStatus: BidStatus.ACCEPTED },
+        relations: ['bid'],
+      });
+      if (!findgrouporder || findgrouporder.length === 0)
+        throw new NotFoundException(
+          `multiple orders with groupId ${groupId} were not found`,
+        );
+
+      // Calculate the total agreed cost of delivery for all accepted bids
+      //  const totalCostOfDelivery = findgrouporder.reduce((total, order) => total + order.bid.accepted_cost_of_delivery, 0);
+
+      //after applying the discount, it will update the current
+
+      //record discount code usage
+      const discountUsage = new DiscountUsageEntity();
+      discountUsage.code = dto.promoCode;
+      discountUsage.appliedAT = new Date();
+      await this.discountusageripo.save(discountUsage);
+
+      //notifiction
+      const notification = new Notifications();
+      notification.account = 'super admin';
+      notification.subject = 'Discount applied!';
+      notification.message = `the Admin have applied the one time discount promo code on torder with orderID  on ostra logistics `;
+      await this.notificationripo.save(notification);
+
+      return {
+        message: `promo code ${dto.promoCode} applied successfully`,
+        discountUsage,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else if (error instanceof NotAcceptableException)
+        throw new NotAcceptableException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to apply discount on multiple orders',
+        );
+      }
+    }
+  }
+
+  //price list
+  async PriceList(dto: PriceListDto) {
+    try {
+      //add a price
+      const pricelist = new PriceListEntity();
+      pricelist.location = dto.location;
+      pricelist.amount = dto.amount;
+      pricelist.createdAT = new Date();
+
+      await this.pricelistripo.save(pricelist);
+
+      //notifiction
+      const notification = new Notifications();
+      notification.account = 'super admin';
+      notification.subject = 'Added A PriceList!';
+      notification.message = `the Admin have added a price list  on ostra logistics `;
+      await this.notificationripo.save(notification);
+
+      return pricelist;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while adding a price list, please try again later',
+      );
+    }
+  }
+
+  //get all pricelist
+  async GetAllPriceList(page: number = 1, limit: number = 30) {
+    try {
+      const skip = (page - 1) * limit;
+      const pricelist = await this.pricelistripo.findAndCount({
+        take: page,
+        skip: skip,
+      });
+      if (pricelist[1] === 0)
+        throw new NotFoundException(
+          'you have no pricelist at the moment, please create one',
+        );
+
+      return pricelist;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch all pricelist, please try again later',
+        );
+      }
+    }
+  }
+
+  //get one price list 
+  async GetOnePriceList(pricelistID:number) {
+    try {
+    
+      const pricelist = await this.pricelistripo.findOne({
+        where:{id:pricelistID}
+       
+      });
+      if (!pricelist)
+        throw new NotFoundException(
+          `pricelist with the ID ${pricelistID} does not exist`
+        );
+
+      return pricelist;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch one pricelist, please try again later',
+        );
+      }
+    }
+  }
+  //update pricelist
+
+  async UpdatePriceList(dto: UpdatePriceListDto, pricelistID: number) {
+    try {
+      const pricelist = await this.pricelistripo.findOne({
+        where: { id: pricelistID },
+      });
+      if (!pricelist)
+        throw new NotFoundException(
+          `the pricelist with the ID ${pricelistID} is not found`,
+        );
+
+      //update the list
+      pricelist.location = dto.location;
+      pricelist.amount = dto.amount;
+      pricelist.updatedAT = new Date();
+
+      await this.pricelistripo.save(pricelist);
+
+      //notifiction
+      const notification = new Notifications();
+      notification.account = 'super admin';
+      notification.subject = 'Pricelist updated!';
+      notification.message = `the Admin have updated  the price list  on ostra logistics `;
+      await this.notificationripo.save(notification);
+
+      return pricelist;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to edit a pricelist',
+        );
+      }
+    }
+  }
+
+  //delete one in the priclist
+
+  async DeletePriceList(pricelistID: number) {
+    try {
+      const pricelist = await this.pricelistripo.findOne({
+        where: { id: pricelistID },
+      });
+      if (!pricelist)
+        throw new NotFoundException(
+          `the pricelist with the ID ${pricelistID} is not found`,
+        );
+
+      //remove the pricelist
+      await this.pricelistripo.remove(pricelist);
+
+      //notifiction
+      const notification = new Notifications();
+      notification.account = 'super admin';
+      notification.subject = 'Pricelist deleted!';
+      notification.message = `the Admin have a pricelist  the price list  on ostra logistics `;
+      await this.notificationripo.save(notification);
+
+      return { message: 'price list successfully deleted' };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to delete a pricelist',
+        );
+      }
+    }
+  }
 }

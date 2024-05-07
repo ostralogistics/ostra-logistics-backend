@@ -54,13 +54,13 @@ order : OrderEntity
 @Column('numeric',{nullable:true})
 bid_value: number;
 
-@UpdateDateColumn({nullable:true})
+@Column({nullable:true,type:"timestamp"})
 initialBidPlacedAt: Date;
 
-@UpdateDateColumn({nullable:true})
+@Column({nullable:true,type:"timestamp"})
 BidAcceptedAt: Date;
 
-@UpdateDateColumn({nullable:true})
+@Column({nullable:true,type:"timestamp"})
 BidDeclinedAt: Date;
 
 @Column('numeric',{nullable:true})

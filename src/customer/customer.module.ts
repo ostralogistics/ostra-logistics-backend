@@ -20,6 +20,9 @@ import { UploadService } from 'src/common/helpers/upload.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { ComplaintEntity } from 'src/Entity/complaints.entity';
+import { DiscountDto } from 'src/admin/admin.dto';
+import { DiscountEntity } from 'src/Entity/discount.entity';
+import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 
 @Module({
   imports: [    
@@ -31,7 +34,9 @@ import { ComplaintEntity } from 'src/Entity/complaints.entity';
       BidEntity,
       CardEntity,
       NewsLetterEntity,
-      ComplaintEntity
+      ComplaintEntity,
+      DiscountEntity,
+      DiscountUsageEntity,
     ]),
   ],
   providers: [

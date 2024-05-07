@@ -1,6 +1,6 @@
 import { Controller, UploadedFile, UseInterceptors, Post,Get,Patch,Delete, BadRequestException, Query, InternalServerErrorException, Body, Param, UseGuards } from "@nestjs/common";
 import { AdminRiderDashboardService } from "./admin.riders.dashboard.service";
-import { AssignTaskDto, BankDetailsDto, EditBankDetailsDto, RegisterRiderByAdminDto, UpdateRiderInfoByAdminDto } from "./admin.dto";
+import { AssignTaskDto, BankDetailsDto, EditBankDetailsDto, LogtransactionDto, RegisterRiderByAdminDto, UpdateRiderInfoByAdminDto } from "./admin.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { IChangeRiderPassword } from "src/Riders/riders";
 import { RiderEntity } from "src/Entity/riders.entity";
@@ -99,7 +99,8 @@ export class AdminRiderDashBoardController{
         return await this.adminriderservice.UploadDriverLicenseFront(file,riderID)
     }
 
-    @AdminTypes(AdminType.CEO)
+    @AdminTypes(AdminType.CEO,AdminType.STAFF)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Patch('upload-driver-license-back/:riderID')
     @UseInterceptors(FileInterceptor('image'))
     async UploadDriverLicenseBack(@Param('riderID')riderID:string,@UploadedFile()file:Express.Multer.File){
@@ -107,6 +108,7 @@ export class AdminRiderDashBoardController{
     }
 
     @AdminTypes(AdminType.CEO,AdminType.STAFF)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
     @Get('total-number-of-rider')
     async GetTotalNumberOfRiders(){
         return await this.adminriderservice.totalnumberofriders()
@@ -134,6 +136,50 @@ export class AdminRiderDashBoardController{
     async EditRiderBankDetails( @Param('riderID')riderID:string,@Body()dto:EditBankDetailsDto){
         return await this.adminriderservice.addRiderBankDetails(dto,riderID)
     }
+
+    @AdminTypes(AdminType.CEO,AdminType.STAFF)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @Post('log-payment/:paymentDetailsID/:riderID')
+    async LogPaymentForAdmin(@Param("paymentDetailsID")paymentDetailsID:number, @Param("riderID")riderID:string,@Body()dto:LogtransactionDto){
+        return await this.adminriderservice.LogPaymentForRiders(dto,paymentDetailsID,riderID)
+    }
+
+
+    @AdminTypes(AdminType.CEO,AdminType.STAFF)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('all-rider-tasks')
+    async GetallriderTasks(){
+        return await this.adminriderservice.getAllriderTask()
+    }
+
+    @AdminTypes(AdminType.CEO,AdminType.STAFF)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('all-ongoing-tasks')
+    async GetallOngoingTaskTasks(){
+        return await this.adminriderservice.getAllriderwithOngoingTaskTask()
+    }
+
+    @AdminTypes(AdminType.CEO,AdminType.STAFF)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('all-concluded-tasks')
+    async GetallConcludedTaskTasks(){
+        return await this.adminriderservice.getAllriderwithConcludedTask()
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
 
     

@@ -2,6 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "ty
 import { CustomerEntity } from "./customers.entity"
 import { channelforconversation, complainResolutionStatus } from "src/Enums/all-enums"
 import { RepliesEntity } from "./replies.entity"
+import { RiderEntity } from "./riders.entity"
 
 export interface IComplaints{
     id:number

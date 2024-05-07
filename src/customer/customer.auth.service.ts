@@ -184,9 +184,9 @@ export class CustomerAuthService {
     try {
       const findotp = await this.otprepo.findOne({ where: { otp: dto.otp } });
       if (!findotp)
-        throw new HttpException(
+        throw new NotFoundException(
           'you provided an invalid OTP,please go back to your email and confirm the OTP sent to you',
-          HttpStatus.BAD_REQUEST,
+          
         );
 
       //find if the otp is expired

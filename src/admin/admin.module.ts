@@ -30,6 +30,10 @@ import { AdminService } from './admin.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { ComplaintEntity } from 'src/Entity/complaints.entity';
 import { RepliesEntity } from 'src/Entity/replies.entity';
+import { DiscountEntity } from 'src/Entity/discount.entity';
+import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
+import { PriceListEntity } from 'src/Entity/pricelist.entity';
+import { TransactionEntity } from 'src/Entity/transactions.entity';
 
 
 @Module({
@@ -48,7 +52,11 @@ import { RepliesEntity } from 'src/Entity/replies.entity';
       VehicleEntity,
       ComplaintEntity,
       RepliesEntity,
-      RiderBankDetailsEntity
+      RiderBankDetailsEntity,
+      DiscountEntity,
+      DiscountUsageEntity,
+      PriceListEntity,
+      TransactionEntity
 
 
     ]),

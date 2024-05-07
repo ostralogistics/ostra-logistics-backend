@@ -52,6 +52,11 @@ export class GeneatorService{
         const gen = nanoid.customAlphabet('1234567890', 6);
         return gen();
       }
+
+      public generateTransactionCode(): string {
+        const gen = nanoid.customAlphabet('1234567890', 12);
+        return gen();
+      }
     
       public generateOrderID(): string {
         const gen = nanoid.customAlphabet('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 8);
@@ -82,5 +87,20 @@ export class GeneatorService{
         const nanoid = customAlphabet('1234567890', 10);
         return nanoid();
       }
+
+      //generaete
+  public generateTrackingID(): string {
+    const trackingcode = nanoid.customAlphabet(
+      '1234567890abcdefghijklmnopqrstuvwxyz',
+      8,
+    );
+    return trackingcode();
+  }
+
+  //generaete
+  public generateDropOffCode(): string {
+    const dropoffcode = nanoid.customAlphabet('1234567890', 6);
+    return dropoffcode();
+  }
     
 }

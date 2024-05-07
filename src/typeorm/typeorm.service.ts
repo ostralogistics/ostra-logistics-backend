@@ -6,14 +6,18 @@ import { BidEntity } from 'src/Entity/bids.entity';
 import { CardEntity } from 'src/Entity/card.entity';
 import { ComplaintEntity } from 'src/Entity/complaints.entity';
 import { CustomerEntity } from 'src/Entity/customers.entity';
+import { DiscountEntity } from 'src/Entity/discount.entity';
+import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { Notifications } from 'src/Entity/notifications.entity';
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { UserOtp } from 'src/Entity/otp.entity';
+import { PriceListEntity } from 'src/Entity/pricelist.entity';
 import { RepliesEntity } from 'src/Entity/replies.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
 import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
+import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 
 @Injectable()
@@ -46,7 +50,11 @@ export class TypeOrmService {
         RiderBankDetailsEntity,
         RepliesEntity,
         ComplaintEntity,
-        NewsLetterEntity
+        NewsLetterEntity,
+        DiscountEntity,
+        DiscountUsageEntity,
+        TransactionEntity,
+        PriceListEntity,
       ],
       migrations: [],
       subscribers: [],

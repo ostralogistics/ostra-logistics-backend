@@ -405,6 +405,8 @@ export class UpdateVehicleDto{
     
 }
 
+
+
 export class ReturnedVehicleDto{
     @IsEnum(ReturnedVehicle)
     @IsNotEmpty()
@@ -414,5 +416,68 @@ export class ReturnedVehicleDto{
 export class AdminchangestaffAccessLevelDto{
     @IsEnum(AdminAccessLevels)
     accesslevel:AdminAccessLevels
+}
+
+export class DiscountDto{
+    @IsString()
+    @IsNotEmpty()
+    discountCode:string
+
+    @IsNumber()
+    @IsOptional()
+    DiscountDuration_weeks:number
+
+    @IsNumber()
+    @IsOptional()
+    DiscountDuration_days:number
+
+
+    @IsNumber()
+    @IsOptional()
+    percentageOff:number
+}
+
+export class PriceListDto{
+    @IsString()
+    @IsNotEmpty()
+    location:string
+
+    @IsString()
+    @IsNotEmpty()
+    amount:string
+}
+
+export class LogtransactionDto{
+    @IsNumber()
+    @IsNotEmpty()
+    amount:number
+}
+export class UpdatePriceListDto{
+    @IsString()
+    @IsOptional()
+    location:string
+
+    @IsString()
+    @IsOptional()
+    amount:string
+}
+
+export class UpdateDiscountDto{
+    @IsString()
+    @IsOptional()
+    discountCode:string
+
+    @IsNumber()
+    @IsOptional()
+    DiscountDuration_weeks:number
+
+    @IsNumber()
+    @IsOptional()
+    DiscountDuration_days:number
+
+
+    @IsNumber()
+    @IsOptional()
+    percentageOff:number
 }
 
