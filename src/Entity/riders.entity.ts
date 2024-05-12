@@ -82,10 +82,10 @@ export class RiderEntity implements IRider{
     gurantor2_mobile: string;
 
 
-    @UpdateDateColumn({nullable:true})
+    @Column({ nullable: true,type:'timestamp' })
     UpdatedAt:Date
 
-    @CreateDateColumn({nullable:false})
+    @Column({ nullable: true,type:'timestamp' })
     RegisteredAt:Date
 
     @Column({nullable:false,default:false})
@@ -112,7 +112,7 @@ export class RiderEntity implements IRider{
     @Column({nullable:false, default:false})
     isLocked: boolean;
 
-    @CreateDateColumn()
+    @Column({ nullable: true,type:'timestamp' })
     locked_until: Date;
 
     @OneToOne(()=>OrderEntity,order=> order.Rider)

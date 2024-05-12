@@ -778,7 +778,7 @@ export class AdminService {
   }
 
   //apply promo code in office
-  async ApplyPromocodeFromOffice(dto: ApplypromoCodeDto, groupId: string) {
+  async ApplyPromocodeFromOffice(dto: ApplypromoCodeDto, orderId: number) {
     try {
       const discountcode = await this.discountripo.findOne({
         where: { OneTime_discountCode: dto.promoCode },
@@ -793,13 +793,13 @@ export class AdminService {
         );
 
       //check assocated order and the bid must have been accepted first
-      const findgrouporder = await this.orderRepo.find({
-        where: { groupId: groupId, bidStatus: BidStatus.ACCEPTED },
+      const findgrouporder = await this.orderRepo.findOne({
+        where: { id: orderId, bidStatus: BidStatus.ACCEPTED },
         relations: ['bid'],
       });
-      if (!findgrouporder || findgrouporder.length === 0)
+      if (!findgrouporder)
         throw new NotFoundException(
-          `multiple orders with groupId ${groupId} were not found`,
+          `multiple orders with id ${orderId} were not found`,
         );
 
       // Calculate the total agreed cost of delivery for all accepted bids

@@ -35,7 +35,7 @@ export class CustomerEntity implements ICustomer{
     @UpdateDateColumn({nullable:true,default:null})
     UpdatedAt:Date
 
-    @CreateDateColumn({nullable:false})
+    @Column({ nullable: true,type:'timestamp' })
     RegisteredAt:Date
 
     @Column({nullable:true})
@@ -80,7 +80,7 @@ export class CustomerEntity implements ICustomer{
     @Column({nullable:false, default:false})
     isLocked: boolean;
 
-    @CreateDateColumn({default:null})
+    @Column({ nullable: true,type:'timestamp' })
     locked_until: Date;
 
     @OneToMany(()=>OrderEntity, order=>order.customer)

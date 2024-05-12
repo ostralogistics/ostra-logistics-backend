@@ -130,7 +130,7 @@ export class Admincontroller{
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
     @Post('apply-promoCode/:groupID')
-    async ApplyPromoCodeFromOffice( @Param('groupID')groupID:string,@Body()dto:ApplypromoCodeDto){
+    async ApplyPromoCodeFromOffice( @Param('groupID')groupID:number,@Body()dto:ApplypromoCodeDto){
         return await this.adminservice.ApplyPromocodeFromOffice(dto,groupID)
     }
 

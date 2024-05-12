@@ -66,7 +66,7 @@ BidDeclinedAt: Date;
 @Column('numeric',{nullable:true})
 counter_bid_offer: number;
 
-@UpdateDateColumn({nullable:true})
+@Column({ nullable: true,type:'timestamp' })
 counteredAt:Date
 
 }

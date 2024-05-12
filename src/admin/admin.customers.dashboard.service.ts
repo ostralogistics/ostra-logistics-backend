@@ -80,9 +80,9 @@ export class AdminCustomerDashBoardService {
   //make openning bid based on influenced matrix cost calculations
 
   async MakeOpenningBid(
-    orderID: any,
+    orderID: number,
     dto: AdminPlaceBidDto,
-  ): Promise<IInitialBidsResponse> {
+  ) {
     try {
       const order = await this.orderRepo.findOne({
         where: { id: orderID},
@@ -104,14 +104,6 @@ export class AdminCustomerDashBoardService {
 
       await this.bidRepo.save(bid);
 
-      const bidresponse: IInitialBidsResponse = {
-        id: bid.id,
-        bid_value: bid.bid_value,
-        bidStatus: bid.bidStatus,
-        initialBidPlacedAt: bid.initialBidPlacedAt,
-        order: bid.order,
-      };
-
       //save the notification
       const notification = new Notifications();
       notification.account = order.customer.id;
@@ -119,7 +111,7 @@ export class AdminCustomerDashBoardService {
       notification.message = `an openning bid have been sent on order with id ${orderID} on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
 
-      return bidresponse;
+      return bid;
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -132,81 +124,6 @@ export class AdminCustomerDashBoardService {
     }
   }
 
-  // async MakeOpenningBid1(
-  //   orderID: number | string,
-  //   dto: AdminPlaceBidDto,
-  // ): Promise<IInitialBidsResponse> {
-  //   try {
-  //     let orders: OrderEntity[] | undefined;
-
-  //     if (typeof orderID === 'number') {
-  //       // If orderID is a number, find the individual order by its ID
-  //       orders = [await this.orderRepo.findOne({
-  //         where: { id: orderID },
-  //         relations: ['bid', 'customer'],
-  //       })]; // Wrap the order in an array for consistency
-  //     } else if (typeof orderID === 'string') {
-  //       // If orderID is a string, find all orders belonging to the group
-  //       orders = await this.orderRepo.find({
-  //         where: { groupId: orderID },
-  //         relations: ['bid', 'customer'],
-  //       });
-  //     }
-
-  //     // Check if the order exists
-  //     if (!orders || orders.length ===0) {
-  //       throw new NotFoundException(`Order with ID ${orderID} not found`);
-  //     }
-
-  //     const bidResponses: IInitialBidsResponse[]=[]
-
-  //     //create openning bid for all orders in the group or single order for number ID
-  //     // Create a new bid for the order
-  //     for (const order of orders){
-  //       const bid = new BidEntity();
-  //     bid.order = order;
-  //     bid.bid_value = dto.bid;
-  //     bid.initialBidPlacedAt = new Date();
-  //     bid.bidStatus = BidStatus.BID_PLACED;
-
-  //     // Save the new bid to the database
-  //     await this.bidRepo.save(bid);
-
-  //     // Prepare the response object with bid details
-  //     const bidResponse: IInitialBidsResponse = {
-  //       id: bid.id,
-  //       bid_value: bid.bid_value,
-  //       bidStatus: bid.bidStatus,
-  //       initialBidPlacedAt: bid.initialBidPlacedAt,
-  //       order: bid.order,
-  //     };
-
-  //     bidResponses.push(bidResponse);
-
-  //     // Save notification for the customer
-  //     const notification = new Notifications();
-  //     notification.account = order.customer.id;
-  //     notification.subject = 'Opening Bid Made';
-  //     notification.message = `An opening bid has been sent for order with ID ${orderID} on the admin portal of Ostra Logistics by the superadmin.`;
-  //     await this.notificationripo.save(notification);
-
-  //     }
-      
-
-  //     return bidResponses;
-  //   } catch (error) {
-  //     // Handle specific exceptions
-  //     if (error instanceof NotFoundException) {
-  //       throw new NotFoundException(error.message);
-  //     } else {
-  //       // Log and throw internal server error for other exceptions
-  //       console.log(error);
-  //       throw new InternalServerErrorException(
-  //         'Something went wrong while making opening bid. Please try again later.',
-  //       );
-  //     }
-  //   }
-  // }
 
   //counter bids sent in
 
@@ -725,4 +642,6 @@ export class AdminCustomerDashBoardService {
   }
 
   //in office orders for multiple and non multiple
+
+  async 
 }

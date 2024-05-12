@@ -32,7 +32,7 @@ export class CardEntity implements ICard{
     @ManyToOne(()=>CustomerEntity, owner=>owner.my_cards)
     card_owner: CustomerEntity;
 
-    @CreateDateColumn({nullable:false})
+    @Column({ nullable: true,type:'timestamp' })
     addedAT: Date;
     
 }

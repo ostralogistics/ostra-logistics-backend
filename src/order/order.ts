@@ -3,12 +3,14 @@ import { RiderEntity } from "src/Entity/riders.entity"
 import { TaskEntity } from "src/Entity/ridersTasks.entity"
 import { OrderStatus, ParcelStatus, PaymentStatus, PriorityDeliveryType } from "src/Enums/all-enums"
 import { BidStatus, VehicleType } from "src/Enums/all-enums"
+import { OrderDto } from "src/common/common.dto"
 
 
 export interface IOrder{
     id:number
     orderID:string
-    groupId: string;
+    is_group_order: boolean
+    groupOrderID: string;
 
     //parcel information and  pick up details
     parcel_name :string,
@@ -63,6 +65,10 @@ export interface IOrder{
     Rider:RiderEntity
     assigned_task :TaskEntity
     accepted_cost_of_delivery : number
+    IsDiscountApplied:boolean
+    discount?:number
+
+
    
 }
 

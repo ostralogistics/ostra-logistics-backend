@@ -87,13 +87,16 @@ export class CustomerService {
     private genratorservice: GeneatorService,
   ) {}
 
-  async PlaceOrder(customer: CustomerEntity, dto: OrderDto | OrderDto[]) {
+  async PlaceOrder(
+    customer: CustomerEntity,
+    dto: OrderDto | OrderDto[],
+    groupId?: string,
+  ) {
     try {
-      //generate a bidgroupID
-      const bidGroupID = this.genratorservice.generateBidGroupID();
+      let createdOrders: OrderEntity[] = [];
 
       if (Array.isArray(dto)) {
-        // if dto is an array (multiple orders), iterate over each order data and create the orders
+        // If multiple orders
         const existingOrders = await this.orderRepo.find({
           where: {
             customer: customer,
@@ -101,35 +104,30 @@ export class CustomerService {
           },
         });
 
-        //check if the total number of existing orders plus the number of new orders exceeds the limit
         if (existingOrders.length + dto.length > 3) {
-          throw new NotAcceptableException('the limit for multiple order is 3');
+          throw new NotAcceptableException(
+            'The limit for multiple orders is 3',
+          );
         }
 
-        //create an array to store the created orders
-        const createdOrders: OrderEntity[] = [];
-
-        //iterate over each order data in the dto array
         for (const orderData of dto) {
-          //create the order and push it to the createdOrders array
-          const order = await this.createOrder(customer, orderData, bidGroupID);
-
+          const order = await this.createOrder(customer, orderData, groupId);
           createdOrders.push(order);
         }
-
-        //return the array of created orders
-        return createdOrders;
       } else {
-        //else if dto is not an array (single order), create the order directly
-        return await this.createOrder(customer, dto);
+        // If single order
+        const order = await this.createOrder(customer, dto);
+        createdOrders.push(order);
       }
+
+      return createdOrders;
     } catch (error) {
-      if (error instanceof NotAcceptableException)
+      if (error instanceof NotAcceptableException) {
         throw new NotAcceptableException(error.message);
-      else {
-        console.log(error);
+      } else {
+        console.error(error);
         throw new InternalServerErrorException(
-          'something went wrong while fetching all picked up orders, please try again later',
+          'Something went wrong while placing order. Please try again later.',
         );
       }
     }
@@ -138,7 +136,8 @@ export class CustomerService {
   public async createOrder(
     customer: CustomerEntity,
     dto: OrderDto,
-    bidGroupID?: string, // Optional parameter for groupId
+    groupId?: string,
+    // Optional parameter for groupId
   ): Promise<OrderEntity> {
     try {
       const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
@@ -160,10 +159,15 @@ export class CustomerService {
 
       const order = new OrderEntity();
       order.orderID = `#OslO-${await this.genratorservice.generateOrderID()}`;
-      if (bidGroupID) {
-        // Only set groupId if bidGroupID is provided (multiple orders)
-        order.groupId = bidGroupID;
+
+      // Set groupId and isMultipleOrder flag
+      if (groupId) {
+        order.groupOrderID = `#GrpO-${await this.genratorservice.generateOrderID()}`;
+        order.is_group_order = true;
+      } else {
+        order.is_group_order = false;
       }
+
       order.customer = customer;
       order.parcel_name = dto.parcel_name;
       order.product_category = dto.product_category;
@@ -463,6 +467,29 @@ export class CustomerService {
           'something went wrong while trackin an order, please try again later',
         );
       }
+    }
+  }
+
+  //scan barcode for an order
+  async scanBarcode(barcode: string): Promise<IOrder> {
+    try {
+      const order = await this.orderRepo.findOne({
+        where: { trackingID: barcode },
+        relations: ['customer', 'bid'],
+        comment: 'finding order with the trackingID scanned from the barcode',
+      });
+      if (!order)
+        throw new NotFoundException(
+          `Oops! Order associated with barcode ${barcode} is not found`,
+        );
+
+      return order;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw new NotFoundException(error.message)
+      else {
+    console.log(error)
+    throw new InternalServerErrorException('something went wrong while scanning the barcode to get order status, please try again later')
+    }
     }
   }
 

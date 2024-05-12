@@ -12,6 +12,7 @@ import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { TransactionRespository } from 'src/common/common.repositories';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { ConfigService } from '@nestjs/config';
+import JsBarcode from 'jsbarcode';
 
 @Injectable()
 export class PaystackWebhookService {
@@ -74,6 +75,10 @@ export class PaystackWebhookService {
         order.dropoffCode = dropoffCode;
         await this.orderRepo.save(order);
 
+        //generate barcode for the tracking Id
+        const barcode = JsBarcode("#barcodeElement",trackingToken,{format:"CODE39"})
+        
+
         //update the transaction tble 
         const transaction  = new TransactionEntity()
         transaction.transactedAT = new Date()
@@ -86,6 +91,9 @@ export class PaystackWebhookService {
         transaction.paymentStatus = event.data.status;
 
         await this.transactionRepo.save(transaction)
+
+        //save to receipt 
+        
 
 
 
@@ -110,7 +118,8 @@ export class PaystackWebhookService {
         return {
           trackingID: order.trackingID,
           dropoffCode: order.dropoffCode,
-          transaction: transaction
+          transaction: transaction,
+          barcode:barcode
         };
       } else {
         console.error('Order not found for reference:', orderReference);

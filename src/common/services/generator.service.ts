@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from 'bcrypt';
 import * as nanoid from 'nanoid';
 import { customAlphabet } from 'nanoid';
+import * as qrcode from 'qrcode';
 
 @Injectable()
 export class GeneatorService{
@@ -97,10 +98,23 @@ export class GeneatorService{
     return trackingcode();
   }
 
-  //generaete
+  //generaete drop off code
   public generateDropOffCode(): string {
     const dropoffcode = nanoid.customAlphabet('1234567890', 6);
     return dropoffcode();
+  }
+
+  //generate qrcode
+  async GenerateQRCode(data:string):Promise<string>{
+    try {
+      const qrcodeurl = await qrcode.toDataUrl(data)
+      return qrcodeurl
+      
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('something went wrong while creating qrcode, please try again')
+      
+    }
   }
     
 }

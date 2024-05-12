@@ -49,14 +49,7 @@ export class AdminCustomerDashBoardController {
     return await this.admincustomerservice.MakeOpenningBid(orderID, dto);
   }
 
-  @Post('placeOpeningBid/:orderOrGroupID')
-  async placeOpeningBid(
-      @Body() dto: AdminPlaceBidDto,
-      @Param('orderOrGroupID') orderOrGroupID: number | string,
-    
-  ) {
-      return await this.admincustomerservice.MakeOpenningBid(orderOrGroupID, dto);
-  }
+
 
   @Patch('counter-bid/:BidID')
   async CounterBid(@Body() dto: counterBidDto, @Param('BidID') BidID: number) {

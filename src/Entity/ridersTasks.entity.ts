@@ -30,10 +30,10 @@ export class TaskEntity implements IRiderTask{
     @ManyToOne(()=>RiderEntity,rider=>rider.tasks)
     rider: RiderEntity;
 
-    @UpdateDateColumn({nullable:true, default:null})
+    @Column({ nullable: true,type:'timestamp' })
     acceptedAt: Date;
 
-    @UpdateDateColumn({nullable:true, default:null})
+    @Column({ nullable: true,type:'timestamp' })
     declinedAT: Date;
 
     @Column({nullable:true, type:'enum', enum:TaskStatus})
@@ -46,7 +46,7 @@ export class TaskEntity implements IRiderTask{
     @ManyToOne(()=>OrderEntity,order =>order.assigned_task)
     assigned_order: OrderEntity;
 
-    @UpdateDateColumn()
+    @Column({ nullable: true,type:'timestamp' })
     assignedAT: Date;
 
 

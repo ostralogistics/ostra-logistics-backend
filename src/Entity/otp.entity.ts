@@ -28,10 +28,10 @@ export interface IUserOtp {
     @Column({type:'boolean',default:false})
     verified: boolean;
 
-    @CreateDateColumn({ nullable:true})
+    @Column({ nullable: true,type:'timestamp' })
     expiration_time:Date
 
-    @CreateDateColumn({ nullable:true})
+    @Column({ nullable: true,type:'timestamp' })
     created_at:Date
 
     @Column()
