@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AdminCustomerDashBoardService } from './admin.customers.dashboard.service';
-import { AdminPlaceBidDto, InOfficeOrderDto, OrderDto, counterBidDto } from 'src/common/common.dto';
+import { AdminPlaceBidDto, ApplypromoCodeDto, InOfficeOrderDto, OrderDto, counterBidDto } from 'src/common/common.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { AdminAccessLevels, AdminType, DeliveryVolume, OrderBasedOnDates, Role } from 'src/Enums/all-enums';
 import { RoleGuard } from 'src/auth/guard/role.guard';
@@ -196,10 +196,15 @@ export class AdminCustomerDashBoardController {
      return await this.admincustomerservice.processPayment(orderID)
   }
 
+  //apply discount 
+  @Post("apply-discount-code/:orderID")
+  async ApplyDiscount(@Body()dto:ApplypromoCodeDto, @Param('orderID')orderID:string){
+   return await this.admincustomerservice.ApplyPromocode(dto,orderID)
+  }
+
   //generate air waybill
   @Get('generate-airwaybill/:trackingID')
   async CreateAirWaybill(@Param('trackingID')trackingID:string){
-   
     return await this.admincustomerservice.createAirWaybill(trackingID)
     
 
