@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import * as geocorder from "geocoder"
 import { resolve } from "path";
@@ -6,10 +7,11 @@ import { resolve } from "path";
 
 @Injectable()
 export class GeoCodingService{
+    constructor(private configservice: ConfigService,){}
     //https://us1.locationiq.com/v1/search?key=YOUR_API_KEY&q=Statue%20of%20Liberty,%20New%20York&format=json
 
     public async  getYahooCoordinates(address: string): Promise<{ lat: number; lon: number }> {
-        const yourYahooApiKey = "pk.d288b69bd99dc9c9959c29e99048a0a8"
+        const yourYahooApiKey = this.configservice.get('YAHOO_API_MAPS_KEY')
         const response = await axios.get(`https://us1.locationiq.com/v1/search?key=${yourYahooApiKey}&q=${address}&format=json`, {
         
         });
