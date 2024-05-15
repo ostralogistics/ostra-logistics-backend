@@ -10,15 +10,16 @@ async function bootstrap() {
 
 
   const app = await NestFactory.create(AppModule);
+
+  app.use(cors({origin:"*"})) //will change later after deployment
+
+  app.use('/public',express.static(join(__dirname,'..','public')))
+  console.log('Serving static files from:', join(__dirname, '..', 'public'));
+
   app.setGlobalPrefix('api/v1/ostra-logistics_api')
   app.useGlobalPipes(new ValidationPipe)
 
-  //uploaded file function 
-  UploadService
-
-  app.use('/public',express.static(join(__dirname,'..','public')))
-
-  app.use(cors({origin:"*"})) //will change later after deployment
+ 
 
   await app.listen(3000||process.env.PORT);
 }

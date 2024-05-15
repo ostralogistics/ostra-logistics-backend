@@ -78,11 +78,138 @@ export class Logindto{
 export class ApplypromoCodeDto{
     @IsString()
     @IsNotEmpty()
-    promoCode:string
+    code:string
 }
 
 
+
+export class InOfficeOrderDto {
+    
+    //customer details 
+
+    @IsString()
+    @IsNotEmpty()
+    name:string
+
+
+    @IsString()
+    @IsNotEmpty()
+    phoneNumber:string
+
+
+    @IsString()
+    @IsOptional()
+    email:string
+
+    @IsString()
+    @IsOptional()
+    address:string
+
+    @IsString()
+    @IsOptional()
+    home_apartment_number :string
+
+    @IsString()
+    @IsOptional()
+    area:string
+
+    @IsString()
+    @IsOptional()
+    landmark:string
+
+//parcel details 
+    @IsString()
+    @IsNotEmpty()
+    parcel_name :string
+
+    @IsArray()
+    @IsNotEmpty()
+    product_category:string[]
+
+    @IsNumber()
+    @IsNotEmpty()
+    quantity:number
+
+    @IsString()
+    @IsNotEmpty()
+    parcelWorth : string
+
+    @IsOptional()
+    @IsString()
+    weight_of_parcel:number
+
+    @IsOptional()
+    @IsString()
+    describe_weight_of_parcel?:string
+    
+    @IsString()
+    @IsNotEmpty()
+    pickup_phone_number:string
+
+    @IsString()
+    @IsNotEmpty()
+    pickup_address:string
+
+
+    @IsString()
+    @IsOptional()
+    house_apartment_number_of_pickup:string
+
+    @IsString()
+    @IsOptional()
+    Area_of_pickup:string
+
+    @IsString()
+    @IsOptional()
+    landmark_of_pickup:string
+
+    @IsString()
+    @IsOptional()
+    note_for_rider:string
+
+    //drop off details 
+    @IsString()
+    @IsNotEmpty()
+    Recipient_name : string
+
+    @IsString()
+    @IsNotEmpty()
+    Recipient_phone_number :string
+
+    @IsString()
+    @IsNotEmpty()
+    dropOff_address:string
+
+    @IsString()
+    @IsOptional()
+    house_apartment_number_of_dropoff:string
+
+    @IsString()
+    @IsOptional()
+    Area_of_dropoff:string
+
+    @IsString()
+    @IsOptional()
+    landmark_of_dropoff:string
+
+    //order info 
+    @IsEnum(VehicleType)
+    @IsNotEmpty()
+    vehicleType:VehicleType
+
+    @IsString()
+    @IsNotEmpty()
+    delivery_type :PriorityDeliveryType
+
+    @IsDateString()
+    @IsOptional()
+    schedule_date: Date
+}
+
+
+
 export class OrderDto {
+
 
 
     @IsString()

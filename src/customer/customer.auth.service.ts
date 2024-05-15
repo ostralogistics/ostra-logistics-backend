@@ -85,11 +85,13 @@ export class CustomerAuthService {
       if (checkemail)
         throw new NotFoundException('This customer already exists');
 
+        const hashedpassword = await this.generatorservice.hashpassword(dto.password);
+
       const customer = new CustomerEntity();
       customer.customerID = `#OslC-${await this.generatorservice.generateUserID()}`;
       
       customer.email = dto.email;
-      customer.mobile = dto.mobile;
+      customer.password = hashedpassword
       customer.firstname = dto.firstname;
       customer.lastname = dto.lastname;
       customer.role = Role.CUSTOMER;
@@ -142,39 +144,6 @@ export class CustomerAuthService {
     }
   }
 
-  //add password and confirm it too
-  async AddPasswordAfterVerification(
-    customerID: string,
-    dto: addPasswordDto,
-  ): Promise<{ message: string }> {
-    try {
-      const checkcustomer = await this.customerrepo.findOne({
-        where: { id: customerID },
-      });
-      if (!checkcustomer.isVerified)
-        throw new UnauthorizedException(
-          'sorry this customer has not been verified yet, please request for an otp to verify your account',
-        );
-
-      const hashedpassword = await this.generatorservice.hashpassword(dto.password);
-
-      //add the password
-      checkcustomer.password = hashedpassword;
-
-      await this.customerrepo.save(checkcustomer);
-
-      return { message: 'password has been added successfully' };
-    } catch (error) {
-      if (error instanceof UnauthorizedException)
-        throw new UnauthorizedException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'an error occured while adding password',
-        );
-      }
-    }
-  }
 
   // verify email of customer
   async verifyEmail(

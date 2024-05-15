@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { RiderService } from "./riders.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { AcceptOrDeclineTaskDto, ChangeBankPreferenceDto, DropOffCodeDto, MakeRequestDto } from "./riders.dto";
@@ -122,6 +122,16 @@ export class RiderController{
      async GetAllMyNotification(@Req()req){
       return await this.riderservice.AllNotificationsRelatedTocustomer(req.user)
      }
+
+     @Get('track-order/')
+     async TrackOrder(@Query('keyword')keyword:string|any){
+      return await this.riderservice.TrackOrder(keyword)
+     }
+
+     @Get('scan-barcode/:barcodeDigit')
+    async ScanBarcode(@Param('barcodeDigit')barcodeDegit: string){
+        return await this.riderservice.scanBarcode(barcodeDegit)
+    }
 
      
 

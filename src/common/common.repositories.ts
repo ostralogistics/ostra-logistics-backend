@@ -2,6 +2,7 @@ import { BidEntity } from "src/Entity/bids.entity";
 import { DiscountUsageEntity } from "src/Entity/discountUsage.entity";
 import { Notifications } from "src/Entity/notifications.entity";
 import { UserOtp } from "src/Entity/otp.entity";
+import { ReceiptEntity } from "src/Entity/receipt.entity";
 import { RequestEntity } from "src/Entity/requests.entity";
 import { TransactionEntity } from "src/Entity/transactions.entity";
 import { EntityRepository, Repository } from "typeorm";
@@ -27,3 +28,6 @@ export class DiscountUsageRepository extends Repository<DiscountUsageEntity>{}
 
 @EntityRepository(TransactionEntity)
 export class TransactionRespository extends Repository<TransactionEntity>{}
+
+@EntityRepository(ReceiptEntity)
+export class ReceiptRespository extends Repository<ReceiptEntity>{}

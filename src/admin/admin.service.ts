@@ -48,7 +48,10 @@ import {
   NotificationRepository,
 } from 'src/common/common.repositories';
 import { ComplaintEntity } from 'src/Entity/complaints.entity';
-import { complaintRepository } from 'src/customer/customer.repository';
+import {
+  NewsLetterRepository,
+  complaintRepository,
+} from 'src/customer/customer.repository';
 import { RepliesEntity } from 'src/Entity/replies.entity';
 import { ComplaintDto } from 'src/customer/customer.dto';
 import { GeneatorService } from 'src/common/services/generator.service';
@@ -58,6 +61,7 @@ import { ApplypromoCodeDto } from 'src/common/common.dto';
 import { PriceListEntity } from 'src/Entity/pricelist.entity';
 import { OrderRepository } from 'src/order/order.reposiroty';
 import { OrderEntity } from 'src/Entity/orders.entity';
+import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 
 @Injectable()
 export class AdminService {
@@ -77,6 +81,8 @@ export class AdminService {
     @InjectRepository(PriceListEntity)
     private readonly pricelistripo: PriceListRepository,
     @InjectRepository(OrderEntity) private readonly orderRepo: OrderRepository,
+    @InjectRepository(NewsLetterEntity)
+    private readonly newsletterripo: NewsLetterRepository,
 
     @InjectRepository(RepliesEntity)
     private readonly repliesripo: RepliesRepository,
@@ -777,67 +783,6 @@ export class AdminService {
     }
   }
 
-  //apply promo code in office
-  async ApplyPromocodeFromOffice(dto: ApplypromoCodeDto, orderId: number) {
-    try {
-      const discountcode = await this.discountripo.findOne({
-        where: { OneTime_discountCode: dto.promoCode },
-      });
-      if (!discountcode)
-        throw new NotFoundException('promo code does not exist');
-
-      //check if discount code is expired
-      if (discountcode.isExpired || discountcode.expires_in < new Date())
-        throw new NotAcceptableException(
-          'the promo code is expired, sorry you cannot use it anymore',
-        );
-
-      //check assocated order and the bid must have been accepted first
-      const findgrouporder = await this.orderRepo.findOne({
-        where: { id: orderId, bidStatus: BidStatus.ACCEPTED },
-        relations: ['bid'],
-      });
-      if (!findgrouporder)
-        throw new NotFoundException(
-          `multiple orders with id ${orderId} were not found`,
-        );
-
-      // Calculate the total agreed cost of delivery for all accepted bids
-      //  const totalCostOfDelivery = findgrouporder.reduce((total, order) => total + order.bid.accepted_cost_of_delivery, 0);
-
-      //after applying the discount, it will update the current
-
-      //record discount code usage
-      const discountUsage = new DiscountUsageEntity();
-      discountUsage.code = dto.promoCode;
-      discountUsage.appliedAT = new Date();
-      await this.discountusageripo.save(discountUsage);
-
-      //notifiction
-      const notification = new Notifications();
-      notification.account = 'super admin';
-      notification.subject = 'Discount applied!';
-      notification.message = `the Admin have applied the one time discount promo code on torder with orderID  on ostra logistics `;
-      await this.notificationripo.save(notification);
-
-      return {
-        message: `promo code ${dto.promoCode} applied successfully`,
-        discountUsage,
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else if (error instanceof NotAcceptableException)
-        throw new NotAcceptableException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying to apply discount on multiple orders',
-        );
-      }
-    }
-  }
-
   //price list
   async PriceList(dto: PriceListDto) {
     try {
@@ -891,17 +836,15 @@ export class AdminService {
     }
   }
 
-  //get one price list 
-  async GetOnePriceList(pricelistID:number) {
+  //get one price list
+  async GetOnePriceList(pricelistID: number) {
     try {
-    
       const pricelist = await this.pricelistripo.findOne({
-        where:{id:pricelistID}
-       
+        where: { id: pricelistID },
       });
       if (!pricelist)
         throw new NotFoundException(
-          `pricelist with the ID ${pricelistID} does not exist`
+          `pricelist with the ID ${pricelistID} does not exist`,
         );
 
       return pricelist;
@@ -985,6 +928,32 @@ export class AdminService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to delete a pricelist',
+        );
+      }
+    }
+  }
+
+  async GetAllNewsLetterSubscribers(page: number = 1, limit: number = 30) {
+    try {
+      const skip = (page - 1) * limit;
+      const subscribers = await this.newsletterripo.findAndCount({
+        take: page,
+        skip: skip,
+      });
+
+      if (subscribers[1] === 0)
+      throw new NotFoundException(
+        'you have no news letter sunscribers  at the moment, please create one',
+      );
+      return subscribers;
+    } catch (error) {
+
+       if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch all news letter, please try again later',
         );
       }
     }

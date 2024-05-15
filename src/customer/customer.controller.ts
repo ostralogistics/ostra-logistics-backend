@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { CustomerService } from "./customer.service";
-import { BidActionDto, OrderDto, counterBidDto } from "src/common/common.dto";
+import { ApplypromoCodeDto, BidActionDto, OrderDto, counterBidDto } from "src/common/common.dto";
 import { Request } from "express";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { CardDetailsDto, ChangePasswordDto, ComplaintDto, NewsLetterDto, UpdateCustomerDto } from "./customer.dto";
@@ -47,11 +47,11 @@ export class CustomerController{
       await this.customerservice.TrackOrder(keyword)
      }
 
-     //this route is unprotected so you dont need to be logged in to perform this action 
-     @Get('offline-track-order/')
-     async OfflineTrackOrder(@Query('keyword')keyword:string|any){
-      await this.customerservice.OfflineTrackOrder(keyword)
-     }
+     
+     @Get('scan-barcode/:barcodeDigit')
+    async ScanBarcode(@Param('barcodeDigit')barcodeDegit: string){
+        return await this.customerservice.scanBarcode(barcodeDegit)
+    }
 
 
      @Get('in-transit-orders')
@@ -126,15 +126,15 @@ export class CustomerController{
 
 
 
-   //   @Get('all-my-transactions')
-   //   async GetAllMytransctions(@Req()req){
-   //    console.log(req.user)
-   //    return await this.customerservice(req.user)
-   //   }
+     @Get('all-my-transactions')
+     async GetAllMytransctions(@Req()req){
+      console.log(req.user)
+      return await this.customerservice.AllNotificationsRelatedTocustomer(req.user)
+     }
 
 
    
-     //access wthout authentication 
+     
      @Post('newsletter')
      async NewsLetter(@Body()dto: NewsLetterDto){
       return await this.customerservice.SubsribeToNewsLetter(dto)
@@ -152,6 +152,12 @@ export class CustomerController{
      @Get('ticket')
      async Ticket(@Query('keyword')keyword:string|any){
       return await this.customerservice.CheckComplaintStatus(keyword)
+     }
+
+     //apply discount
+     @Post("apply-discount-code/:orderID")
+     async ApplyDiscount(@Body()dto:ApplypromoCodeDto, @Param('orderID')orderID:string, @Req()req){
+      return await this.customerservice.ApplyPromocode(dto,req.user.id,orderID)
      }
 
 

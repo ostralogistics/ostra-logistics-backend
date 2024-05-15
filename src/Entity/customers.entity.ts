@@ -19,7 +19,7 @@ export class CustomerEntity implements ICustomer{
     @Column({nullable:false, type:'enum', enum:Role, default:Role.CUSTOMER})
     role: Role;
 
-    @Column({nullable:true})
+    @Column({nullable:false})
     password: string;
 
     @Column({nullable:false})
@@ -29,7 +29,7 @@ export class CustomerEntity implements ICustomer{
     @Column({nullable:false})
     lastname: string;
 
-    @Column({nullable:false})
+    @Column({nullable:true})
     mobile: string;
 
     @UpdateDateColumn({nullable:true,default:null})

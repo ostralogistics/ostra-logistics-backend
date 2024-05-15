@@ -13,6 +13,7 @@ import { Notifications } from 'src/Entity/notifications.entity';
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { UserOtp } from 'src/Entity/otp.entity';
 import { PriceListEntity } from 'src/Entity/pricelist.entity';
+import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { RepliesEntity } from 'src/Entity/replies.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
 import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
@@ -55,6 +56,7 @@ export class TypeOrmService {
         DiscountUsageEntity,
         TransactionEntity,
         PriceListEntity,
+        ReceiptEntity,
       ],
       migrations: [],
       subscribers: [],

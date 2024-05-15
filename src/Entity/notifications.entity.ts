@@ -1,6 +1,6 @@
 
 import { NotificationType } from "src/Enums/all-enums";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"; 
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm"; 
 @Entity("notifications")
 export class Notifications implements INotification{
     @PrimaryGeneratedColumn()

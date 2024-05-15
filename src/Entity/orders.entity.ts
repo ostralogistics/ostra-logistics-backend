@@ -33,6 +33,28 @@ export class OrderEntity implements IOrder {
   @Column({ nullable: true })
   orderID: string;
 
+  //sender data for inoffice order placement 
+  @Column({ nullable: true })
+  name:string
+
+  @Column({ nullable: true })
+  phoneNumber:string
+
+  @Column({ nullable: true })
+  email:string
+
+  @Column({ nullable: true })
+  address:string
+
+  @Column({ nullable: true })
+  home_apartment_number :string
+
+  @Column({ nullable: true })
+  area:string
+
+  @Column({ nullable: true })
+  landmark:string
+
   
   // New field to indicate if the order is part of a group order
   @Column({ nullable: false, default: false })
@@ -164,8 +186,14 @@ export class OrderEntity implements IOrder {
   @Column({ nullable: true })
   dropoffCode: string;
 
+  @Column({ nullable: true })
+  barcodeDigits :string
+
   @Column('numeric', { nullable: true })
   accepted_cost_of_delivery: number;
+
+  @Column('numeric', { nullable: true })
+  VAT:number
 
   @Column('numeric', { nullable: true })
   discount?: number;

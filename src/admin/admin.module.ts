@@ -34,6 +34,9 @@ import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { PriceListEntity } from 'src/Entity/pricelist.entity';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
+import { DistanceService } from 'src/common/services/distance.service';
+import { GeoCodingService } from 'src/common/services/goecoding.service';
+import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 
 
 @Module({
@@ -56,7 +59,8 @@ import { TransactionEntity } from 'src/Entity/transactions.entity';
       DiscountEntity,
       DiscountUsageEntity,
       PriceListEntity,
-      TransactionEntity
+      TransactionEntity,
+      NewsLetterEntity
 
 
     ]),
@@ -79,6 +83,8 @@ import { TransactionEntity } from 'src/Entity/transactions.entity';
     AdminCustomerDashBoardService,
     BidEventsService,
     AdminService,
+    DistanceService,
+    GeoCodingService
   ],
 })
 export class AdminModule {}

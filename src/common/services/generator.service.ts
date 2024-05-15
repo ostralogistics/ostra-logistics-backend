@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import * as nanoid from 'nanoid';
 import { customAlphabet } from 'nanoid';
 import * as qrcode from 'qrcode';
+import * as bwipjs from 'bwip-js';
 
 @Injectable()
 export class GeneatorService{
@@ -104,6 +105,17 @@ export class GeneatorService{
     return dropoffcode();
   }
 
+   //generaete drop off code
+   public generatereceiptID(): string {
+    const dropoffcode = nanoid.customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 7);
+    return dropoffcode();
+  }
+
+  public generateBarcodeGigits(): string {
+    const barcode = nanoid.customAlphabet('1234567890', 15);
+    return barcode();
+  }
+
   //generate qrcode
   async GenerateQRCode(data:string):Promise<string>{
     try {
@@ -115,6 +127,29 @@ export class GeneatorService{
       throw new InternalServerErrorException('something went wrong while creating qrcode, please try again')
       
     }
+  }
+
+
+ async generateBarcode(barcodeDigit: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      bwipjs.toBuffer(
+        {
+          bcid: 'code39',       // Barcode type
+          text: barcodeDigit,     // Text to encode
+          scale: 3,             // 3x scaling factor
+          height: 10,           // Bar height, in millimeters
+          includetext: true,    // Show human-readable text
+          textxalign: 'center', // Center text
+        },
+        (err, png) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(`data:image/png;base64,${png.toString('base64')}`);
+          }
+        }
+      );
+    });
   }
     
 }

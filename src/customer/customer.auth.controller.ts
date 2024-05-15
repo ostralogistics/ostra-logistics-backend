@@ -27,11 +27,6 @@ export class CustomerAuthController{
         return await this.customerauthservice.verifyEmail(dto)
     }
 
-    @Patch('/add-password/:customerID')
-    async AddPasswordAfterVerification (@Param('customerID')customerID:string,@Body()dto:addPasswordDto):Promise<{message:string}>{
-        return await this.customerauthservice.AddPasswordAfterVerification(customerID,dto)
-    }
-
  
 
     @Post('/resend-otp')

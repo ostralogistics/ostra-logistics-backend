@@ -9,9 +9,14 @@ export class RegisterCustomerDto{
 
     @IsString()
     @IsNotEmpty()
-    //@Matches(/^NGR\+234\d{13}$/,{message:"mobile number must be a valid Nigerian service operator's cell number"})
-    mobile:string
-
+    @IsStrongPassword({
+        minLength:8,
+        minLowercase:1,
+        minNumbers:1,
+        minSymbols:1,
+        minUppercase:1
+    })
+    password:string 
 
     @IsString()
     @IsNotEmpty()

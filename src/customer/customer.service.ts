@@ -17,7 +17,12 @@ import {
 } from './customer.repository';
 import { DistanceService } from 'src/common/services/distance.service';
 import { GeoCodingService } from 'src/common/services/goecoding.service';
-import { BidActionDto, OrderDto, counterBidDto } from 'src/common/common.dto';
+import {
+  ApplypromoCodeDto,
+  BidActionDto,
+  OrderDto,
+  counterBidDto,
+} from 'src/common/common.dto';
 import {
   BidEvent,
   BidStatus,
@@ -199,6 +204,7 @@ export class CustomerService {
       order.dropOffLat = dropOffCoordinates.lat;
       order.dropOffLong = dropOffCoordinates.lon;
       order.distance = roundDistance;
+      order.barcodeDigits = await this.genratorservice.generateBarcodeGigits()
 
       order.initial_cost = flatRate;
       order.bidStatus = BidStatus.PENDING;
@@ -389,6 +395,8 @@ export class CustomerService {
           `the order with the ID ${orderID} does not exist`,
         );
 
+      console.log(order.accepted_cost_of_delivery);
+
       // Check if order is ready for payment (bid accepted)
       if (order.bidStatus !== BidStatus.ACCEPTED) {
         throw new NotAcceptableException(
@@ -396,11 +404,34 @@ export class CustomerService {
         );
       }
 
+      //cslculate VAT
+      const vatPercentage = 0.07;
+      const vatAmount = +(
+        order.accepted_cost_of_delivery * vatPercentage
+      ).toFixed(2);
+      console.log('vatamount', vatAmount);
+
+      //check if discount is applied
+      let totalamountpaid = order.accepted_cost_of_delivery;
+      if (order.IsDiscountApplied && order.discount) {
+        //calculate discounted amount
+        const discooutAmount = +(
+          (order.accepted_cost_of_delivery * order.discount) /
+          100
+        ).toFixed(2);
+        totalamountpaid -= discooutAmount;
+      }
+
+      // Calculate total amount including VAT
+      const totalAmountWithVAT = Number(totalamountpaid) + Number(vatAmount);
+
+      console.log('totalAmountWithVAT', totalAmountWithVAT);
+
       // Paystack payment integration
       const response = await axios.post(
         'https://api.paystack.co/transaction/initialize',
         {
-          amount: order.accepted_cost_of_delivery * 100, // Convert to kobo (Paystack currency)
+          amount: totalAmountWithVAT * 100, // Convert to kobo (Paystack currency)
           email: order.customer.email, // Customer email for reference
           reference: order.id.toString(), // Order ID as payment reference
           currency: 'NGN',
@@ -474,7 +505,7 @@ export class CustomerService {
   async scanBarcode(barcode: string): Promise<IOrder> {
     try {
       const order = await this.orderRepo.findOne({
-        where: { trackingID: barcode },
+        where: { barcodeDigits: barcode },
         relations: ['customer', 'bid'],
         comment: 'finding order with the trackingID scanned from the barcode',
       });
@@ -485,11 +516,14 @@ export class CustomerService {
 
       return order;
     } catch (error) {
-      if (error instanceof NotFoundException) throw new NotFoundException(error.message)
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
       else {
-    console.log(error)
-    throw new InternalServerErrorException('something went wrong while scanning the barcode to get order status, please try again later')
-    }
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while scanning the barcode to get order status, please try again later',
+        );
+      }
     }
   }
 
@@ -803,7 +837,7 @@ export class CustomerService {
   ): Promise<{ message: string }> {
     try {
       const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `${process.env.BASE_URL}/uploadfile/public/${display_pics}`;
+      const mediaurl = `${process.env.BASE_URL}public/${display_pics}`;
 
       //update the image url
 
@@ -991,10 +1025,14 @@ export class CustomerService {
   }
 
   //apply discount on multiple order only
-  public async ApplyPromocode(code: string, customer: CustomerEntity) {
+  public async ApplyPromocode(
+    dto: ApplypromoCodeDto,
+    customer: CustomerEntity,
+    orderID: string,
+  ) {
     try {
       const discountcode = await this.discountripo.findOne({
-        where: { OneTime_discountCode: code },
+        where: { OneTime_discountCode: dto.code },
       });
       if (!discountcode)
         throw new NotFoundException('promo code does not exist');
@@ -1007,7 +1045,7 @@ export class CustomerService {
 
       //check if the customer has applied this code before, cuz it is meant to be applied just once
       const hasAppliedCodeBefore = await this.discountusageripo.findOne({
-        where: { code: code, appliedBy: { id: customer.id } },
+        where: { code: dto.code, appliedBy: { id: customer.id } },
         relations: ['appliedBy'],
       });
 
@@ -1016,11 +1054,37 @@ export class CustomerService {
           'oops we are so sorry, you can only use this code once',
         );
 
+      //check order that the code is being applied to
+      const order = await this.orderRepo.find({
+        where: { groupOrderID: orderID, is_group_order: true },
+        relations: ['customer', 'bid'],
+      });
+      if (!order)
+        throw new NotFoundException(
+          `the order with the ID ${orderID} does not exist`,
+        );
+
       //record discount code usage
       const discountUsage = new DiscountUsageEntity();
-      discountUsage.code = code;
+      discountUsage.code = dto.code;
       discountUsage.appliedAT = new Date();
       await this.discountusageripo.save(discountUsage);
+
+      const discountPercentage = discountcode.percentageOff;
+      const discountAmount = order.reduce(
+        (acc, order) =>
+          acc + (order.accepted_cost_of_delivery * discountPercentage) / 100,
+        0,
+      );
+
+      //now update the order table
+      await this.orderRepo.update(
+        { groupOrderID: orderID, is_group_order: true },
+        {
+          IsDiscountApplied: true,
+          discount: discountPercentage,
+        },
+      );
 
       //notifiction
       const notification = new Notifications();
@@ -1030,7 +1094,7 @@ export class CustomerService {
       await this.notificationripo.save(notification);
 
       return {
-        message: `promo code ${code} applied successfully`,
+        message: `promo code ${dto.code} applied successfully`,
         discountUsage,
       };
     } catch (error) {

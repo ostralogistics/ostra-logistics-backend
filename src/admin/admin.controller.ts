@@ -128,11 +128,6 @@ export class Admincontroller{
         return await this.adminservice.deleteDiscount(discountID)
     }
 
-    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
-    @Post('apply-promoCode/:groupID')
-    async ApplyPromoCodeFromOffice( @Param('groupID')groupID:number,@Body()dto:ApplypromoCodeDto){
-        return await this.adminservice.ApplyPromocodeFromOffice(dto,groupID)
-    }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
     @Post('create-priceList')
@@ -164,6 +159,12 @@ export class Admincontroller{
         return await this.adminservice.GetOnePriceList(pricelistID)
     }
 
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('all-subscribers')
+    async AllNewsLetterSubscribers( @Query('limit')limit:number, @Query('page')page:number){
+        return await this.adminservice.GetAllNewsLetterSubscribers(page,limit)
+    }
 
 
 

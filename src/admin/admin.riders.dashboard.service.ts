@@ -226,7 +226,7 @@ export class AdminRiderDashboardService {
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
       const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `${process.env.BASE_URL}/uploadfile/public/${display_pics}`;
+      const mediaurl = `${process.env.BASE_URL}/public/${display_pics}`;
 
       //update the image url
 
@@ -267,7 +267,7 @@ export class AdminRiderDashboardService {
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
       const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `${process.env.BASE_URL}/uploadfile/public/uploadfile/public/${display_pics}`;
+      const mediaurl = `${process.env.BASE_URL}/public/${display_pics}`;
 
       //update the image url
 
@@ -310,7 +310,7 @@ export class AdminRiderDashboardService {
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
       const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `${process.env.BASE_URL}/uploadfile/public/${display_pics}`;
+      const mediaurl = `${process.env.BASE_URL}/public/${display_pics}`;
 
       //update the image url
 

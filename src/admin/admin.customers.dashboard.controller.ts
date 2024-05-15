@@ -6,10 +6,11 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AdminCustomerDashBoardService } from './admin.customers.dashboard.service';
-import { AdminPlaceBidDto, counterBidDto } from 'src/common/common.dto';
+import { AdminPlaceBidDto, InOfficeOrderDto, OrderDto, counterBidDto } from 'src/common/common.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { AdminAccessLevels, AdminType, DeliveryVolume, OrderBasedOnDates, Role } from 'src/Enums/all-enums';
 import { RoleGuard } from 'src/auth/guard/role.guard';
@@ -18,13 +19,14 @@ import { AdminTypeGuard } from 'src/auth/guard/admintype.guard';
 import { AdminTypes } from 'src/auth/decorator/admintype.decorator';
 import { AdminAcessLevelGuard } from 'src/auth/guard/accesslevel.guard';
 import { AdminAccessLevel } from 'src/auth/decorator/accesslevel.decorator';
+import { Response } from 'express';
 
 
 
-// @UseGuards(JwtGuard,RoleGuard,AdminTypeGuard,AdminAcessLevelGuard)
-// @Roles(Role.ADMIN)
-// @AdminTypes(AdminType.STAFF,AdminType.CEO)
-// @AdminAccessLevel(AdminAccessLevels.LEVEL1, AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL3)
+@UseGuards(JwtGuard,RoleGuard,AdminTypeGuard,AdminAcessLevelGuard)
+@Roles(Role.ADMIN)
+@AdminTypes(AdminType.STAFF,AdminType.CEO)
+@AdminAccessLevel(AdminAccessLevels.LEVEL1, AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL3)
 
 
 @Controller('admin-customer-dashboard')
@@ -177,4 +179,33 @@ export class AdminCustomerDashBoardController {
     @Query('timeRange') timeRange: OrderBasedOnDates = OrderBasedOnDates.TODAY,) {
     return await this.admincustomerservice.getofficeBrandingOrderCountBasedOnDate( timeRange);
   }
+
+
+  //in office orders, payments and airwaybill 
+
+  //create order multiple or single in office 
+  @Post('create-in-office-order')
+  async CreateOfficeOrder(@Body()dto:InOfficeOrderDto | InOfficeOrderDto[]){
+    return await this.admincustomerservice.PlaceOrder(dto)
+
+  }
+
+  // process payment
+  @Post('process-payment-in-office-order/:orderID')
+  async PayWithPaystackForTheOrder(@Param('orderID')orderID:number){
+     return await this.admincustomerservice.processPayment(orderID)
+  }
+
+  //generate air waybill
+  @Get('generate-airwaybill/:trackingID')
+  async CreateAirWaybill(@Param('trackingID')trackingID:string){
+   
+    return await this.admincustomerservice.createAirWaybill(trackingID)
+    
+
+    
+
+  }
+
+
 }
