@@ -9,7 +9,6 @@ import { JwtGuard } from './guard/jwt.guard';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RoleGuard } from './guard/role.guard';
 import { AdminTypeGuard } from './guard/admintype.guard';
-import { Roles } from './decorator/role.decorator';
 import { AdminAcessLevelGuard } from './guard/accesslevel.guard';
 
 @Module({

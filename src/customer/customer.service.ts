@@ -64,6 +64,7 @@ import { ComplaintEntity, IComplaints } from 'src/Entity/complaints.entity';
 import { DiscountRepository } from 'src/admin/admin.repository';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
+import { CloudinaryService } from 'src/common/services/claudinary.service';
 
 @Injectable()
 export class CustomerService {
@@ -88,8 +89,8 @@ export class CustomerService {
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private BidEvents: BidEventsService,
-    private uploadservice: UploadService,
     private genratorservice: GeneatorService,
+    private cloudinaryservice:CloudinaryService
   ) {}
 
   async PlaceOrder(
@@ -836,8 +837,8 @@ export class CustomerService {
     customer: CustomerEntity,
   ): Promise<{ message: string }> {
     try {
-      const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `${process.env.BASE_URL}public/${display_pics}`;
+      const display_pics = await this.cloudinaryservice.uploadFile(mediafile);
+      const mediaurl = display_pics.secure_url
 
       //update the image url
 

@@ -26,7 +26,7 @@ import {
   NotificationRepository,
   OtpRepository,
 } from 'src/common/common.repositories';
-import { Notifications } from 'src/Entity/notifications.entity';
+
 import {
   Logindto,
   RequestOtpResendDto,
@@ -44,6 +44,7 @@ import { addPasswordDto } from 'src/customer/customer.dto';
 import { CustomerService } from 'src/customer/customer.service';
 import { AdminService } from './admin.service';
 import { GeneatorService } from 'src/common/services/generator.service';
+import { Notifications } from 'src/Entity/notifications.entity';
 
 @Injectable()
 export class AdminAuthService {
@@ -87,13 +88,13 @@ export class AdminAuthService {
   ): Promise<{ message: string }> {
     try {
       // Check if a CEO already exists
-      const existingCEO = await this.adminrepo.findOne({
-        where: { admintype: AdminType.CEO },
-      });
+      // const existingCEO = await this.adminrepo.findOne({
+      //   where: { admintype: AdminType.CEO },
+      // });
 
-      if (existingCEO) {
-        throw new ConflictException('oops! A CEO already exists in ostra logitics and only one CEO can exist.');
-      }
+      // if (existingCEO) {
+      //   throw new ConflictException('oops! A CEO already exists in ostra logitics and only one CEO can exist.');
+      // }
       const checkemail = await this.adminrepo.findOne({
         where: { email: dto.email },
       });
@@ -158,7 +159,7 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something happen while trying to sign up',
+          'something happen while trying to sign up',error.message
         );
       }
     }
@@ -221,7 +222,7 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'an error occured while verifying the email of the admin pls try again',
+          'an error occured while verifying the email of the admin pls try again',error.message
         );
       }
     }
@@ -289,7 +290,7 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to resend otp, please try again',
+          'somethig went wrong when trying to resend otp, please try again',error.message
         );
       }
     }
@@ -336,7 +337,7 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to request for password reset link, please try again',
+          'somethig went wrong when trying to request for password reset link, please try again',error.message
         );
       }
     }
@@ -413,7 +414,7 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to reset password , please try again',
+          'somethig went wrong when trying to reset password , please try again',error.message
         );
       }
     }
@@ -483,7 +484,7 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to login , please try again',
+          'somethig went wrong when trying to login , please try again',error.message
         );
       }
     }

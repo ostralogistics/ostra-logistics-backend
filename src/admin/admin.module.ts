@@ -37,6 +37,7 @@ import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { DistanceService } from 'src/common/services/distance.service';
 import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
+import { CloudinaryService } from 'src/common/services/claudinary.service';
 
 
 @Module({
@@ -84,7 +85,8 @@ import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
     BidEventsService,
     AdminService,
     DistanceService,
-    GeoCodingService
+    GeoCodingService,
+    CloudinaryService
   ],
 })
 export class AdminModule {}

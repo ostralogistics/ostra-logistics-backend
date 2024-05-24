@@ -23,6 +23,7 @@ import { ComplaintEntity } from 'src/Entity/complaints.entity';
 import { DiscountDto } from 'src/admin/admin.dto';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
+import { CloudinaryService } from 'src/common/services/claudinary.service';
 
 @Module({
   imports: [    
@@ -49,7 +50,8 @@ import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
     CustomerService,
     UploadService,
     BidEventsService,
-    GeneatorService
+    GeneatorService,
+    CloudinaryService
   ],
   controllers: [CustomerAuthController, CustomerController],
 

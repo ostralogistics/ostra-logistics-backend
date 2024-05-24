@@ -62,6 +62,7 @@ import { PriceListEntity } from 'src/Entity/pricelist.entity';
 import { OrderRepository } from 'src/order/order.reposiroty';
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
+import { CloudinaryService } from 'src/common/services/claudinary.service';
 
 @Injectable()
 export class AdminService {
@@ -88,6 +89,7 @@ export class AdminService {
     private readonly repliesripo: RepliesRepository,
     private uploadservice: UploadService,
     private genratorservice: GeneatorService,
+    private cloudinaryservice:CloudinaryService
   ) {}
 
   //register vehicle
@@ -95,8 +97,8 @@ export class AdminService {
     try {
       let imageurl: string | null = null;
       if (file) {
-        const uploadfile = await this.uploadservice.uploadFile(file);
-        imageurl = `${process.env.BASE_URL}/uploadfile/public/${uploadfile}`;
+        const display_pics = await this.cloudinaryservice.uploadFile(file);
+       imageurl = display_pics.secure_url
       }
 
       const newVehicle = new VehicleEntity();
@@ -125,7 +127,7 @@ export class AdminService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'something went wrong while registering a vehicle, please try again later',
+        'something went wrong while registering a vehicle, please try again later',error.message
       );
     }
   }
@@ -147,8 +149,8 @@ export class AdminService {
 
       let imageurl: string | null = null;
       if (file) {
-        const uploadfile = await this.uploadservice.uploadFile(file);
-        imageurl = `${process.env.BASE_URL}/uploadfile/public/${uploadfile}`;
+        const display_pics = await this.cloudinaryservice.uploadFile(file);
+      imageurl = display_pics.secure_url
       }
 
       vehicle.color = dto.color;
@@ -177,7 +179,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while updating a vehicle record, please try again later',
+          'something went wrong while updating a vehicle record, please try again later',error.message
         );
       }
     }
@@ -233,7 +235,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while assigning  fetching all vehicles, please try again later',
+          'something went wrong while assigning  fetching all vehicles, please try again later',error.message
         );
       }
     }
@@ -258,7 +260,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while assigning  fetching all vehicles, please try again later',
+          'something went wrong while assigning  fetching all vehicles, please try again later',error.message
         );
       }
     }
@@ -302,7 +304,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while assigning  a vehicle to this rider, please try again later',
+          'something went wrong while assigning  a vehicle to this rider, please try again later',error.message
         );
       }
     }
@@ -375,7 +377,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something happened, while reporting the return status of a vehicle',
+          'something happened, while reporting the return status of a vehicle',error.message
         );
       }
     }
@@ -397,7 +399,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch all complaint filed',
+          'something went wrong while trying to fetch all complaint filed',error.message
         );
       }
     }
@@ -421,7 +423,7 @@ export class AdminService {
       else {
         console.log;
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch all complaint filed',
+          'something went wrong while trying to fetch all complaint filed',error.message
         );
       }
     }
@@ -461,7 +463,7 @@ export class AdminService {
       else {
         console.log;
         throw new InternalServerErrorException(
-          'something went wrong while trying to reply a complaint filed',
+          'something went wrong while trying to reply a complaint filed',error.message
         );
       }
     }
@@ -500,7 +502,7 @@ export class AdminService {
       else {
         console.log;
         throw new InternalServerErrorException(
-          'something went wrong while trying to delete a complaint filed',
+          'something went wrong while trying to delete a complaint filed',error.message
         );
       }
     }
@@ -554,7 +556,7 @@ export class AdminService {
       else {
         console.log;
         throw new InternalServerErrorException(
-          'something went wrong while trying to change the channel status  of the  complaint thread',
+          'something went wrong while trying to change the channel status  of the  complaint thread',error.message
         );
       }
     }
@@ -611,7 +613,7 @@ export class AdminService {
       else {
         console.log;
         throw new InternalServerErrorException(
-          'something went wrong while trying to change the resolution  status  of the  complaint filed',
+          'something went wrong while trying to change the resolution  status  of the  complaint filed',error.message
         );
       }
     }
@@ -653,7 +655,7 @@ export class AdminService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'something went wrong while filing a complaint, please try again later.',
+        'something went wrong while filing a complaint, please try again later.',error.message
       );
     }
   }
@@ -671,13 +673,13 @@ export class AdminService {
       if (dto.DiscountDuration_days) {
         discount.expires_in = new Date(
           discount.createdAT.getTime() +
-            dto.DiscountDuration_days * 24 * 60 * 60 * 100,
+            dto.DiscountDuration_days * 24 * 60 * 60 * 1000,
         );
         //scenerio where duration in weeks is given
       } else if (dto.DiscountDuration_weeks) {
         discount.expires_in = new Date(
           discount.createdAT.getTime() +
-            dto.DiscountDuration_weeks * 7 * 24 * 60 * 60 * 100,
+            dto.DiscountDuration_weeks * 7 * 24 * 60 * 60 * 1000,
         );
       }
 
@@ -697,7 +699,7 @@ export class AdminService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'something went wrong while trying to set a promo discount',
+        'something went wrong while trying to set a promo discount',error.message
       );
     }
   }
@@ -723,13 +725,13 @@ export class AdminService {
       if (dto.DiscountDuration_days) {
         discount.expires_in = new Date(
           discount.updatedAT.getTime() +
-            dto.DiscountDuration_days * 24 * 60 * 60 * 100,
+            dto.DiscountDuration_days * 24 * 60 * 60 * 1000,
         );
         //scenerio where duration in weeks is given
       } else if (dto.DiscountDuration_weeks) {
         discount.expires_in = new Date(
           discount.updatedAT.getTime() +
-            dto.DiscountDuration_weeks * 7 * 24 * 60 * 60 * 100,
+            dto.DiscountDuration_weeks * 7 * 24 * 60 * 60 * 1000,
         );
       }
 
@@ -752,7 +754,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update the promo discount ',
+          'something went wrong while trying to update the promo discount ',error.message
         );
       }
     }
@@ -777,7 +779,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to delete a promo discount ',
+          'something went wrong while trying to delete a promo discount ',error.message
         );
       }
     }
@@ -805,7 +807,7 @@ export class AdminService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'something went wrong while adding a price list, please try again later',
+        'something went wrong while adding a price list, please try again later',error.message
       );
     }
   }
@@ -830,7 +832,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch all pricelist, please try again later',
+          'something went wrong while trying to fetch all pricelist, please try again later',error.message
         );
       }
     }
@@ -854,7 +856,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch one pricelist, please try again later',
+          'something went wrong while trying to fetch one pricelist, please try again later',error.message
         );
       }
     }
@@ -892,7 +894,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to edit a pricelist',
+          'something went wrong while trying to edit a pricelist',error.message
         );
       }
     }
@@ -927,7 +929,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to delete a pricelist',
+          'something went wrong while trying to delete a pricelist',error.message
         );
       }
     }
@@ -953,7 +955,7 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch all news letter, please try again later',
+          'something went wrong while trying to fetch all news letter, please try again later',error.message
         );
       }
     }

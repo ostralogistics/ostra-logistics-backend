@@ -31,6 +31,7 @@ import { IChangeRiderPassword } from 'src/Riders/riders';
 import { ILike } from 'typeorm';
 import { AdminService } from './admin.service';
 import { GeneatorService } from 'src/common/services/generator.service';
+import { CloudinaryService } from 'src/common/services/claudinary.service';
 
 @Injectable()
 export class AdminStaffDasboardService {
@@ -39,16 +40,11 @@ export class AdminStaffDasboardService {
     @InjectRepository(AdminEntity) private readonly adminripo: AdminRepository,
     @InjectRepository(Notifications)
     private readonly notificationripo: NotificationRepository,
-    private uploadservice: UploadService,
-    private generatorservice:GeneatorService,
-    
-  
+    private generatorservice: GeneatorService,
   ) {}
 
   //admin register rider
-  async RegisterStaff(
-    dto: RegisterOtherAdminByAdminDto,
-  ): Promise<{ message: string; response: ICreateAdmins }> {
+  async RegisterStaff(dto: RegisterOtherAdminByAdminDto) {
     try {
       const genpassword = await this.generatorservice.generatePassword();
       const hashedpassword =
@@ -78,8 +74,7 @@ export class AdminStaffDasboardService {
       staff.home_address = dto.home_address;
       (staff.state_of_origin = dto.state_of_origin),
         (staff.LGA_of_origin = dto.LGA_of_origin);
-      (staff.role = Role.ADMIN),
-        (staff.adminAccessLevels = dto.accesslevel);
+      (staff.role = Role.ADMIN), (staff.adminAccessLevels = dto.accesslevel);
 
       //find if rider already exists
       const findstaff = await this.adminripo.findOne({
@@ -92,39 +87,17 @@ export class AdminStaffDasboardService {
 
       await this.adminripo.save(staff);
 
-      //customize return response
-      const riderresponse: ICreateAdmins = {
-        id: staff.id,
-        firstname: staff.firstname,
-        lastname: staff.lastname,
-        profile_picture: staff.profile_picture,
-        email: staff.email,
-        password: genpassword,
-        DOB: staff.DOB,
-        age: staff.age,
-        mobile: staff.mobile,
-        home_address: staff.home_address,
-        state_of_origin: staff.state_of_origin,
-        LGA_of_origin: staff.LGA_of_origin,
-        RegisteredAt: staff.RegisteredAt,
-        role: staff.role,
-        marital_status: staff.marital_status,
-        adminAccessLevels: staff.adminAccessLevels,
-        admintype: staff.admintype,
-        gender: staff.gender,
-        LGA_of_Home_Address: staff.LGA_of_Home_Address,
-      };
-
       //save notification
       const notification = new Notifications();
-      notification.account = findstaff.id;
+      notification.account = "admin";
       notification.subject = 'Admin Registered staff  !';
       notification.message = `a new staff  have been created on ostra logistics platform `;
       await this.notificationripo.save(notification);
 
       return {
-        message: 'the staff have been Registered Successfuly',
-        response: riderresponse,
+        message: 'the staff have been Registered Successfuly,these are the login credentials generated for the newly created Staff',
+        email: emailnow,
+        password: genpassword,
       };
     } catch (error) {
       if (error instanceof NotAcceptableException)
@@ -133,6 +106,7 @@ export class AdminStaffDasboardService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to fetch all staffs, please try again later',
+          error.message,
         );
       }
     }
@@ -222,6 +196,7 @@ export class AdminStaffDasboardService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to delete this staff, please try again later',
+          error.message,
         );
       }
     }
@@ -272,6 +247,7 @@ export class AdminStaffDasboardService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to change staffs password, please try again later',
+          error.message,
         );
       }
     }
@@ -301,6 +277,7 @@ export class AdminStaffDasboardService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to fetch all staffs, please try again later',
+          error.message,
         );
       }
     }
@@ -324,6 +301,7 @@ export class AdminStaffDasboardService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while tryig to get one staff by id, please try again later',
+          error.message,
         );
       }
     }
@@ -334,7 +312,6 @@ export class AdminStaffDasboardService {
     try {
       const rider = await this.adminripo.findAndCount({
         where: [
-          { admintype: AdminType.STAFF },
           { firstname: ILike(`%${keyword}%`) },
           { lastname: ILike(`%${keyword}%`) },
           { email: ILike(`%${keyword}%`) },
@@ -353,6 +330,7 @@ export class AdminStaffDasboardService {
     } catch (error) {
       throw new InternalServerErrorException(
         'An error occured while searching for staff',
+        error.message,
       );
     }
   }
@@ -393,6 +371,7 @@ export class AdminStaffDasboardService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to chnge the accesslevel of this staff, please try again later',
+          error.message,
         );
       }
     }

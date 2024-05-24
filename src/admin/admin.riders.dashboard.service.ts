@@ -51,6 +51,7 @@ import { IRequests, RequestEntity } from 'src/Entity/requests.entity';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { all } from 'axios';
+import { CloudinaryService } from 'src/common/services/claudinary.service';
 
 @Injectable()
 export class AdminRiderDashboardService {
@@ -69,6 +70,7 @@ export class AdminRiderDashboardService {
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
     private uploadservice: UploadService,
+    private cloudinaryservice:CloudinaryService,
     private mailer: Mailer,
     private genratorservice: GeneatorService,
   ) {}
@@ -133,8 +135,9 @@ export class AdminRiderDashboardService {
       await this.notificationripo.save(notification);
 
       return {
-        message: 'the rider has been Registered Successfully',
-        response: rider,
+        message: 'the rider has been Registered Successfully, these are the login credentials generated for the rider',
+        email: emailnow,
+        password:genpassword
       };
     } catch (error) {
       if (error instanceof NotFoundException)
@@ -142,7 +145,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to Register a Rider, please try again later',
+          'something went wrong while trying to Register a Rider, please try again later',error.message
         );
       }
     }
@@ -207,7 +210,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update the info of a  Rider, please try again later',
+          'something went wrong while trying to update the info of a  Rider, please try again later',error.message
         );
       }
     }
@@ -225,8 +228,8 @@ export class AdminRiderDashboardService {
         throw new NotFoundException(
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
-      const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `${process.env.BASE_URL}/public/${display_pics}`;
+        const display_pics = await this.cloudinaryservice.uploadFile(mediafile);
+        const mediaurl = display_pics.secure_url
 
       //update the image url
 
@@ -248,7 +251,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to upload the profile picture of the Rider, please try again later',
+          'something went wrong while trying to upload the profile picture of the Rider, please try again later',error.message
         );
       }
     }
@@ -266,8 +269,8 @@ export class AdminRiderDashboardService {
         throw new NotFoundException(
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
-      const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `${process.env.BASE_URL}/public/${display_pics}`;
+        const display_pics = await this.cloudinaryservice.uploadFile(mediafile);
+        const mediaurl = display_pics.secure_url
 
       //update the image url
 
@@ -291,7 +294,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to upload the drivers license front of the Rider, please try again later',
+          'something went wrong while trying to upload the drivers license front of the Rider, please try again later',error.message
         );
       }
     }
@@ -309,8 +312,8 @@ export class AdminRiderDashboardService {
         throw new NotFoundException(
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
-      const display_pics = await this.uploadservice.uploadFile(mediafile);
-      const mediaurl = `${process.env.BASE_URL}/public/${display_pics}`;
+        const display_pics = await this.cloudinaryservice.uploadFile(mediafile);
+        const mediaurl = display_pics.secure_url
 
       //update the image url
 
@@ -334,7 +337,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to upload the drivers license back of the Rider, please try again later',
+          'something went wrong while trying to upload the drivers license back of the Rider, please try again later',error.message
         );
       }
     }
@@ -370,7 +373,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to delete Rider, Please try again',
+          'something went wrong while trying to delete Rider, Please try again',error.message
         );
       }
     }
@@ -420,7 +423,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to reset Rider Password based on request',
+          'something went wrong while trying to reset Rider Password based on request',error.message
         );
       }
     }
@@ -443,7 +446,7 @@ export class AdminRiderDashboardService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to get all request sent by riders, please try again later',
+          'something went wrong while trying to get all request sent by riders, please try again later',error.message
         );
       }
     }
@@ -516,7 +519,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to reset Rider Password based on request',
+          'something went wrong while trying to reset Rider Password based on request',error.message
         );
       }
     }
@@ -544,7 +547,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch all riders, please try again',
+          'something went wrong while trying to fetch all riders, please try again',error.message
         );
       }
     }
@@ -567,7 +570,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch one rider, please try again',
+          'something went wrong while trying to fetch one rider, please try again',error.message
         );
       }
     }
@@ -600,7 +603,7 @@ export class AdminRiderDashboardService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'Something went wrong when trying to fetch all your cards. Please try again later.',
+          'Something went wrong when trying to fetch all your cards. Please try again later.',error.message
         );
       }
     }
@@ -664,7 +667,7 @@ export class AdminRiderDashboardService {
         throw new NotAcceptableException(error.message);
       else {
         throw new InternalServerErrorException(
-          'Something went wrong when trying to assign a task to a rider. Please try again later.',
+          'Something went wrong when trying to assign a task to a rider. Please try again later.',error.message
         );
       }
     }
@@ -707,7 +710,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to add the bank details of the rider, please try again later',
+          'something went wrong while trying to add the bank details of the rider, please try again later',error.message
         );
       }
     }
@@ -763,7 +766,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update  the bank details  based on request of the Rider, please try again later',
+          'something went wrong while trying to update  the bank details  based on request of the Rider, please try again later',error.message
         );
       }
     }
@@ -812,7 +815,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to log payments made to a rider, please try again later',
+          'something went wrong while trying to log payments made to a rider, please try again later',error.message
         );
       }
     }
@@ -832,7 +835,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying fetch all rider task',
+          'something went wrong while trying fetch all rider task',error.message
         );
       }
     }
@@ -858,7 +861,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying fetch all riders with ongoing tasks',
+          'something went wrong while trying fetch all riders with ongoing tasks',error.message
         );
       }
     }
@@ -884,7 +887,7 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying fetch all riders with ongoing tasks',
+          'something went wrong while trying fetch all riders with ongoing tasks',error.message
         );
       }
     }

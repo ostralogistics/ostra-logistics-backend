@@ -1,12 +1,11 @@
 
-import { NotificationType } from "src/Enums/all-enums";
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm"; 
 @Entity("notifications")
 export class Notifications implements INotification{
     @PrimaryGeneratedColumn()
     id:number
 
-    @CreateDateColumn({type:"date",nullable:false})
+    @CreateDateColumn()
     date:Date
 
     @Column('varchar',{nullable:false})
@@ -19,10 +18,6 @@ export class Notifications implements INotification{
 
     @Column({nullable:false})
     subject:string
-    
-
-
-
     
 }
 

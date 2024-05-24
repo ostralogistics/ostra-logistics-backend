@@ -1,6 +1,7 @@
 import { BidEntity } from "src/Entity/bids.entity";
 import { DiscountUsageEntity } from "src/Entity/discountUsage.entity";
 import { Notifications } from "src/Entity/notifications.entity";
+
 import { UserOtp } from "src/Entity/otp.entity";
 import { ReceiptEntity } from "src/Entity/receipt.entity";
 import { RequestEntity } from "src/Entity/requests.entity";
@@ -11,7 +12,6 @@ import { EntityRepository, Repository } from "typeorm";
 export class OtpRepository extends Repository<UserOtp>{}
 
    
-
 @EntityRepository(Notifications)
 export class NotificationRepository extends Repository<Notifications>{}
 

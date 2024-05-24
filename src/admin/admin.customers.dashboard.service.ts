@@ -87,7 +87,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while fetching all pending or new orders, please try again later',
+          'something went wrong while fetching all pending or new orders, please try again later',error.message
         );
       }
     }
@@ -131,7 +131,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while making opening bid, please try again later',
+          'something went wrong while making opening bid, please try again later',error.message
         );
       }
     }
@@ -185,7 +185,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while countering bid, please try again later',
+          'something went wrong while countering bid, please try again later',error.message
         );
       }
     }
@@ -210,7 +210,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while fetching all customers, please try again later',
+          'something went wrong while fetching all customers, please try again later',error.message
         );
       }
     }
@@ -236,7 +236,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while fetching one customer, please try again later',
+          'something went wrong while fetching one customer, please try again later',error.message
         );
       }
     }
@@ -269,7 +269,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while fetching all orders in transit, please try again later',
+          'something went wrong while fetching all orders in transit, please try again later',error.message
         );
       }
     }
@@ -301,7 +301,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while fetching dropped off orders, please try again later',
+          'something went wrong while fetching dropped off orders, please try again later',error.message
         );
       }
     }
@@ -333,7 +333,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while fetching all picked up orders, please try again later',
+          'something went wrong while fetching all picked up orders, please try again later',error.message
         );
       }
     }
@@ -386,7 +386,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'Something went wrong while fetching orders. Please try again later.',
+          'Something went wrong while fetching orders. Please try again later.',error.message
         );
       }
     }
@@ -451,7 +451,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while tracking order, please try again later',
+          'something went wrong while tracking order, please try again later',error.message
         );
       }
     }
@@ -473,7 +473,7 @@ export class AdminCustomerDashBoardService {
       if(error instanceof NotFoundException) throw new NotFoundException(error.message)
       else{
     console.log(error)
-    throw new InternalServerErrorException('an error occured while generating air waybill, please try again later')
+    throw new InternalServerErrorException('an error occured while generating air waybill, please try again later',error.message)
     }
       
     }
@@ -550,7 +550,7 @@ export class AdminCustomerDashBoardService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'Error occurred while fetching completed order count.',
+        'Error occurred while fetching completed order count.',error.message
       );
     }
   }
@@ -590,7 +590,7 @@ export class AdminCustomerDashBoardService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'Error occurred while fetching pending  order count.',
+        'Error occurred while fetching pending  order count.',error.message
       );
     }
   }
@@ -630,7 +630,7 @@ export class AdminCustomerDashBoardService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'Error occurred while fetching Active order count.',
+        'Error occurred while fetching Active order count.',error.message
       );
     }
   }
@@ -669,8 +669,8 @@ export class AdminCustomerDashBoardService {
       return completedOrderCount;
     } catch (error) {
       console.log(error);
-      throw new Error(
-        'Error occurred while fetching parcel in office for rebranding order count.',
+      throw new InternalServerErrorException(
+        'Error occurred while fetching parcel in office for rebranding order count.',error.message
       );
     }
   }
@@ -710,7 +710,7 @@ export class AdminCustomerDashBoardService {
       } else {
         console.error(error);
         throw new InternalServerErrorException(
-          'Something went wrong while placing order. Please try again later.',
+          'Something went wrong while placing order. Please try again later.',error.message
         );
       }
     }
@@ -812,7 +812,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to place an order, please try again later',
+          'something went wrong while trying to place an order, please try again later',error.message
         );
       }
     }
@@ -858,7 +858,7 @@ export class AdminCustomerDashBoardService {
       if (error instanceof NotFoundException) throw new NotFoundException(error.message)
       else {
     console.log(error)
-    throw new InternalServerErrorException(`something went wrong while setting the price for the order}`)
+    throw new InternalServerErrorException(`something went wrong while setting the price for the order}`,error.message)
     }
       
     }
@@ -945,7 +945,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to apply discount on multiple orders',
+          'something went wrong while trying to apply discount on multiple orders',error.message
         );
       }
     }
