@@ -66,6 +66,7 @@ export class AdminStaffDasboardService {
       staff.email = emailnow;
       staff.password = hashedpassword;
       staff.admintype = AdminType.STAFF;
+      staff.RegisteredAt = new Date();
 
       (staff.DOB = dto.DOB),
         (staff.age = age),
@@ -139,6 +140,7 @@ export class AdminStaffDasboardService {
       admin.LGA_of_origin = dto.LGA_of_origin;
       admin.gender = dto.gender;
       admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
+      admin.UpdatedAt = new Date()
 
       await this.adminripo.save(admin);
 

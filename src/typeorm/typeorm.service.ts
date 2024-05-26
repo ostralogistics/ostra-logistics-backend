@@ -20,6 +20,7 @@ import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
+import * as fs from 'fs';
 
 @Injectable()
 export class TypeOrmService {
@@ -60,7 +61,12 @@ export class TypeOrmService {
       ],
       migrations: [],
       subscribers: [],
-      ssl: process.env.SSL === 'true' ? { rejectUnauthorized: false } : false,
-    };
+      ssl: {
+        rejectUnauthorized: false,
+        ca: fs.readFileSync('ssl/server.crt').toString(),
+        key: fs.readFileSync('ssl/server.key').toString(),
+        cert: fs.readFileSync('ssl/server.crt').toString(),
+      },
+    }
   }
 }
