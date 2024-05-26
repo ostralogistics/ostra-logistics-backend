@@ -60,6 +60,7 @@ export class TypeOrmService {
       ],
       migrations: [],
       subscribers: [],
+      ssl: process.env.SSL === 'true' ? { rejectUnauthorized: false } : false,
     };
   }
 }
