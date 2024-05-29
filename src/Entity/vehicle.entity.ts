@@ -1,6 +1,7 @@
 import {  ReturnedVehicle, Role, VehicleState, VehicleType } from "src/Enums/all-enums";
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { RiderEntity } from "./riders.entity";
+import { CartItemEntity } from "./orders.entity";
 
 
 
@@ -74,4 +75,7 @@ export class VehicleEntity implements IVehicle{
 
     @Column({nullable:true,type:'timestamp'})
     retrnedAt: Date;
+
+    @OneToMany(()=>CartItemEntity, selected=>selected.vehicleType)
+    selected_vehicle:CartItemEntity[]
 }

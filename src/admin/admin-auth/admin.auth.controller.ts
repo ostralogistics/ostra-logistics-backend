@@ -2,7 +2,7 @@ import { Controller,Post,Patch,Body, Req,Get, UseGuards, Param } from "@nestjs/c
 import {  Logindto, RequestOtpResendDto, SendPasswordResetLinkDto, VerifyOtpDto, VerifyOtpForResetPasswordDto } from "src/common/common.dto";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { AdminAuthService } from "./admin.auth.service";
-import { RegisterAdminDto } from "./admin.dto";
+import { RegisterAdminDto } from "../admin.dto";
 import { addPasswordDto } from "src/customer/customer.dto";
 import { Request } from "express";
 

@@ -77,8 +77,19 @@ export class Logindto{
 
 export class ApplypromoCodeDto{
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     code:string
+}
+
+export class adminCheckOutDto{
+    @IsString()
+    @IsOptional()
+    code:string
+
+    @IsNumber()
+    @IsNotEmpty()
+    cost:number
+
 }
 
 
@@ -193,9 +204,9 @@ export class InOfficeOrderDto {
     landmark_of_dropoff:string
 
     //order info 
-    @IsEnum(VehicleType)
+    @IsNumber()
     @IsNotEmpty()
-    vehicleType:VehicleType
+    vehicleTypeID:number
 
     @IsString()
     @IsNotEmpty()
@@ -208,8 +219,8 @@ export class InOfficeOrderDto {
 
 
 
-export class OrderDto {
 
+export class OrderDto {
 
 
     @IsString()
@@ -287,9 +298,9 @@ export class OrderDto {
     landmark_of_dropoff:string
 
     //order info 
-    @IsEnum(VehicleType)
+    @IsNumber()
     @IsNotEmpty()
-    vehicleType:VehicleType
+    vehicleTypeID:number
 
     @IsString()
     @IsNotEmpty()

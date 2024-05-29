@@ -334,7 +334,6 @@ export class UpdateOtherAdminInfoByAdminDto{
 
     @IsString()
     @IsOptional()
-    @Matches(/^NGR\+234\d{10}$/,{message:"mobile number must be a valid Nigerian service operator's cell number"})
     mobile:string
 
     @IsString()

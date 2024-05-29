@@ -7,20 +7,19 @@ import { UserOtp } from 'src/Entity/otp.entity';
 //import { AdminAuthService } from "./admin.auth.service";
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { JwtService } from '@nestjs/jwt';
-import { AdminRiderDashboardService } from './admin.riders.dashboard.service';
-import { AdminStaffDasboardService } from './admin.staff.dashboard.service';
-import { AdminRiderDashBoardController } from './admin.riders.dashboard.controller';
-import { AdminStaffDashBoardController } from './admin.staff.dashboard.controller';
+import { AdminRiderDashboardService } from './rider-mgt/admin.riders.dashboard.service';
+import { AdminStaffDasboardService } from './staff-mgt/admin.staff.dashboard.service';
+import { AdminRiderDashBoardController } from './rider-mgt/admin.riders.dashboard.controller';
+import { AdminStaffDashBoardController } from './staff-mgt/admin.staff.dashboard.controller';
 import { UploadService } from 'src/common/helpers/upload.service';
-import { CustomerAuthService } from 'src/customer/customer.auth.service';
 import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
 import { CustomerEntity } from 'src/Entity/customers.entity';
 import { BidEntity } from 'src/Entity/bids.entity';
-import { AdminAuthController } from './admin.auth.controller';
-import { AdminAuthService } from './admin.auth.service';
-import { OrderEntity } from 'src/Entity/orders.entity';
-import { AdminCustomerDashBoardController } from './admin.customers.dashboard.controller';
-import { AdminCustomerDashBoardService } from './admin.customers.dashboard.service';
+import { AdminAuthController } from './admin-auth/admin.auth.controller';
+import { AdminAuthService } from './admin-auth/admin.auth.service';
+import { CartItemEntity, OrderCartEntity, OrderEntity, OrderItemEntity } from 'src/Entity/orders.entity';
+import { AdminCustomerDashBoardController } from './customer-mgt/admin.customers.dashboard.controller';
+import { AdminCustomerDashBoardService } from './customer-mgt/admin.customers.dashboard.service';
 import { BidEventsService } from 'src/common/Events/bid.events.service';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
@@ -61,7 +60,10 @@ import { CloudinaryService } from 'src/common/services/claudinary.service';
       DiscountUsageEntity,
       PriceListEntity,
       TransactionEntity,
-      NewsLetterEntity
+      NewsLetterEntity,
+      CartItemEntity,
+      OrderCartEntity,
+      OrderItemEntity
 
 
     ]),

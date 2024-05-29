@@ -2,7 +2,7 @@ import { Controller,Post,Patch,Body, Req,Get, UseGuards, Param } from "@nestjs/c
 import {  Logindto, RequestOtpResendDto, SendPasswordResetLinkDto, VerifyOtpDto, VerifyOtpForResetPasswordDto } from "src/common/common.dto";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { CustomerAuthService } from "./customer.auth.service";
-import { RegisterCustomerDto, addPasswordDto } from "./customer.dto";
+import { RegisterCustomerDto, addPasswordDto } from "../customer.dto";
 import { Request } from "express";
 
 @Controller('customer-auth')

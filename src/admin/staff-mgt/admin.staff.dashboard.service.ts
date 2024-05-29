@@ -11,11 +11,10 @@ import { Notifications } from 'src/Entity/notifications.entity';
 import { RiderEntity } from 'src/Entity/riders.entity';
 import { NotificationRepository } from 'src/common/common.repositories';
 import { UploadService } from 'src/common/helpers/upload.service';
-import { CustomerAuthService } from 'src/customer/customer.auth.service';
-import { AdminRepository } from './admin.repository';
+import { AdminRepository } from '../admin.repository';
 import { RidersRepository } from 'src/Riders/riders.repository';
-import { IAdmin, ICreateAdmins } from './admin';
-import { AdminRiderDashboardService } from './admin.riders.dashboard.service';
+import { IAdmin, ICreateAdmins } from '../admin';
+import { AdminRiderDashboardService } from '../rider-mgt/admin.riders.dashboard.service';
 import {
   AdminAccessLevels,
   AdminType,
@@ -26,10 +25,10 @@ import {
   AdminchangestaffAccessLevelDto,
   RegisterOtherAdminByAdminDto,
   UpdateOtherAdminInfoByAdminDto,
-} from './admin.dto';
+} from '../admin.dto';
 import { IChangeRiderPassword } from 'src/Riders/riders';
 import { ILike } from 'typeorm';
-import { AdminService } from './admin.service';
+import { AdminService } from '../admin.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 
@@ -110,7 +109,7 @@ export class AdminStaffDasboardService {
           error.message,
         );
       }
-    }
+    } 
   }
 
   async UpdateStaffInfoByAdmin(

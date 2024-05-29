@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { AdminStaffDasboardService } from "./admin.staff.dashboard.service";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { AdminchangestaffAccessLevelDto, RegisterOtherAdminByAdminDto, UpdateOtherAdminInfoByAdminDto } from "./admin.dto";
-import { ICreateAdmins } from "./admin";
+import { AdminchangestaffAccessLevelDto, RegisterOtherAdminByAdminDto, UpdateOtherAdminInfoByAdminDto } from "../admin.dto";
+import { ICreateAdmins } from "../admin";
 import { AdminEntity } from "src/Entity/admins.entity";
 import { IChangeRiderPassword } from "src/Riders/riders";
 import { JwtGuard } from "src/auth/guard/jwt.guard";

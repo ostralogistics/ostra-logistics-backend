@@ -15,7 +15,7 @@ import {
   riderBankDetailsRepository,
 } from 'src/Riders/riders.repository';
 import { CustomerRepository } from 'src/customer/customer.repository';
-import { AdminRepository } from './admin.repository';
+import { AdminRepository } from '../admin.repository';
 import { Notifications } from 'src/Entity/notifications.entity';
 import {
   NotificationRepository,
@@ -23,7 +23,6 @@ import {
   TransactionRespository,
 } from 'src/common/common.repositories';
 import { UploadService } from 'src/common/helpers/upload.service';
-import { CustomerAuthService } from 'src/customer/customer.auth.service';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { customAlphabet } from 'nanoid';
 import { IChangeRiderPassword, IRider } from 'src/Riders/riders';
@@ -34,7 +33,7 @@ import {
   LogtransactionDto,
   RegisterRiderByAdminDto,
   UpdateRiderInfoByAdminDto,
-} from './admin.dto';
+} from '../admin.dto';
 import {
   NotificationType,
   PaymentStatus,
@@ -631,7 +630,7 @@ export class AdminRiderDashboardService {
 
       const order = await this.orderripo.findOne({
         where: { id: orderID },
-        relations: ['customer'],
+        relations: ['customer','items','items.vehicleType'],
       });
       if (!order) throw new NotFoundException('order not found ');
 

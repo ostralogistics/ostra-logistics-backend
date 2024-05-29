@@ -1,6 +1,6 @@
 import { Controller, UploadedFile, UseInterceptors, Post,Get,Patch,Delete, BadRequestException, Query, InternalServerErrorException, Body, Param, UseGuards } from "@nestjs/common";
 import { AdminRiderDashboardService } from "./admin.riders.dashboard.service";
-import { AssignTaskDto, BankDetailsDto, EditBankDetailsDto, LogtransactionDto, RegisterRiderByAdminDto, UpdateRiderInfoByAdminDto } from "./admin.dto";
+import { AssignTaskDto, BankDetailsDto, EditBankDetailsDto, LogtransactionDto, RegisterRiderByAdminDto, UpdateRiderInfoByAdminDto } from "../admin.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { IChangeRiderPassword } from "src/Riders/riders";
 import { RiderEntity } from "src/Entity/riders.entity";

@@ -1,16 +1,18 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
   Query,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { AdminCustomerDashBoardService } from './admin.customers.dashboard.service';
-import { AdminPlaceBidDto, ApplypromoCodeDto, InOfficeOrderDto, OrderDto, counterBidDto } from 'src/common/common.dto';
+import { AdminPlaceBidDto, ApplypromoCodeDto, InOfficeOrderDto, OrderDto, adminCheckOutDto, counterBidDto } from 'src/common/common.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { AdminAccessLevels, AdminType, DeliveryVolume, OrderBasedOnDates, Role } from 'src/Enums/all-enums';
 import { RoleGuard } from 'src/auth/guard/role.guard';
@@ -181,35 +183,49 @@ export class AdminCustomerDashBoardController {
   }
 
 
-  //in office orders, payments and airwaybill 
-
-  //create order multiple or single in office 
-  @Post('create-in-office-order')
-  async CreateOfficeOrder(@Body()dto:InOfficeOrderDto | InOfficeOrderDto[]){
-    return await this.admincustomerservice.PlaceOrder(dto)
-
-  }
-
   // process payment
   @Post('process-payment-in-office-order/:orderID')
   async PayWithPaystackForTheOrder(@Param('orderID')orderID:number){
      return await this.admincustomerservice.processPayment(orderID)
   }
 
-  //apply discount 
-  @Post("apply-discount-code/:orderID")
-  async ApplyDiscount(@Body()dto:ApplypromoCodeDto, @Param('orderID')orderID:string){
-   return await this.admincustomerservice.ApplyPromocode(dto,orderID)
-  }
 
   //generate air waybill
   @Get('generate-airwaybill/:trackingID')
   async CreateAirWaybill(@Param('trackingID')trackingID:string){
     return await this.admincustomerservice.createAirWaybill(trackingID)
-    
+  }
 
-    
 
+  @Post('admin-cart-items')
+  async MakeOrder(@Req()req, @Body()dto:InOfficeOrderDto){
+      return await this.admincustomerservice.AdminaddToOrderCart(req.user,dto)
+  }
+
+  @Delete('admin-remove-item-from-cart/:cartItemID')
+  async RemoveOrderFromCart(@Req()req, @Param('cartItemID')cartItemID:string){
+      return await this.admincustomerservice.AdminRemoveItemFromCart(cartItemID,req.user)
+  }
+
+  @Get('admin-get-cart')
+  async GetCart(@Req()req){
+      return await this.admincustomerservice.getAdminCart(req.user)
+  }
+
+  @Post('admin-checkout')
+  async CheckOut(@Req()req, @Body()dto:adminCheckOutDto){
+      return await this.admincustomerservice.CheckOut(req.user,dto)
+  }
+
+
+  @Get('one-customer-total-order-count/:customerID')
+  async GetCustomerOrderCount(@Param('customerID')customerID:string){
+      return await this.admincustomerservice.getTotalOrdersByCustomer(customerID)
+  }
+
+  @Get('total-revenue-one-cutomer/:customerID')
+  async getTotalRevenueOneCustomer(@Param('customerID')customerID:string){
+      return await this.admincustomerservice.getTotalRevenueByCustomer(customerID)
   }
 
 

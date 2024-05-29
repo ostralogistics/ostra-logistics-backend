@@ -22,7 +22,6 @@ import { Notifications } from 'src/Entity/notifications.entity';
 import { IRider } from './riders';
 import { ConfigService } from '@nestjs/config';
 import { Logindto } from 'src/common/common.dto';
-import { CustomerAuthService } from 'src/customer/customer.auth.service';
 import { NotificationType, RequestType } from 'src/Enums/all-enums';
 import { RequestResetPasswordDto } from './riders.dto';
 import { customAlphabet } from 'nanoid';
@@ -45,8 +44,6 @@ export class RiderAuthService {
     private mailer: Mailer,
   ) {}
 
-  
-
   // get rider profile
   async getProfile(rider: RiderEntity): Promise<IRider> {
     try {
@@ -58,6 +55,7 @@ export class RiderAuthService {
       console.log(error);
       throw new InternalServerErrorException(
         'something went wrong while trying to fetch rider profile',
+        error.message,
       );
     }
   }
@@ -76,58 +74,58 @@ export class RiderAuthService {
       );
       if (!comparepass) {
         findrider.loginCount += 1;
-  
+
         if (findrider.loginCount >= 5) {
           findrider.isLocked = true;
           findrider.locked_until = new Date(Date.now() + 24 * 60 * 60 * 1000); //lock for 24 hours
           await this.riderrepo.save(findrider);
-          
         }
-  
+
         //  If the customer hasn't reached the maximum login attempts, calculate the number of attempts left
         const attemptsleft = 5 - findrider.loginCount;
         await this.riderrepo.save(findrider);
-  
+
         throw new NotFoundException(
           `invalid credentials ${attemptsleft} attempts left before your account is locked.`,
         );
       }
-  
+
       if (!findrider.isVerified) {
         // If the account is not verified, throw an exception
         throw new ForbiddenException(
-          `Your account has not been verified. Please verify your account by sending a rewuest to the admin.`,
+          `Your account has not been verified. Please verify your account by sending a request to the admin.`,
         );
       }
-  
+
       //If the password matches, reset the login_count and unlock the account if needed
       findrider.loginCount = 0;
       findrider.isLoggedIn = true;
       await this.riderrepo.save(findrider);
-  
+
       //save the notification
       const notification = new Notifications();
       notification.account = findrider.firstname;
       notification.subject = ' login!';
       notification.message = `Hello ${findrider.firstname}, just logged in `;
       await this.notificationripo.save(notification);
-  
+
       return await this.genratorservice.signToken(
         findrider.id,
         findrider.email,
         findrider.role,
       );
     } catch (error) {
-      if (error instanceof NotFoundException){
-        throw new NotFoundException(error.message)
-      }else if ( error instanceof ForbiddenException ){
-        throw new ForbiddenException(error.message)
-      }else{
-        console.log(error)
-        throw new InternalServerErrorException('something went wrong while trying to Login, please try again later')
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else if (error instanceof ForbiddenException) {
+        throw new ForbiddenException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to Login, please try again later',
+          error.message,
+        );
       }
-      
-      
     }
   }
 
@@ -140,40 +138,42 @@ export class RiderAuthService {
       const rideremial = await this.riderrepo.findOne({
         where: { email: dto.email },
       });
-  
+
       if (!rideremial)
         throw new NotFoundException(
           'this email does not belong to any rider on ostra logistics ',
         );
-  
+
       // create a new request
       const request = new RequestEntity();
       (request.Rider = rideremial),
-      (request.requestType = RequestType.PASSWORD_RESET);
+        (request.requestType = RequestType.PASSWORD_RESET);
       request.requestedAt = new Date();
       request.body =
         "Please kindly reset my password, I couldn't get access into my ostralogistics Rider Account, Thanks.";
       await this.requestrepo.save(request);
 
-       //save notification
-       const notification = new Notifications();
-       notification.account = rideremial.id;
-       notification.subject = 'Rider Requested for password change!';
-       notification.message = `Rider with the  id ${rideremial.id} has requested for a pssword reset `;
-       await this.notificationripo.save(notification);
-  
+      //save notification
+      const notification = new Notifications();
+      notification.account = rideremial.id;
+      notification.subject = 'Rider Requested for password change!';
+      notification.message = `Rider with the  id ${rideremial.id} has requested for a pssword reset `;
+      await this.notificationripo.save(notification);
+
       return {
         message:
           'Your request has been sent, the Admin will review and respond in due time, apologies for your inability to gain access into your account.',
       };
     } catch (error) {
-      if (error instanceof NotFoundException){
-        throw new NotFoundException(error.message)
-      }else{
-        console.log(error)
-        throw new InternalServerErrorException('something went wrong when trying to request for reset password, please try again later')
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong when trying to request for reset password, please try again later',
+          error.message,
+        );
       }
-      
     }
   }
 }

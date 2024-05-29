@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -7,8 +8,18 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CustomerEntity } from 'src/Entity/customers.entity';
-import { OrderEntity } from 'src/Entity/orders.entity';
-import { OrderRepository } from 'src/order/order.reposiroty';
+import {
+  CartItemEntity,
+  OrderCartEntity,
+  OrderEntity,
+  OrderItemEntity,
+} from 'src/Entity/orders.entity';
+import {
+  CartItemRepository,
+  OrderCartRepository,
+  OrderItemRepository,
+  OrderRepository,
+} from 'src/order/order.reposiroty';
 import {
   CardRepository,
   CustomerRepository,
@@ -54,17 +65,20 @@ import {
 } from './customer.dto';
 import { CardEntity, ICard } from 'src/Entity/card.entity';
 import { ICustomer } from './customer';
-import { CustomerAuthService } from './customer.auth.service';
+import { CustomerAuthService } from './customer-auth/customer.auth.service';
 import { UploadService } from 'src/common/helpers/upload.service';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { INotification, Notifications } from 'src/Entity/notifications.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { ComplaintEntity, IComplaints } from 'src/Entity/complaints.entity';
-import { DiscountRepository } from 'src/admin/admin.repository';
+import { DiscountRepository, VehicleRepository } from 'src/admin/admin.repository';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
+import { trace } from 'console';
+import { plainToInstance } from 'class-transformer';
+import { VehicleEntity } from 'src/Entity/vehicle.entity';
 
 @Injectable()
 export class CustomerService {
@@ -86,66 +100,50 @@ export class CustomerService {
     private readonly discountripo: DiscountRepository,
     @InjectRepository(DiscountUsageEntity)
     private readonly discountusageripo: DiscountUsageRepository,
+    @InjectRepository(OrderCartEntity)
+    private readonly orderCartRepo: OrderCartRepository,
+    @InjectRepository(CartItemEntity)
+    private readonly cartItemRepo: CartItemRepository,
+    @InjectRepository(DiscountEntity)
+    private readonly discountRepo: DiscountRepository,
+    @InjectRepository(DiscountUsageEntity)
+    private readonly discountusageRepo: DiscountUsageRepository,
+    @InjectRepository(VehicleEntity)
+    private readonly vehicleRepo: VehicleRepository,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private BidEvents: BidEventsService,
     private genratorservice: GeneatorService,
-    private cloudinaryservice:CloudinaryService
+    private cloudinaryservice: CloudinaryService,
   ) {}
 
-  async PlaceOrder(
-    customer: CustomerEntity,
-    dto: OrderDto | OrderDto[],
-    groupId?: string,
-  ) {
-    try {
-      let createdOrders: OrderEntity[] = [];
-
-      if (Array.isArray(dto)) {
-        // If multiple orders
-        const existingOrders = await this.orderRepo.find({
-          where: {
-            customer: customer,
-            order_status: OrderStatus.BIDDING_ONGOING,
-          },
-        });
-
-        if (existingOrders.length + dto.length > 3) {
-          throw new NotAcceptableException(
-            'The limit for multiple orders is 3',
-          );
-        }
-
-        for (const orderData of dto) {
-          const order = await this.createOrder(customer, orderData, groupId);
-          createdOrders.push(order);
-        }
-      } else {
-        // If single order
-        const order = await this.createOrder(customer, dto);
-        createdOrders.push(order);
-      }
-
-      return createdOrders;
-    } catch (error) {
-      if (error instanceof NotAcceptableException) {
-        throw new NotAcceptableException(error.message);
-      } else {
-        console.error(error);
-        throw new InternalServerErrorException(
-          'Something went wrong while placing order. Please try again later.',
-        );
-      }
-    }
-  }
-
-  public async createOrder(
+  // add to cart
+  async addToOrderCart(
     customer: CustomerEntity,
     dto: OrderDto,
-    groupId?: string,
-    // Optional parameter for groupId
-  ): Promise<OrderEntity> {
+  ): Promise<OrderCartEntity> {
     try {
+      // Find the existing cart for the customer that is not checked out
+      let cart = await this.orderCartRepo.findOne({
+        where: { customer: { id: customer.id }, checkedOut: false },
+        relations: ['items'],
+      });
+
+      // Debug: Log the found cart or if a new one will be created
+      if (cart) {
+        console.log('Existing cart found:', cart.id);
+      } else {
+        console.log('No existing cart found. Creating a new one.');
+        cart = new OrderCartEntity();
+        cart.customer = customer;
+        cart.items = [];
+        cart.createdAt = new Date();
+        await this.orderCartRepo.save(cart);
+      }
+      if (cart.items.length >= 3) {
+        throw new NotAcceptableException('The limit for multiple orders is 3');
+      }
+
       const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
         dto.pickup_address,
       );
@@ -161,82 +159,268 @@ export class CustomerService {
         dropOffCoordinates,
       );
       const roundDistance = Math.round(distance);
-      const flatRate = roundDistance * 4.25;
 
-      const order = new OrderEntity();
-      order.orderID = `#OslO-${await this.genratorservice.generateOrderID()}`;
-
-      // Set groupId and isMultipleOrder flag
-      if (groupId) {
-        order.groupOrderID = `#GrpO-${await this.genratorservice.generateOrderID()}`;
-        order.is_group_order = true;
-      } else {
-        order.is_group_order = false;
-      }
-
-      order.customer = customer;
-      order.parcel_name = dto.parcel_name;
-      order.product_category = dto.product_category;
-      order.quantity = dto.quantity;
-      order.parcelWorth = dto.parcelWorth;
-      order.weight_of_parcel = dto.weight_of_parcel;
-      order.describe_weight_of_parcel = dto.describe_weight_of_parcel;
-      order.note_for_rider = dto.note_for_rider;
-
-      order.pickup_address = dto.pickup_address;
-      order.pickup_phone_number = dto.pickup_phone_number;
-      order.Area_of_pickup = dto.Area_of_pickup;
-      order.landmark_of_pickup = dto.landmark_of_pickup;
-
-      order.Recipient_name = dto.Recipient_name;
-      order.Recipient_phone_number = dto.Recipient_phone_number;
-      order.dropOff_address = dto.dropOff_address;
-      order.house_apartment_number_of_dropoff =
+      const item = new CartItemEntity();
+      item.id= `${await this.genratorservice.generateUUID()}`
+      item.parcel_name = dto.parcel_name;
+      item.product_category = dto.product_category;
+      item.quantity = dto.quantity;
+      item.parcelWorth = dto.parcelWorth;
+      item.weight_of_parcel = dto.weight_of_parcel;
+      item.describe_weight_of_parcel = dto.describe_weight_of_parcel;
+      item.note_for_rider = dto.note_for_rider;
+      item.pickup_address = dto.pickup_address;
+      item.pickup_phone_number = dto.pickup_phone_number;
+      item.Area_of_pickup = dto.Area_of_pickup;
+      item.landmark_of_pickup = dto.landmark_of_pickup;
+      item.home_apartment_number;
+      item.Recipient_name = dto.Recipient_name;
+      item.Recipient_phone_number = dto.Recipient_phone_number;
+      item.dropOff_address = dto.dropOff_address;
+      item.Area_of_dropoff = dto.Area_of_dropoff;
+      item.landmark_of_dropoff = dto.landmark_of_dropoff;
+      item.house_apartment_number_of_dropoff =
         dto.house_apartment_number_of_dropoff;
-      order.Area_of_dropoff = dto.Area_of_dropoff;
-      order.landmark_of_dropoff = dto.landmark_of_dropoff;
+        if (dto.vehicleTypeID){
+          const vehicle =await this.vehicleRepo.findOne({where:{id:dto.vehicleTypeID}})
+          if (!vehicle) throw new NotFoundException('vehicle not found');
+          item.vehicleType = vehicle
+        
+        }
+      item.delivery_type = dto.delivery_type;
+      item.schedule_date = dto.schedule_date;
+      item.pickupLat = pickupCoordinates.lat;
+      item.pickupLong = pickupCoordinates.lon;
+      item.dropOffLat = dropOffCoordinates.lat;
+      item.dropOffLong = dropOffCoordinates.lon;
+      item.distance = roundDistance;
 
-      order.vehicleType = dto.vehicleType;
-      order.delivery_type = dto.delivery_type;
-      order.schedule_date = dto.schedule_date;
+      await this.cartItemRepo.save(item);
 
-      order.pickupLat = pickupCoordinates.lat;
-      order.pickupLong = pickupCoordinates.lon;
-      order.dropOffLat = dropOffCoordinates.lat;
-      order.dropOffLong = dropOffCoordinates.lon;
-      order.distance = roundDistance;
-      order.barcodeDigits = await this.genratorservice.generateBarcodeGigits()
+      cart.items.push(item);
+      cart.updatedAt = new Date();
+      await this.orderCartRepo.save(cart);
 
-      order.initial_cost = flatRate;
-      order.bidStatus = BidStatus.PENDING;
-      order.vehicleType = dto.vehicleType;
-      order.payment_status = PaymentStatus.PENDING;
-      order.order_status = OrderStatus.BIDDING_ONGOING;
-      order.orderCreatedAtTime = new Date();
-
-      await this.orderRepo.save(order);
-
-      //save the notification
-      const notification = new Notifications();
-      notification.account = order.customer.id;
-      notification.subject = 'Customer made an order !';
-      notification.message = `the customer with id ${order.customer.id} have made an order from the customer app of otra logistics `;
-      await this.notificationripo.save(notification);
-
-      return order;
+      // Convert cart entity to plain object to avoid circular reference issues
+      return cart;
     } catch (error) {
       if (error instanceof NotAcceptableException)
         throw new NotAcceptableException(error.message);
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to place an order, please try again later',
+          'something went wrong, while trying to add item to order cart',
+          error.message,
         );
       }
     }
   }
 
-  //biding process
+  //remove an item from order cart
+  async RemoveItemFromCart(cartItemID: string, customer: CustomerEntity) {
+    try {
+      // Check if the user has a cart
+      const cart = await this.orderCartRepo.findOne({
+        where: { customer: {id:customer.id} },
+        relations: ['items'],
+      });
+      if (!cart) throw new NotFoundException('order cart not found');
+
+      // Check if the cart is already checked out
+      if (cart.checkedOut)
+        throw new BadRequestException('Cart has already been checked out');
+
+      // Find the cart item to remove
+      const cartItemIndex = cart.items.findIndex(
+        (item) => item.id === cartItemID,
+      );
+      if (cartItemIndex === -1)
+        throw new NotFoundException('order cart item not found');
+
+      //remove the cart order item
+      cart.items.splice(cartItemIndex, 1)[0];
+
+      await this.orderCartRepo.save(cart);
+      // Convert cart entity to plain object to avoid circular reference issues
+      return plainToInstance(OrderCartEntity, cart);
+    } catch (error) {
+      if (error instanceof BadRequestException)
+        throw new BadRequestException(error.message);
+      else if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong',
+          error.message,
+        );
+      }
+    }
+  }
+
+
+  //get cart
+  async getCart(Customer: CustomerEntity) {
+    try {
+      const cart = await this.orderCartRepo.findOne({
+        where: { customer: {id:Customer.id}, checkedOut: false },
+        relations: ['customer', 'items','items.vehicleType'],
+      });
+      if (!cart) throw new NotFoundException('cart not found');
+      // Convert cart entity to plain object to avoid circular reference issues
+      return plainToInstance(OrderCartEntity, cart);
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch cart,',
+          error.message,
+        );
+      }
+    }
+  }
+
+  //create order from checkout
+  async CheckOut(customer: CustomerEntity, dto?: ApplypromoCodeDto) {
+    try {
+      const cart = await this.orderCartRepo.findOne({
+        where: { customer: { id: customer.id } },
+        relations: ['items', 'items.vehicleType','customer'],
+      });
+  
+      if (!cart) {
+        throw new NotFoundException('Cart not found');
+      }
+  
+      if (cart.items.length === 0) {
+        throw new BadRequestException('Cart is empty');
+      }
+  
+      if (dto.code) {
+        // Check if promo code has been used by the customer
+        const isCodeUsedByCustomer = await this.discountusageRepo.findOne({
+          where: { appliedBy: customer, code: dto.code },
+        });
+        if (isCodeUsedByCustomer) {
+          throw new NotAcceptableException(
+            'You have already applied this promo code and it can only be applied once',
+          );
+        }
+      }
+  
+      // Create a new order from the cart items
+      const trackingToken = `osl-${this.genratorservice.generateTrackingID()}`;
+      const dropoffCode = this.genratorservice.generateDropOffCode();
+      const orderID = `osl-${this.genratorservice.generateOrderID()}`;
+      const barcode = `${this.genratorservice.generateBarcodeGigits()}`;
+      const order = new OrderEntity();
+      order.orderID = orderID;
+      order.trackingID = trackingToken;
+      order.dropoffCode = dropoffCode;
+      order.barcodeDigits = barcode;
+      order.customer = customer;
+  
+      if (dto.code && dto.code) {
+        if (cart.items.length <= 1) {
+          throw new NotAcceptableException(
+            'This promo code can only be used for multiple orders',
+          );
+        }
+  
+        const promoCode = await this.discountRepo.findOne({
+          where: { OneTime_discountCode: dto.code },
+        });
+        if (!promoCode) {
+          throw new NotFoundException('The code does not exist');
+        }
+        if (promoCode.expires_in <= new Date() || promoCode.isExpired) {
+          throw new NotAcceptableException('Oops! Code is expired');
+        }
+        order.IsDiscountApplied = true;
+        order.discount = promoCode.percentageOff;
+  
+        // Record the promo code usage
+        const discountUsage = new DiscountUsageEntity();
+        discountUsage.appliedBy = customer;
+        discountUsage.code = promoCode.OneTime_discountCode;
+        await this.discountusageRepo.save(discountUsage);
+      }
+  
+      order.orderCreatedAtTime = new Date();
+      order.order_status = OrderStatus.BIDDING_ONGOING;
+  
+      // Add items to the order
+      order.items = cart.items.map(cartItem => {
+        const orderItem = new OrderItemEntity();
+        Object.assign(orderItem, {
+          Area_of_dropoff: cartItem.Area_of_dropoff,
+          Area_of_pickup: cartItem.Area_of_pickup,
+          Recipient_name: cartItem.Recipient_name,
+          Recipient_phone_number: cartItem.Recipient_phone_number,
+          delivery_type: cartItem.delivery_type,
+          describe_weight_of_parcel: cartItem.describe_weight_of_parcel,
+          distance: cartItem.distance,
+          dropOffLat: cartItem.dropOffLat,
+          dropOffLong: cartItem.dropOffLong,
+          pickupLat: cartItem.pickupLat,
+          pickupLong: cartItem.pickupLong,
+          landmark_of_dropoff: cartItem.landmark_of_dropoff,
+          landmark_of_pickup: cartItem.landmark_of_pickup,
+          note_for_rider: cartItem.note_for_rider,
+          parcelWorth: cartItem.parcelWorth,
+          parcel_name: cartItem.parcel_name,
+          pickup_address: cartItem.pickup_address,
+          dropOff_address: cartItem.dropOff_address,
+          pickup_phone_number: cartItem.pickup_phone_number,
+          product_category: cartItem.product_category,
+          quantity: cartItem.quantity,
+          schedule_date: cartItem.schedule_date,
+          vehicleType: cartItem.vehicleType,
+          house_apartment_number_of_dropoff: cartItem.house_apartment_number_of_dropoff,
+        });
+        return orderItem;
+      });
+  
+      // Save the new order
+      await this.orderRepo.save(order);
+  
+      // Clear the cart and reset the checkedOut flag
+      cart.checkedOut = false;
+      cart.items = [];
+      await this.orderCartRepo.save(cart);
+  
+      // Save a notification
+      const notification = new Notifications();
+      notification.account = customer.id;
+      notification.subject = 'Customer checked out!';
+      notification.message = `The customer with ID ${customer.id} has checked out and initiated the bidding process in the app of Ostra Logistics.`;
+      await this.notificationripo.save(notification);
+  
+      return {
+        message: 'Your order has been checked out and sent for bidding. The bidding process will commence shortly.',
+        order,
+      };
+    } catch (error) {
+      if (error instanceof NotAcceptableException) {
+        throw new NotAcceptableException(error.message);
+      } else if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      } else {
+        console.error(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while checking out',
+          error.message,
+        );
+      }
+    }
+  }
+  
+
+  /////////////////////////////////biding process ///////////////////////////////
   //1. accept or decline bid
 
   async AcceptORDeclineBid(
@@ -246,86 +430,104 @@ export class CustomerService {
     bidID: number,
   ): Promise<IBids> {
     try {
-      //check the order
-      const order = await this.orderRepo.findOne({
-        where: { id: orderID },
-        relations: ['customer'],
-      });
-      console.log('order', order);
-      if (!order)
-        throw new NotFoundException(
-          `the order with the ID ${orderID} does not exist`,
-        );
-
-      //check bid
-      const bid = await this.bidRepo.findOne({ where: { id: bidID } });
-      console.log('bid', bid);
-      if (!bid)
-        throw new NotFoundException(
-          `the bid with the ID ${bidID} does not exist`,
-        );
-
-      //check if bid is accepted by the customer that placed the order
-      if (order && order.customer.id !== customer.id)
-        throw new NotAcceptableException(
-          `This customer ${customer.lastname} is not the same with the customer ${order.customer.lastname} that placed this order, therefore, you are not allowed to accept or decline this bid`,
-        );
-
-      //accept or decline bid
-
-      if (dto && dto.action === BiddingAction.ACCEPT) {
-        this.BidEvents.emitBidEvent(BidEvent.ACCEPTED, { bidID, orderID });
-        //update the order table
-        order.bidStatus = BidStatus.ACCEPTED;
-        order.accepted_cost_of_delivery = bid.bid_value;
-        await this.orderRepo.save(order);
-
-        //update the bid entity
-        bid.bidStatus = BidStatus.ACCEPTED;
-        bid.order = order;
-        bid.BidAcceptedAt = new Date();
-        await this.bidRepo.save(bid);
-
-        //save the notification
-        const notification = new Notifications();
-        notification.account = order.customer.id;
-        notification.subject = 'Customer accepted a bid!';
-        notification.message = `the customer with id ${order.customer.id} have accepted a bid from the admin in the app of ostra logistics `;
-        await this.notificationripo.save(notification);
-
-        //notification for accepted bid
-      } else if (dto && dto.action === BiddingAction.DECLINE) {
-        this.BidEvents.emitBidEvent(BidEvent.DECLINED, { bidID, orderID });
-        //update the order table
-        order.bidStatus = BidStatus.DECLINED;
-        await this.orderRepo.save(order);
-
-        //update the bid entity
-        bid.bidStatus = BidStatus.DECLINED;
-        bid.order = order;
-        bid.BidDeclinedAt = new Date();
-        await this.bidRepo.save(bid);
-        //save the notification
-        const notification = new Notifications();
-        notification.account = order.customer.id;
-        notification.subject = 'Customer declined a bid!';
-        notification.message = `the customer with id ${order.customer.id} have declined a bid from the admin in the app of ostra logistics `;
-        await this.notificationripo.save(notification);
+      const order = await this.validateOrder(orderID, customer);
+      const bid = await this.validateBid(bidID);
+  
+      await this.checkCustomerAuthorization(order, customer);
+  
+      if (dto.action === BiddingAction.ACCEPT) {
+        await this.processBidAcceptance(order, bid);
+      } else if (dto.action === BiddingAction.DECLINE) {
+        await this.processBidDecline(order, bid);
       }
+  
       return bid;
     } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else if (error instanceof NotAcceptableException)
-        throw new NotAcceptableException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying to accept or decline bid, please try again later',
-        );
-      }
+      this.handleError(error);
     }
   }
+  
+  private async validateOrder(orderID: number, customer: CustomerEntity): Promise<OrderEntity> {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderID, customer: {id:customer.id} },
+      relations: ['customer','items','items.vehicleType'],
+    });
+  
+    if (!order) {
+      throw new NotFoundException(`The order with ID ${orderID} does not exist`);
+    }
+  
+    return order;
+  }
+  
+  private async validateBid(bidID: number): Promise<BidEntity> {
+    const bid = await this.bidRepo.findOne({ where: { id: bidID } });
+  
+    if (!bid) {
+      throw new NotFoundException(`The bid with ID ${bidID} does not exist`);
+    }
+  
+    return bid;
+  }
+  
+  private async checkCustomerAuthorization(order: OrderEntity, customer: CustomerEntity): Promise<void> {
+    if (order.customer.id !== customer.id) {
+      throw new NotAcceptableException(
+        `This customer ${customer.lastname} is not authorized to accept or decline this bid`,
+      );
+    }
+  }
+  
+  private async processBidAcceptance(order: OrderEntity, bid: BidEntity): Promise<void> {
+    this.BidEvents.emitBidEvent(BidEvent.ACCEPTED, { bidID: bid.id, orderID: order.id });
+  
+    order.bidStatus = BidStatus.ACCEPTED;
+    order.accepted_cost_of_delivery = bid.bid_value;
+    await this.orderRepo.save(order);
+  
+    bid.bidStatus = BidStatus.ACCEPTED;
+    bid.order = order;
+    bid.BidAcceptedAt = new Date();
+    await this.bidRepo.save(bid);
+  
+    await this.sendNotification(order.customer.id, 'Customer accepted a bid!', `The customer with ID ${order.customer.id} has accepted a bid.`);
+  }
+  
+  private async processBidDecline(order: OrderEntity, bid: BidEntity): Promise<void> {
+    this.BidEvents.emitBidEvent(BidEvent.DECLINED, { bidID: bid.id, orderID: order.id });
+  
+    order.bidStatus = BidStatus.DECLINED;
+    await this.orderRepo.save(order);
+  
+    bid.bidStatus = BidStatus.DECLINED;
+    bid.order = order;
+    bid.BidDeclinedAt = new Date();
+    await this.bidRepo.save(bid);
+  
+    await this.sendNotification(order.customer.id, 'Customer declined a bid!', `The customer with ID ${order.customer.id} has declined a bid.`);
+  }
+  
+  private async sendNotification(accountId: string, subject: string, message: string): Promise<void> {
+    const notification = new Notifications();
+    notification.account = accountId;
+    notification.subject = subject;
+    notification.message = message;
+    await this.notificationripo.save(notification);
+  }
+  
+  private handleError(error: any): void {
+    if (error instanceof NotFoundException || error instanceof NotAcceptableException) {
+      throw error;
+    } else {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'Something went wrong while trying to accept or decline bid. Please try again later.',
+        error.message,
+      );
+    }
+  }
+  
+  /////////////////////////////////////////////////////////////////////
 
   //2. counterbid with an offer
   async CounterBid(dto: counterBidDto, bidID: number): Promise<IBids> {
@@ -362,7 +564,7 @@ export class CustomerService {
       //save the notification
       const notification = new Notifications();
       notification.account = bid.order.customer.id;
-      notification.subject = 'Customer counter a bid!';
+      notification.subject = 'Customer countered a bid!';
       notification.message = `the customer with id ${bid.order.customer.id} have countered a bid from the admin in the app of ostra logistics `;
       await this.notificationripo.save(notification);
 
@@ -378,10 +580,13 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to counter bid, please try again later',
+          error.message,
         );
       }
     }
   }
+
+  ///////////////////////////////////////////////////  end of biding process /////////////////////////////////////////
 
   // after bid is being finalized make payment and confirm payment the response will be a payment success and a tracking number for
 
@@ -389,7 +594,7 @@ export class CustomerService {
     try {
       const order = await this.orderRepo.findOne({
         where: { id: orderID },
-        relations: ['customer', 'bid'],
+        relations: ['customer', 'bid','items','items.vehicleType'],
       });
       if (!order)
         throw new NotFoundException(
@@ -405,7 +610,7 @@ export class CustomerService {
         );
       }
 
-      //cslculate VAT
+      //calculate VAT
       const vatPercentage = 0.07;
       const vatAmount = +(
         order.accepted_cost_of_delivery * vatPercentage
@@ -447,6 +652,8 @@ export class CustomerService {
 
       if (response.data.status === true) {
         console.log('payment successful');
+
+        //create transaction and also create the receipt 
       } else {
         throw new InternalServerErrorException(
           'Payment initialization failed. Please try again later',
@@ -479,7 +686,7 @@ export class CustomerService {
       //find order
       const trackorder = await this.orderRepo.findOne({
         where: { trackingID: ILike(`%${keyword}`) },
-        relations: ['customer', 'bid'],
+        relations: ['customer', 'bid', 'items', 'items.vehicleType'],
         cache: false,
         comment:
           'tracking order with the trackingToken generated by the system',
@@ -497,6 +704,7 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trackin an order, please try again later',
+          error.message,
         );
       }
     }
@@ -507,7 +715,7 @@ export class CustomerService {
     try {
       const order = await this.orderRepo.findOne({
         where: { barcodeDigits: barcode },
-        relations: ['customer', 'bid'],
+        relations: ['customer', 'bid','items','items.vehicleType'],
         comment: 'finding order with the trackingID scanned from the barcode',
       });
       if (!order)
@@ -523,6 +731,7 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while scanning the barcode to get order status, please try again later',
+          error.message,
         );
       }
     }
@@ -536,7 +745,7 @@ export class CustomerService {
           customer: { id: customer.id },
           order_status: OrderStatus.IN_TRANSIT,
         },
-        relations: ['customer', 'bid'],
+        relations: ['customer', 'bid','items','items.vehicleType'],
         comment: 'fetching orders that are in transit ',
       });
 
@@ -551,6 +760,7 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while fetching all  orders in transit , please try again later',
+          error.message,
         );
       }
     }
@@ -564,7 +774,7 @@ export class CustomerService {
           customer: { id: customer.id },
           order_status: OrderStatus.PICKED_UP,
         },
-        relations: ['customer', 'bid'],
+        relations: ['customer', 'bid','items','items.vehicleType'],
         comment: 'fetching orders that are picked up ',
       });
 
@@ -579,6 +789,7 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while fetching all picked up orders, please try again later',
+          error.message,
         );
       }
     }
@@ -592,7 +803,7 @@ export class CustomerService {
           customer: { id: customer.id },
           order_status: OrderStatus.DROPPED_OFF,
         },
-        relations: ['customer', 'bid'],
+        relations: ['customer', 'bid','items','items.vehicleType'],
         comment: 'fetching orders that have been dropped off ',
       });
 
@@ -608,6 +819,7 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while fetching all droppedoff orders, please try again later',
+          error.message,
         );
       }
     }
@@ -641,7 +853,8 @@ export class CustomerService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'somthing went wrong when trying to add a card,please try again later',
+        'something went wrong when trying to add a card,please try again later',
+        error.message,
       );
     }
   }
@@ -668,6 +881,7 @@ export class CustomerService {
         console.error(error);
         throw new InternalServerErrorException(
           'Something went wrong when trying to fetch all your cards. Please try again later.',
+          error.message,
         );
       }
     }
@@ -696,6 +910,7 @@ export class CustomerService {
         console.error(error);
         throw new InternalServerErrorException(
           'Something went wrong when trying to fetch all one card. Please try again later.',
+          error.message,
         );
       }
     }
@@ -734,6 +949,7 @@ export class CustomerService {
         console.error(error);
         throw new InternalServerErrorException(
           'Something went wrong when trying to delete a card. Please try again later.',
+          error.message,
         );
       }
     }
@@ -782,6 +998,7 @@ export class CustomerService {
         console.error(error);
         throw new InternalServerErrorException(
           'Something went wrong while trying to update the info of a customer. Please try again later.',
+          error.message,
         );
       }
     }
@@ -825,6 +1042,7 @@ export class CustomerService {
         console.error(error);
         throw new InternalServerErrorException(
           'Something went wrong while trying to change password. Please try again later.',
+          error.message,
         );
       }
     }
@@ -838,7 +1056,7 @@ export class CustomerService {
   ): Promise<{ message: string }> {
     try {
       const display_pics = await this.cloudinaryservice.uploadFile(mediafile);
-      const mediaurl = display_pics.secure_url
+      const mediaurl = display_pics.secure_url;
 
       //update the image url
 
@@ -858,6 +1076,7 @@ export class CustomerService {
       console.log(error);
       throw new InternalServerErrorException(
         'something went wrong during profile picture upload',
+        error.message,
       );
     }
   }
@@ -868,7 +1087,7 @@ export class CustomerService {
       //find order
       const trackorder = await this.orderRepo.findOne({
         where: { trackingID: ILike(`%${keyword}`) },
-        relations: ['customer', 'bid'],
+        relations: ['customer', 'bid', 'item', 'items.vehicleType'],
         cache: false,
         comment:
           'tracking order with the trackingToken generated by the system',
@@ -886,6 +1105,7 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trackin an order, please try again later',
+          error.message,
         );
       }
     }
@@ -910,6 +1130,7 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to fetch notifications',
+          error.message,
         );
       }
     }
@@ -953,6 +1174,7 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while subscribing for news letter, please try again later',
+          error.message,
         );
       }
     }
@@ -962,10 +1184,6 @@ export class CustomerService {
   async FileComplaint(dto: ComplaintDto, customer: CustomerEntity) {
     try {
       const ticket = `#${await this.genratorservice.generateComplaintTcket()}`;
-
-      const findcustomer = await this.customerRepo.findOne({
-        where: { id: customer.id },
-      });
 
       //file complaint
       const newcomplaint = new ComplaintEntity();
@@ -980,7 +1198,7 @@ export class CustomerService {
 
       //notifiction
       const notification = new Notifications();
-      notification.account = findcustomer.id;
+      notification.account = customer.id;
       notification.subject = 'complaint filed!';
       notification.message = `the customer with id ${customer.id} have filed a complaint on ostra logistics customer app `;
       await this.notificationripo.save(notification);
@@ -994,6 +1212,7 @@ export class CustomerService {
       console.log(error);
       throw new InternalServerErrorException(
         'something went wrong while filing a complaint, please try again later.',
+        error.message,
       );
     }
   }
@@ -1020,97 +1239,10 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to get the ststus of a complaint filed, please try again later',
+          error.message,
         );
       }
     }
   }
 
-  //apply discount on multiple order only
-  public async ApplyPromocode(
-    dto: ApplypromoCodeDto,
-    customer: CustomerEntity,
-    orderID: string,
-  ) {
-    try {
-      const discountcode = await this.discountripo.findOne({
-        where: { OneTime_discountCode: dto.code },
-      });
-      if (!discountcode)
-        throw new NotFoundException('promo code does not exist');
-
-      //check if discount code is expired
-      if (discountcode.isExpired || discountcode.expires_in < new Date())
-        throw new NotAcceptableException(
-          'the promo code is expired, sorry you cannot use it anymore',
-        );
-
-      //check if the customer has applied this code before, cuz it is meant to be applied just once
-      const hasAppliedCodeBefore = await this.discountusageripo.findOne({
-        where: { code: dto.code, appliedBy: { id: customer.id } },
-        relations: ['appliedBy'],
-      });
-
-      if (hasAppliedCodeBefore)
-        throw new NotAcceptableException(
-          'oops we are so sorry, you can only use this code once',
-        );
-
-      //check order that the code is being applied to
-      const order = await this.orderRepo.find({
-        where: { groupOrderID: orderID, is_group_order: true },
-        relations: ['customer', 'bid'],
-      });
-      if (!order)
-        throw new NotFoundException(
-          `the order with the ID ${orderID} does not exist`,
-        );
-
-      //record discount code usage
-      const discountUsage = new DiscountUsageEntity();
-      discountUsage.code = dto.code;
-      discountUsage.appliedAT = new Date();
-      await this.discountusageripo.save(discountUsage);
-
-      const discountPercentage = discountcode.percentageOff;
-      const discountAmount = order.reduce(
-        (acc, order) =>
-          acc + (order.accepted_cost_of_delivery * discountPercentage) / 100,
-        0,
-      );
-
-      //now update the order table
-      await this.orderRepo.update(
-        { groupOrderID: orderID, is_group_order: true },
-        {
-          IsDiscountApplied: true,
-          discount: discountPercentage,
-        },
-      );
-
-      //notifiction
-      const notification = new Notifications();
-      notification.account = customer.id;
-      notification.subject = 'Discount promo code applied!';
-      notification.message = `the customer has applied the promocode on ostra logistics `;
-      await this.notificationripo.save(notification);
-
-      return {
-        message: `promo code ${dto.code} applied successfully`,
-        discountUsage,
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else if (error instanceof NotAcceptableException)
-        throw new NotAcceptableException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying to apply discount on multiple orders',
-        );
-      }
-    }
-  }
-
-  // fetch all transaction record related to the customer
 }

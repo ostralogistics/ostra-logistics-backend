@@ -1,6 +1,7 @@
 import { CardEntity } from "src/Entity/card.entity"
 import { ComplaintEntity } from "src/Entity/complaints.entity"
-import { OrderEntity } from "src/Entity/orders.entity"
+import { DiscountUsageEntity } from "src/Entity/discountUsage.entity"
+import { OrderCartEntity, OrderEntity } from "src/Entity/orders.entity"
 import { Gender, Role, StateOFOrigin } from "src/Enums/all-enums"
 
 export interface ICustomer {
@@ -25,6 +26,8 @@ export interface ICustomer {
     my_orders: OrderEntity[]
     my_cards :CardEntity[]
     my_complains:ComplaintEntity[]
+    discountUsages: DiscountUsageEntity[];
+    carts:OrderCartEntity
 
 
 }

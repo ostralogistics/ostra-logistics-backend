@@ -1,3 +1,4 @@
+import { OrderCartEntity, OrderEntity } from "src/Entity/orders.entity"
 import { RepliesEntity } from "src/Entity/replies.entity"
 import { AdminAccessLevels, AdminType, Gender, MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums"
 
@@ -32,6 +33,8 @@ export interface IAdmin {
     loginCount:number
     locked_until : Date
     replies:RepliesEntity[]
+    carts: OrderCartEntity
+    my_orders: OrderEntity[];
 
 }
 

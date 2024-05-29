@@ -1,9 +1,10 @@
 import { Gender, Role, StateOFOrigin } from "src/Enums/all-enums";
 import { ICustomer } from "src/customer/customer";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { OrderEntity } from "./orders.entity";
+import { OrderCartEntity, OrderEntity } from "./orders.entity";
 import { CardEntity } from "./card.entity";
 import { ComplaintEntity } from "./complaints.entity";
+import { DiscountUsageEntity } from "./discountUsage.entity";
 
 @Entity({name:"Customer",})
 export class CustomerEntity implements ICustomer{
@@ -91,6 +92,12 @@ export class CustomerEntity implements ICustomer{
 
     @OneToMany(()=>ComplaintEntity,complain=>complain.customer)
     my_complains: ComplaintEntity[];
+
+    @OneToMany(()=>OrderCartEntity, cart =>cart.customer)
+    carts: OrderCartEntity;
+
+    @OneToMany(() => DiscountUsageEntity, (usage) => usage.appliedBy)
+    discountUsages: DiscountUsageEntity[];
     
 
 

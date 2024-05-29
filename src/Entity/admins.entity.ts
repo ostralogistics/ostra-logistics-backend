@@ -1,7 +1,8 @@
 import { AdminAccessLevels, AdminType, Gender, MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums";
 import { IAdmin } from "src/admin/admin";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { RepliesEntity } from "./replies.entity";
+import { OrderCartEntity, OrderEntity } from "./orders.entity";
 
 @Entity({name:"Admin",})
 export class AdminEntity implements IAdmin{
@@ -108,6 +109,13 @@ export class AdminEntity implements IAdmin{
 
     @OneToMany(()=>RepliesEntity,replies=>replies.repliedBy)
     replies: RepliesEntity[];
+
+
+    @OneToMany(()=>OrderCartEntity, cart =>cart.admin)
+    carts: OrderCartEntity;
+
+    @OneToMany(()=>OrderEntity, order=>order.admin)
+    my_orders: OrderEntity[];
     
     
 }

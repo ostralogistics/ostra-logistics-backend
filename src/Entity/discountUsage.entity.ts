@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm"
+import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm"
 import { CustomerEntity } from "./customers.entity"
 
 export interface IDiscountUsage{
@@ -23,7 +23,7 @@ export class DiscountUsageEntity implements IDiscountUsage{
     @Column({nullable:true, type:"timestamp"})
     expiredAT: Date
 
-    @OneToMany(()=>CustomerEntity,customer => customer)
+    @ManyToOne(()=>CustomerEntity, customer => customer.discountUsages)
     appliedBy: CustomerEntity
 
 

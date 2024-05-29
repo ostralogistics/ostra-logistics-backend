@@ -36,13 +36,12 @@ import {
 } from 'src/common/common.dto';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { AdminEntity } from 'src/Entity/admins.entity';
-import { AdminRepository } from './admin.repository';
-import { RegisterAdminDto } from './admin.dto';
-import { CustomerAuthService } from 'src/customer/customer.auth.service';
-import { IAdmin } from './admin';
+import { AdminRepository } from '../admin.repository';
+import { RegisterAdminDto } from '../admin.dto';
+import { IAdmin } from '../admin';
 import { addPasswordDto } from 'src/customer/customer.dto';
 import { CustomerService } from 'src/customer/customer.service';
-import { AdminService } from './admin.service';
+import { AdminService } from '../admin.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { Notifications } from 'src/Entity/notifications.entity';
 

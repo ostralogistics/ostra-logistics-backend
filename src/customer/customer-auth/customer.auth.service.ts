@@ -13,14 +13,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { CustomerEntity } from 'src/Entity/customers.entity';
 import { LessThan, Repository } from 'typeorm';
-import { CustomerRepository } from './customer.repository';
+import { CustomerRepository } from '../customer.repository';
 import * as bcrypt from 'bcrypt';
 import * as nanoid from 'nanoid';
 import { customAlphabet } from 'nanoid';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ICustomer } from './customer';
-import { RegisterCustomerDto, addPasswordDto } from './customer.dto';
+import { ICustomer } from '../customer';
+import { RegisterCustomerDto, addPasswordDto } from '../customer.dto';
 import { NotificationType, Role } from 'src/Enums/all-enums';
 import { UserOtp } from 'src/Entity/otp.entity';
 import {
@@ -37,7 +37,7 @@ import {
 } from 'src/common/common.dto';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import exp from 'constants';
-import { CustomerService } from './customer.service';
+import { CustomerService } from '../customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 
 @Injectable()
@@ -68,7 +68,7 @@ export class CustomerAuthService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'something happened while trying to fetch user profile',
+        'something happened while trying to fetch user profile',error.message
       );
     }
   }
@@ -138,7 +138,7 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something happen while trying to sign up',
+          'something happen while trying to sign up',error.message
         );
       }
     }
@@ -174,7 +174,6 @@ export class CustomerAuthService {
       // Verify and update the customer's status
       customer.isVerified = true;
       customer.isLoggedIn = true;
-      customer.promoCode = await this.generatorservice.generatePromoCode()
       await this.customerrepo.save(customer);
 
       const notification = new Notifications();
@@ -206,7 +205,7 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'an error occured while verifying the email of the customer, please try again',
+          'an error occured while verifying the email of the customer, please try again',error.message
         );
       }
     }
@@ -272,7 +271,7 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to resend otp, please try again',
+          'somethig went wrong when trying to resend otp, please try again',error.message
         );
       }
     }
@@ -320,7 +319,7 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to request for password reset link, please try again',
+          'somethig went wrong when trying to request for password reset link, please try again',error.message
         );
       }
     }
@@ -362,7 +361,7 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to verify reset link sent , please try again',
+          'somethig went wrong when trying to verify reset link sent , please try again',error.message
         );
       }
     }
@@ -396,7 +395,7 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to reset password , please try again',
+          'somethig went wrong when trying to reset password , please try again',error.message
         );
       }
     }
@@ -461,7 +460,7 @@ export class CustomerAuthService {
       if (error instanceof NotFoundException || error instanceof UnauthorizedException || error instanceof ForbiddenException) {
         throw error; // Re-throw specific exceptions
       } else {
-        throw new InternalServerErrorException('Something went wrong when trying to login, please try again.');
+        throw new InternalServerErrorException('Something went wrong when trying to login, please try again.', error.message);
       }
     }
   }

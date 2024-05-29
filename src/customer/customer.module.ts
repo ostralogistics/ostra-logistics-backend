@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CustomerEntity } from 'src/Entity/customers.entity';
-import { CustomerAuthService } from './customer.auth.service';
+import { CustomerAuthService } from './customer-auth/customer.auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserOtp } from 'src/Entity/otp.entity';
 import { Notifications } from 'src/Entity/notifications.entity';
 import { Mailer } from 'src/common/mailer/mailer.service';
-import { CustomerAuthController } from './customer.auth.controller';
+import { CustomerAuthController } from './customer-auth/customer.auth.controller';
 import { DistanceService } from 'src/common/services/distance.service';
 import { GeoCodingService } from 'src/common/services/goecoding.service';
-import { OrderEntity } from 'src/Entity/orders.entity';
+import { CartItemEntity, OrderCartEntity, OrderEntity, OrderItemEntity } from 'src/Entity/orders.entity';
 import { CustomerController } from './customer.controller';
 import { CustomerService } from './customer.service';
 import { BidEntity } from 'src/Entity/bids.entity';
@@ -24,6 +24,7 @@ import { DiscountDto } from 'src/admin/admin.dto';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
+import { VehicleEntity } from 'src/Entity/vehicle.entity';
 
 @Module({
   imports: [    
@@ -38,6 +39,10 @@ import { CloudinaryService } from 'src/common/services/claudinary.service';
       ComplaintEntity,
       DiscountEntity,
       DiscountUsageEntity,
+      CartItemEntity,
+      OrderCartEntity,
+      OrderItemEntity,
+      VehicleEntity
     ]),
   ],
   providers: [

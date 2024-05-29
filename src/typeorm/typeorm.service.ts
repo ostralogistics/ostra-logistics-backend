@@ -10,7 +10,7 @@ import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { Notifications } from 'src/Entity/notifications.entity';
-import { OrderEntity } from 'src/Entity/orders.entity';
+import { CartItemEntity, OrderCartEntity, OrderEntity, OrderItemEntity } from 'src/Entity/orders.entity';
 import { UserOtp } from 'src/Entity/otp.entity';
 import { PriceListEntity } from 'src/Entity/pricelist.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
@@ -58,6 +58,9 @@ export class TypeOrmService {
         TransactionEntity,
         PriceListEntity,
         ReceiptEntity,
+        OrderCartEntity,
+        OrderItemEntity,
+        CartItemEntity,
       ],
       migrations: [],
       subscribers: [],

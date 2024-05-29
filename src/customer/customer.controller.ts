@@ -20,9 +20,24 @@ export class CustomerController{
     
    
     
-    @Post('make-order')
-    async MakeOrder(@Req()req, @Body()dto:OrderDto | OrderDto[]){
-        return await this.customerservice.PlaceOrder(req.user,dto)
+    @Post('cart-items')
+    async MakeOrder(@Req()req, @Body()dto:OrderDto){
+        return await this.customerservice.addToOrderCart(req.user,dto)
+    }
+
+    @Delete('remove-item-from-cart/:cartItemID')
+    async RemoveOrderFromCart(@Req()req, @Param('cartItemID')cartItemID:string){
+        return await this.customerservice.RemoveItemFromCart(cartItemID,req.user)
+    }
+
+    @Get('get-cart')
+    async GetCart(@Req()req){
+        return await this.customerservice.getCart(req.user)
+    }
+
+    @Post('checkout')
+    async CheckOut(@Req()req, @Body()dto?:ApplypromoCodeDto){
+        return await this.customerservice.CheckOut(req.user,dto)
     }
 
    
@@ -143,7 +158,7 @@ export class CustomerController{
   
      @Post('complain')
      async Complaint(@Body()dto: ComplaintDto,@Req()req){
-      return await this.customerservice.FileComplaint(dto,req.user.id)
+      return await this.customerservice.FileComplaint(dto,req.user)
      }
 
 
@@ -155,10 +170,10 @@ export class CustomerController{
      }
 
      //apply discount
-     @Post("apply-discount-code/:orderID")
-     async ApplyDiscount(@Body()dto:ApplypromoCodeDto, @Param('orderID')orderID:string, @Req()req){
-      return await this.customerservice.ApplyPromocode(dto,req.user.id,orderID)
-     }
+    //  @Post("apply-discount-code/:orderID")
+    //  async ApplyDiscount(@Body()dto:ApplypromoCodeDto, @Param('orderID')orderID:string, @Req()req){
+    //   return await this.customerservice.ApplyPromocode(dto,req.user.id,orderID)
+    //  }
 
 
 
