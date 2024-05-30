@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminEntity } from 'src/Entity/admins.entity';
-import { AdminRepository, DiscountRepository, VehicleRepository } from '../admin.repository';
+import { AdminRepository, DiscountRepository, VehicleRepository, VehicleTypeRepository } from '../admin.repository';
 import { CustomerEntity } from 'src/Entity/customers.entity';
 import { CustomerRepository } from 'src/customer/customer.repository';
 import {
@@ -40,6 +40,7 @@ import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
+import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 
 @Injectable()
 export class AdminCustomerDashBoardService {
@@ -58,8 +59,8 @@ export class AdminCustomerDashBoardService {
     private readonly orderCartRepo: OrderCartRepository,
     @InjectRepository(CartItemEntity)
     private readonly cartItemRepo: CartItemRepository,
-    @InjectRepository(VehicleEntity)
-    private readonly vehicleRepo: VehicleRepository,
+    @InjectRepository(VehicleTypeEntity)
+    private readonly vehicleRepo: VehicleTypeRepository,
     @InjectRepository(DiscountEntity)
     private readonly discountRepo: DiscountRepository,
     private genratorservice: GeneatorService,
@@ -1150,7 +1151,7 @@ export class AdminCustomerDashBoardService {
 
 
 
-  async getTotalOrdersByCustomer(customerID: string): Promise<number> {
+  async getTotalOrdersCountByCustomer(customerID: string): Promise<number> {
     try {
       const customer = await this.customerRepo.findOne({ where:{id:customerID} });
 
@@ -1159,6 +1160,44 @@ export class AdminCustomerDashBoardService {
       }
 
       const totalOrders = await this.orderRepo.count({ where: { customer: customer } });
+
+      return totalOrders;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An error occurred while fetching the total number of orders by the customer'
+      );
+    }
+  }
+
+  async getTotalPendingOrdersCountByCustomer(customerID: string): Promise<number> {
+    try {
+      const customer = await this.customerRepo.findOne({ where:{id:customerID} });
+
+      if (!customer) {
+        throw new NotFoundException(`Customer with ID ${customerID} not found`);
+      }
+
+      const totalOrders = await this.orderRepo.count({ where: { customer: customer, order_status : OrderStatus.BIDDING_ONGOING } });
+
+      return totalOrders;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'An error occurred while fetching the total number of orders by the customer'
+      );
+    }
+  }
+
+  async getTotalDeliveredOrdersCountByCustomer(customerID: string): Promise<number> {
+    try {
+      const customer = await this.customerRepo.findOne({ where:{id:customerID} });
+
+      if (!customer) {
+        throw new NotFoundException(`Customer with ID ${customerID} not found`);
+      }
+
+      const totalOrders = await this.orderRepo.count({ where: { customer: customer, order_status : OrderStatus.DROPPED_OFF } });
 
       return totalOrders;
     } catch (error) {

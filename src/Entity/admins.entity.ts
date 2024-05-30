@@ -98,14 +98,10 @@ export class AdminEntity implements IAdmin{
     @Column({nullable:true})
     password_reset_link: string;
 
-    @Column({nullable:false, default:0})
-    loginCount: number;
 
     @Column({nullable:false, default:false})
     isLocked: boolean;
 
-    @Column({nullable:true,type:'timestamp'})
-    locked_until: Date;
 
     @OneToMany(()=>RepliesEntity,replies=>replies.repliedBy)
     replies: RepliesEntity[];

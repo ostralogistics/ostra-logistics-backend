@@ -49,14 +49,8 @@ export class CustomerAuthService {
     @InjectRepository(Notifications)
     private readonly notificationrepo: NotificationRepository,
     private mailerservice: Mailer,
-    private generatorservice:GeneatorService
-    
+    private generatorservice: GeneatorService,
   ) {}
-
-
- 
-
-
 
   // get customer profile
   async getProfile(customer: CustomerEntity): Promise<ICustomer> {
@@ -68,7 +62,8 @@ export class CustomerAuthService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'something happened while trying to fetch user profile',error.message
+        'something happened while trying to fetch user profile',
+        error.message,
       );
     }
   }
@@ -85,13 +80,15 @@ export class CustomerAuthService {
       if (checkemail)
         throw new NotFoundException('This customer already exists');
 
-        const hashedpassword = await this.generatorservice.hashpassword(dto.password);
+      const hashedpassword = await this.generatorservice.hashpassword(
+        dto.password,
+      );
 
       const customer = new CustomerEntity();
       customer.customerID = `#OslC-${await this.generatorservice.generateUserID()}`;
-      
+
       customer.email = dto.email;
-      customer.password = hashedpassword
+      customer.password = hashedpassword;
       customer.firstname = dto.firstname;
       customer.lastname = dto.lastname;
       customer.role = Role.CUSTOMER;
@@ -101,7 +98,8 @@ export class CustomerAuthService {
       await this.customerrepo.save(customer);
 
       //2fa authentication
-      const emiailverificationcode = await this.generatorservice.generateEmailToken();
+      const emiailverificationcode =
+        await this.generatorservice.generateEmailToken();
 
       //otp
       const otp = new UserOtp();
@@ -138,12 +136,12 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something happen while trying to sign up',error.message
+          'something happen while trying to sign up',
+          error.message,
         );
       }
     }
   }
-
 
   // verify email of customer
   async verifyEmail(
@@ -155,7 +153,6 @@ export class CustomerAuthService {
       if (!findotp)
         throw new NotFoundException(
           'you provided an invalid OTP,please go back to your email and confirm the OTP sent to you',
-          
         );
 
       //find if the otp is expired
@@ -187,7 +184,11 @@ export class CustomerAuthService {
       await this.customerrepo.save(customer);
 
       //send welcome email
-      await this.mailerservice.WelcomeMail(customer.email, customer.firstname, customer.promoCode);
+      await this.mailerservice.WelcomeMail(
+        customer.email,
+        customer.firstname,
+        customer.promoCode,
+      );
 
       const accessToken = await this.generatorservice.signToken(
         customer.id,
@@ -205,7 +206,8 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'an error occured while verifying the email of the customer, please try again',error.message
+          'an error occured while verifying the email of the customer, please try again',
+          error.message,
         );
       }
     }
@@ -230,7 +232,8 @@ export class CustomerAuthService {
         throw new NotFoundException('No expired OTP found for this user.');
       }
       // Generate a new OTP
-      const emiailverificationcode = await this.generatorservice.generateEmailToken(); // Your OTP generated tokens
+      const emiailverificationcode =
+        await this.generatorservice.generateEmailToken(); // Your OTP generated tokens
 
       // Save the token with expiration time
       const twominuteslater = new Date();
@@ -271,7 +274,8 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to resend otp, please try again',error.message
+          'somethig went wrong when trying to resend otp, please try again',
+          error.message,
         );
       }
     }
@@ -308,7 +312,7 @@ export class CustomerAuthService {
 
       const notification = new Notifications();
       (notification.account = isEmailReistered.firstname),
-        (notification.subject = 'password Reset link!')
+        (notification.subject = 'password Reset link!');
       notification.message = `Hello ${isEmailReistered.firstname}, password resent link sent `;
       await this.notificationrepo.save(notification);
 
@@ -319,13 +323,13 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to request for password reset link, please try again',error.message
+          'somethig went wrong when trying to request for password reset link, please try again',
+          error.message,
         );
       }
     }
   }
 
-  
   //verify token sent when trying to reset password
   async VerifyResetPasswordOtp(
     dto: VerifyOtpForResetPasswordDto,
@@ -361,7 +365,8 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to verify reset link sent , please try again',error.message
+          'somethig went wrong when trying to verify reset link sent , please try again',
+          error.message,
         );
       }
     }
@@ -381,7 +386,9 @@ export class CustomerAuthService {
           'sorry this customer has not been verified yet, please request for an otp to verify your account',
         );
 
-      const hashedpassword = await this.generatorservice.hashpassword(dto.password);
+      const hashedpassword = await this.generatorservice.hashpassword(
+        dto.password,
+      );
 
       //add the password
       checkcustomer.password = hashedpassword;
@@ -395,7 +402,8 @@ export class CustomerAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to reset password , please try again',error.message
+          'somethig went wrong when trying to reset password , please try again',
+          error.message,
         );
       }
     }
@@ -411,58 +419,52 @@ export class CustomerAuthService {
       if (!findcustomer) {
         throw new NotFoundException('Invalid credentials');
       }
-  
+
       const comparepass = await this.generatorservice.comaprePassword(
         logindto.password,
         findcustomer.password,
       );
       if (!comparepass) {
-        findcustomer.loginCount += 1;
-  
-        if (findcustomer.loginCount >= 5) {
-          findcustomer.isLocked = true;
-          findcustomer.locked_until = new Date(
-            Date.now() + 24 * 60 * 60 * 1000,
-          ); // Lock for 24 hours
-        }
-  
-        // If the customer hasn't reached the maximum login attempts, calculate the number of attempts left
-        if (findcustomer.loginCount < 5) {
-          const attemptsLeft = 5 - findcustomer.loginCount;
-          throw new UnauthorizedException(`Invalid credentials. ${attemptsLeft} attempts left before your account is locked.`);
-        }
-  
-        await this.customerrepo.save(findcustomer);
         throw new NotFoundException('Invalid credentials');
       }
-  
+
       if (!findcustomer.isVerified) {
-        throw new ForbiddenException('Your account has not been verified. Please verify your account by requesting a verification code.');
+        throw new ForbiddenException(
+          'Your account has not been verified. Please verify your account by requesting a verification code.',
+        );
       }
-  
-      // If the password matches and account is not locked, reset the login_count and unlock the account if needed
-      findcustomer.loginCount = 0;
+
       findcustomer.isLoggedIn = true;
       findcustomer.isLocked = false;
       await this.customerrepo.save(findcustomer);
-  
+
       // Save the notification
       const notification = new Notifications();
       notification.account = findcustomer.firstname;
       notification.subject = 'Customer just logged in!';
       notification.message = `Hello ${findcustomer.firstname}, just logged in `;
       await this.notificationrepo.save(notification);
-  
+
       // Generate and return JWT token
-      return await this.generatorservice.signToken(findcustomer.id, findcustomer.email, findcustomer.role);
+      return await this.generatorservice.signToken(
+        findcustomer.id,
+        findcustomer.email,
+        findcustomer.role,
+      );
     } catch (error) {
       console.log(error);
-      if (error instanceof NotFoundException || error instanceof UnauthorizedException || error instanceof ForbiddenException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException ||
+        error instanceof ForbiddenException
+      ) {
         throw error; // Re-throw specific exceptions
       } else {
-        throw new InternalServerErrorException('Something went wrong when trying to login, please try again.', error.message);
+        throw new InternalServerErrorException(
+          'Something went wrong when trying to login, please try again.',
+          error.message,
+        );
       }
     }
   }
-  
 }

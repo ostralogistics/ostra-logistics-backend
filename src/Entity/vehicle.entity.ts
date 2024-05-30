@@ -9,7 +9,7 @@ export interface IVehicle{
     id:number,
     vehicleID:string
     vehicle_model: string,
-    vehicle_type: VehicleType,
+    vehicle_type: string,
     color: string,
     registration_number: string,
     state_of_vehicle: VehicleState,
@@ -38,8 +38,8 @@ export class VehicleEntity implements IVehicle{
     @Column({nullable:true})
     vehicle_model: string;
 
-    @Column({nullable:true, type:'enum', enum:VehicleType})
-    vehicle_type: VehicleType;
+    @Column({nullable:true})
+    vehicle_type: string;
 
     @Column({nullable:false})
     color: string;
@@ -76,6 +76,5 @@ export class VehicleEntity implements IVehicle{
     @Column({nullable:true,type:'timestamp'})
     retrnedAt: Date;
 
-    @OneToMany(()=>CartItemEntity, selected=>selected.vehicleType)
-    selected_vehicle:CartItemEntity[]
+    
 }

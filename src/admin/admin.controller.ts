@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { AdminService } from "./admin.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
-import { ChannelDto, DiscountDto, PriceListDto, RegisterVehicleDto, ReplyDto, ReturnedVehicleDto, UpdateDiscountDto, UpdatePriceListDto, UpdateVehicleDto, updateResolutionStatusDto } from "./admin.dto";
+import { ChannelDto, DiscountDto, PriceListDto, RegisterVehicleDto, ReplyDto, ReturnedVehicleDto, UpdateDiscountDto, UpdatePriceListDto, UpdateVehicleDto, VehicleTypeDto, updateResolutionStatusDto } from "./admin.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "src/auth/guard/role.guard";
 import { Roles } from "src/auth/decorator/role.decorator";
@@ -23,11 +23,38 @@ export class Admincontroller{
     constructor(private readonly adminservice:AdminService){}
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Post('add-vehicleType')
+    async AddVehicleType(@Body()dto:VehicleTypeDto){
+        return await this.adminservice.AddVehicleType(dto)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('all-vehicleType')
+    async GetAllVehicleTypes(){
+        return await this.adminservice.GetAllVehicleType()
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('one-vehicleType/:vehicletypeID')
+    async GetOneVehicletype(@Param('vehicletypeID')vehicletypeID:number){
+        return await this.adminservice.GetOneVehicleType(vehicletypeID)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Delete('delete-vehicleType/:vehicletypeID')
+    async DeleteVehicletype(@Param('vehicletypeID')vehicletypeID:number){
+        return await this.adminservice.DeleteOneVehicleType(vehicletypeID)
+    }
+
+
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Post('register-vehicle')
     @UseInterceptors(FileInterceptor('image'))
     async RegisterVehicle(@Body()dto:RegisterVehicleDto,@UploadedFile()file:Express.Multer.File){
         return await this.adminservice.RegisterVehicle(dto,file)
     }
+    
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Patch('update-vehicle-info/:vehicleID')

@@ -25,6 +25,7 @@ import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
+import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 
 @Module({
   imports: [    
@@ -42,7 +43,7 @@ import { VehicleEntity } from 'src/Entity/vehicle.entity';
       CartItemEntity,
       OrderCartEntity,
       OrderItemEntity,
-      VehicleEntity
+      VehicleTypeEntity,
     ]),
   ],
   providers: [

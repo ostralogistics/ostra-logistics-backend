@@ -60,8 +60,6 @@ export class CustomerEntity implements ICustomer{
     @Column({nullable:false,default:false})
     isLoggedIn: boolean;
 
-    @Column({nullable:false,default:false})
-    isLoggedOut: boolean;
 
     @Column({nullable:false,default:false})
     isRegistered: boolean;

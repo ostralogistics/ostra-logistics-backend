@@ -19,8 +19,7 @@ export interface ICustomer {
     promoCode:string
     isLoggedIn:boolean
     isVerified:boolean
-    isRegistered:boolean
-    isLoggedOut:boolean 
+    isRegistered:boolean 
     loginCount:number
     locked_until : Date
     my_orders: OrderEntity[]

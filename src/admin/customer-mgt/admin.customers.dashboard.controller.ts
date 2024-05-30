@@ -220,7 +220,18 @@ export class AdminCustomerDashBoardController {
 
   @Get('one-customer-total-order-count/:customerID')
   async GetCustomerOrderCount(@Param('customerID')customerID:string){
-      return await this.admincustomerservice.getTotalOrdersByCustomer(customerID)
+      return await this.admincustomerservice.getTotalOrdersCountByCustomer(customerID)
+  }
+
+
+  @Get('one-customer-pending-order-count/:customerID')
+  async GetCustomerPendingOrderCount(@Param('customerID')customerID:string){
+      return await this.admincustomerservice.getTotalPendingOrdersCountByCustomer(customerID)
+  }
+
+  @Get('one-customer-delivered-order-count/:customerID')
+  async GetCustomerDeliveredOrderCount(@Param('customerID')customerID:string){
+      return await this.admincustomerservice.getTotalPendingOrdersCountByCustomer(customerID)
   }
 
   @Get('total-revenue-one-cutomer/:customerID')

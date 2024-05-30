@@ -28,6 +28,7 @@ import { TaskEntity } from './ridersTasks.entity';
 import { Exclude, Type } from 'class-transformer';
 import { AdminEntity } from './admins.entity';
 import { VehicleEntity } from './vehicle.entity';
+import { VehicleTypeEntity } from './vehicleType.entity';
 
 @Entity('orders')
 export class OrderEntity implements IOrder {
@@ -197,8 +198,8 @@ export class OrderItemEntity {
   @Column({ nullable: true })
   landmark_of_dropoff: string;
 
-  @ManyToOne(() => VehicleEntity, (vehicle) => vehicle.selected_vehicle, { cascade: true })
-  vehicleType: VehicleEntity;
+  @ManyToOne(() => VehicleTypeEntity, (vehicle) => vehicle.selected_vehicle, { cascade: true })
+  vehicleType: VehicleTypeEntity;
 
   @Column({ nullable: false, type: 'enum', enum: PriorityDeliveryType })
   delivery_type: PriorityDeliveryType;
@@ -331,8 +332,8 @@ export class CartItemEntity {
   @Column({nullable:true})
   landmark_of_dropoff: string;
 
-  @ManyToOne(()=>VehicleEntity, vehicle=>vehicle.selected_vehicle, { cascade: true })
-  vehicleType: VehicleEntity
+  @ManyToOne(()=>VehicleTypeEntity, vehicle=>vehicle.selected_vehicle, { cascade: true })
+  vehicleType: VehicleTypeEntity
 
   @Column({ nullable: false, type: 'enum', enum: PriorityDeliveryType })
   delivery_type: PriorityDeliveryType;

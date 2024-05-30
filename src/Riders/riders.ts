@@ -33,9 +33,6 @@ export interface IRider{
     isLoggedIn:boolean
     isVerified:boolean
     isRegistered:boolean
-    isLoggedOut:boolean 
-    loginCount:number
-    locked_until : Date
     tasks : TaskEntity[]
     my_requests: RequestEntity[];
     vehicle_for_the_day:VehicleEntity

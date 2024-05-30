@@ -356,15 +356,26 @@ export class UpdateOtherAdminInfoByAdminDto{
 
 }
 
+export class VehicleTypeDto{
+    @IsString()
+    @IsNotEmpty()
+    name:string
+
+    @IsString()
+    @IsNotEmpty()
+    status:string
+
+}
+
 
 export class RegisterVehicleDto{
     @IsString()
     @IsOptional()
     vehicle_model: string
 
-    @IsEnum(VehicleType)
+    @IsString()
     @IsNotEmpty()
-    vehicle_type: VehicleType
+    vehicle_type: string
 
     @IsString()
     @IsNotEmpty()
@@ -386,9 +397,9 @@ export class UpdateVehicleDto{
     @IsOptional()
     vehicle_model: string
 
-    @IsEnum(VehicleType)
+    @IsString()
     @IsOptional()
-    vehicle_type: VehicleType
+    vehicle_type: string
 
     @IsString()
     @IsOptional()

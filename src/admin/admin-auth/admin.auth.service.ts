@@ -56,8 +56,7 @@ export class AdminAuthService {
     private genratorservice: GeneatorService,
     private jwt: JwtService,
     private mailerservice: Mailer,
-    private adminservice:AdminService
-  
+    private adminservice: AdminService,
   ) {}
 
   // get customer profile
@@ -105,7 +104,7 @@ export class AdminAuthService {
       );
 
       const admin = new AdminEntity();
-      admin.adminID = `#OslA-${await this.genratorservice.generateUserID()}`
+      admin.adminID = `#OslA-${await this.genratorservice.generateUserID()}`;
       admin.email = dto.email;
       admin.fullname = dto.fullname;
       admin.password = hashedpassword;
@@ -154,11 +153,13 @@ export class AdminAuthService {
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
-      else if (error instanceof ConflictException) throw new ConflictException(error.message)
+      else if (error instanceof ConflictException)
+        throw new ConflictException(error.message);
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something happen while trying to sign up',error.message
+          'something happen while trying to sign up',
+          error.message,
         );
       }
     }
@@ -221,7 +222,8 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'an error occured while verifying the email of the admin pls try again',error.message
+          'an error occured while verifying the email of the admin pls try again',
+          error.message,
         );
       }
     }
@@ -289,7 +291,8 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to resend otp, please try again',error.message
+          'somethig went wrong when trying to resend otp, please try again',
+          error.message,
         );
       }
     }
@@ -336,7 +339,8 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to request for password reset link, please try again',error.message
+          'somethig went wrong when trying to request for password reset link, please try again',
+          error.message,
         );
       }
     }
@@ -413,7 +417,8 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to reset password , please try again',error.message
+          'somethig went wrong when trying to reset password , please try again',
+          error.message,
         );
       }
     }
@@ -426,38 +431,19 @@ export class AdminAuthService {
       const findadmin = await this.adminrepo.findOne({
         where: { email: logindto.email },
       });
-      if (!findadmin) throw new NotFoundException(`invalid credential`);
+      if (!findadmin) throw new NotFoundException(`invalid credentials`);
       const comparepass = await this.genratorservice.comaprePassword(
         logindto.password,
         findadmin.password,
       );
       if (!comparepass) {
-        findadmin.loginCount += 1;
-
-        if (findadmin.loginCount >= 5) {
-          findadmin.isLocked = true;
-          findadmin.locked_until = new Date(Date.now() + 24 * 60 * 60 * 1000); //lock for 24 hours
-          await this.adminrepo.save(findadmin);
-          throw new NotFoundException('invalid credential');
-        }
-
-        //  If the customer hasn't reached the maximum login attempts, calculate the number of attempts left
-        const attemptsleft = 5 - findadmin.loginCount;
-        await this.adminrepo.save(findadmin);
-
-        throw new UnauthorizedException(
-          `invalid credentials ${attemptsleft} attempts left before your account is locked.`,
-        );
+        throw new NotFoundException('invalid credentials');
       }
 
       if (!findadmin.isVerified)
-        // If the account is not verified, throw an exception
         throw new ForbiddenException(
           `Your account has not been verified. Please verify your account by requesting a verification code.`,
         );
-
-      //If the password matches, reset the login_count and unlock the account if needed
-      findadmin.loginCount = 0;
       findadmin.isLoggedIn = true;
       await this.adminrepo.save(findadmin);
 
@@ -483,7 +469,8 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to login , please try again',error.message
+          'somethig went wrong when trying to login , please try again',
+          error.message,
         );
       }
     }

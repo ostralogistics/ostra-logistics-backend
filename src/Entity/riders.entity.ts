@@ -91,8 +91,6 @@ export class RiderEntity implements IRider{
     @Column({nullable:false,default:false})
     isLoggedIn: boolean;
 
-    @Column({nullable:false,default:false})
-    isLoggedOut: boolean;
 
     @Column({nullable:false,default:false})
     isRegistered: boolean;
@@ -106,14 +104,9 @@ export class RiderEntity implements IRider{
     @Column({nullable:true})
     password_reset_link: string;
 
-    @Column({nullable:false, default:0})
-    loginCount: number;
-
     @Column({nullable:false, default:false})
     isLocked: boolean;
 
-    @Column({ nullable: true,type:'timestamp' })
-    locked_until: Date;
 
     @OneToOne(()=>OrderEntity,order=> order.Rider)
     assigned_order:OrderEntity

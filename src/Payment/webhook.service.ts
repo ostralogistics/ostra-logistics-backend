@@ -1,4 +1,4 @@
-import { Injectable, Req, Res } from '@nestjs/common';
+import { Injectable, NotFoundException, Req, Res } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { Request, Response } from 'express';
 // Import your OrderEntity here
@@ -26,7 +26,6 @@ export class PaystackWebhookService {
     private readonly transactionRepo: TransactionRespository,
     @InjectRepository(ReceiptEntity)
     private readonly receiptrepo: ReceiptRespository,
-
     private genservice: GeneatorService,
     private mailer: Mailer,
     private configservice: ConfigService,
@@ -34,25 +33,21 @@ export class PaystackWebhookService {
 
   handleWebhook(req: Request, res: Response): void {
     try {
-      // Validate event
       const hash = crypto
         .createHmac(
           'sha512',
           this.configservice.get('PAYSTACK_TEST_SECRET'),
-          //'sk_test_c86ebe0afdc2c1f27920173207a28287c956b1eb',
         )
         .update(JSON.stringify(req.body))
         .digest('hex');
 
       if (hash === req.headers['x-paystack-signature']) {
-        // Retrieve the request's body
         const event = req.body;
         if (event.event === 'charge.success') {
-          this.handleChargeSuccessEvent(event.data.reference,event.event);
+          this.handleChargeSuccessEvent(event.data.reference, event.event);
         } else {
           console.log('Unsupported Paystack webhook event', event.event);
         }
-        // Do something with event
         console.log('Paystack webhook event:', event);
       } else {
         console.error('Invalid Paystack webhook signature');
@@ -66,99 +61,95 @@ export class PaystackWebhookService {
 
   private async handleChargeSuccessEvent(orderReference: number, eventData: any) {
     try {
-      const order = await this.orderRepo.findOne({ where: { id: orderReference }, relations: ['customer'] });
-  
-      if (order) {
-        order.payment_status = PaymentStatus.SUCCESSFUL;
-        const trackingToken = `osl-${this.genservice.generateTrackingID()}`;
-        const dropoffCode = this.genservice.generateDropOffCode();
-        order.trackingID = trackingToken;
-        order.dropoffCode = dropoffCode;
-        await this.orderRepo.save(order);
+      const order = await this.findOrder(orderReference);
 
-        await this.mailer.OrderAcceptedMail(
-          order.customer.email,
-          order.customer.firstname,
-          order.trackingID,
-          order.dropoffCode,
-        );
-  
-        const transaction = new TransactionEntity();
-        transaction.transactedAT = new Date();
-        transaction.amount = order.accepted_cost_of_delivery;
-        transaction.transactionID = `#osl-${this.genservice.generateTransactionCode()}`;
-        transaction.transactionType = TransactionType.ORDER_PAYMENT;
-        transaction.customer = order.customer;
-        transaction.paymentMethod = eventData.channel; // Extract payment method from Paystack response
-        //transaction.cardType = eventData.authorization.card_type; // Extract card type from Paystack response
-        transaction.paymentStatus = eventData.status; // Extract payment status from Paystack response
-        await this.transactionRepo.save(transaction);
-  
-        const vatPercentage = 0.07;
-        const vatAmount = +(
-          order.accepted_cost_of_delivery * vatPercentage
-        ).toFixed(2);
-
-        let discountAmount = 0;
-        if (order.discount && order.IsDiscountApplied) {
-          const discountPercentage = order.discount;
-          discountAmount = +((order.accepted_cost_of_delivery * discountPercentage) / 100).toFixed(2);
-        }
-        const totalBeforeVAT = order.accepted_cost_of_delivery - discountAmount;
-        const total = Number(totalBeforeVAT) + Number(vatAmount);
-  
-        const receipt = new ReceiptEntity();
-        receipt.ReceiptID = `#${this.genservice.generatereceiptID()}`;
-        receipt.dueAt = new Date();
-        receipt.issuedAt = new Date();
-        receipt.order = order;
-        receipt.subtotal = totalBeforeVAT;
-        receipt.VAT = vatAmount;
-        receipt.total = total;
-        receipt.discount = discountAmount;
-        await this.receiptrepo.save(receipt);
-  
-        return {
-          trackingID: order.trackingID,
-          dropoffCode: order.dropoffCode,
-          receipt: receipt,
-        };
-      } else {
+      if (!order) {
         console.error('Order not found for reference:', orderReference);
+        return;
       }
+
+      await this.updateOrderPaymentStatus(order);
+
+      await this.sendOrderAcceptedEmail(order);
+
+      await this.createTransaction(order, eventData);
+
+      const receipt = await this.createReceipt(order);
+
+      return {
+        trackingID: order.trackingID,
+        dropoffCode: order.dropoffCode,
+        receipt: receipt,
+      };
     } catch (error) {
       console.error('Error handling charge success event:', error);
     }
   }
-  
 
+  private async findOrder(orderReference: number): Promise<OrderEntity | null> {
+    return await this.orderRepo.findOne({ where: { id: orderReference }, relations: ['customer','admin'] });
+  }
+
+  private async updateOrderPaymentStatus(order: OrderEntity): Promise<void> {
+    order.payment_status = PaymentStatus.SUCCESSFUL;
+    await this.orderRepo.save(order);
+  }
+
+  private async sendOrderAcceptedEmail(order: OrderEntity): Promise<void> {
+    const orderItem = order.items.find(item => item.email !== undefined);
+
+    if (!orderItem) {
+      throw new NotFoundException('No email associated with this order');
+    }
+
+      // Determine if the user is logged in or a guest
+  const email = order.customer?.email ?? orderItem.email;
+  const name = order.customer?.firstname ?? orderItem.name;
+
+    await this.mailer.OrderAcceptedMail(
+       email,
+       name,
+      order.trackingID,
+      order.dropoffCode,
+    );
+  }
+
+  private async createTransaction(order: OrderEntity, eventData: any): Promise<void> {
+    const transaction = new TransactionEntity();
+    transaction.transactedAT = new Date();
+    transaction.amount = order.accepted_cost_of_delivery;
+    transaction.transactionID = `#osl-${this.genservice.generateTransactionCode()}`;
+    transaction.transactionType = TransactionType.ORDER_PAYMENT;
+    transaction.customer = order.customer;
+    transaction.paymentMethod = eventData.channel;
+    transaction.paymentStatus = eventData.status;
+    await this.transactionRepo.save(transaction);
+  }
+
+  private async createReceipt(order: OrderEntity): Promise<ReceiptEntity> {
+    const vatPercentage = 0.07;
+    const vatAmount = +(order.accepted_cost_of_delivery * vatPercentage).toFixed(2);
+
+    let discountAmount = 0;
+    if (order.discount && order.IsDiscountApplied) {
+      const discountPercentage = order.discount;
+      discountAmount = +((order.accepted_cost_of_delivery * discountPercentage) / 100).toFixed(2);
+    }
+
+    const totalBeforeVAT = order.accepted_cost_of_delivery - discountAmount;
+    const total = Number(totalBeforeVAT) + Number(vatAmount);
+
+    const receipt = new ReceiptEntity();
+    receipt.ReceiptID = `#${this.genservice.generatereceiptID()}`;
+    receipt.dueAt = new Date();
+    receipt.issuedAt = new Date();
+    receipt.order = order;
+    receipt.subtotal = totalBeforeVAT;
+    receipt.VAT = vatAmount;
+    receipt.total = total;
+    receipt.discount = discountAmount;
+    await this.receiptrepo.save(receipt);
+
+    return receipt;
+  }
 }
-
-
-
-// private async handleChargeSuccessEvent(orderReference: number) {
-//   try {
-//     const order = await this.orderRepo.findOne({ where: { id: orderReference } });
-
-//     if (order) {
-//       order.payment_status = PaymentStatus.SUCCESSFUL;
-//       const trackingToken = `osl-${this.generateTrackingID()}`;
-//       const dropoffCode = this.generateDropOffCode();
-//       order.trackingID = trackingToken;
-//       order.dropoffCode = dropoffCode;
-//       await this.orderRepo.save(order);
-
-//       console.log('Order payment status updated successfully:', orderReference, 'trackingID:', order.trackingID, 'dropoffCode:', order.dropoffCode);
-      
-//       // Return the tracking ID and dropoff code in the response
-//       return {
-//         trackingID: order.trackingID,
-//         dropoffCode: order.dropoffCode,
-//       };
-//     } else {
-//       console.error('Order not found for reference:', orderReference);
-//     }
-//   } catch (error) {
-//     console.error('Error handling charge success event:', error);
-//   }
-// }

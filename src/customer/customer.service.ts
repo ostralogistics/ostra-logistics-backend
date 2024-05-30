@@ -72,13 +72,14 @@ import { GeneatorService } from 'src/common/services/generator.service';
 import { INotification, Notifications } from 'src/Entity/notifications.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { ComplaintEntity, IComplaints } from 'src/Entity/complaints.entity';
-import { DiscountRepository, VehicleRepository } from 'src/admin/admin.repository';
+import { DiscountRepository, VehicleRepository, VehicleTypeRepository } from 'src/admin/admin.repository';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { trace } from 'console';
 import { plainToInstance } from 'class-transformer';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
+import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 
 @Injectable()
 export class CustomerService {
@@ -108,8 +109,8 @@ export class CustomerService {
     private readonly discountRepo: DiscountRepository,
     @InjectRepository(DiscountUsageEntity)
     private readonly discountusageRepo: DiscountUsageRepository,
-    @InjectRepository(VehicleEntity)
-    private readonly vehicleRepo: VehicleRepository,
+    @InjectRepository(VehicleTypeEntity)
+    private readonly vehicletypeRepo: VehicleTypeRepository,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private BidEvents: BidEventsService,
@@ -182,7 +183,7 @@ export class CustomerService {
       item.house_apartment_number_of_dropoff =
         dto.house_apartment_number_of_dropoff;
         if (dto.vehicleTypeID){
-          const vehicle =await this.vehicleRepo.findOne({where:{id:dto.vehicleTypeID}})
+          const vehicle =await this.vehicletypeRepo.findOne({where:{id:dto.vehicleTypeID}})
           if (!vehicle) throw new NotFoundException('vehicle not found');
           item.vehicleType = vehicle
         

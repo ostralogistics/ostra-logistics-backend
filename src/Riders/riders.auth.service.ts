@@ -67,38 +67,22 @@ export class RiderAuthService {
       const findrider = await this.riderrepo.findOne({
         where: { email: logindto.email },
       });
-      if (!findrider) throw new NotFoundException('invalid login credential');
+      if (!findrider) throw new NotFoundException('invalid login credentials');
       const comparepass = await this.genratorservice.comaprePassword(
         logindto.password,
         findrider.password,
       );
-      if (!comparepass) {
-        findrider.loginCount += 1;
-
-        if (findrider.loginCount >= 5) {
-          findrider.isLocked = true;
-          findrider.locked_until = new Date(Date.now() + 24 * 60 * 60 * 1000); //lock for 24 hours
-          await this.riderrepo.save(findrider);
-        }
-
-        //  If the customer hasn't reached the maximum login attempts, calculate the number of attempts left
-        const attemptsleft = 5 - findrider.loginCount;
-        await this.riderrepo.save(findrider);
-
-        throw new NotFoundException(
-          `invalid credentials ${attemptsleft} attempts left before your account is locked.`,
-        );
-      }
+      if (!comparepass)
+        throw new NotFoundException(`invalid login credentials`);
 
       if (!findrider.isVerified) {
-        // If the account is not verified, throw an exception
         throw new ForbiddenException(
           `Your account has not been verified. Please verify your account by sending a request to the admin.`,
         );
       }
 
-      //If the password matches, reset the login_count and unlock the account if needed
-      findrider.loginCount = 0;
+      //If the password matches
+
       findrider.isLoggedIn = true;
       await this.riderrepo.save(findrider);
 

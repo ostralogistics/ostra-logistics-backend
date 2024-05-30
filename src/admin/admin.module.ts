@@ -37,6 +37,7 @@ import { DistanceService } from 'src/common/services/distance.service';
 import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
+import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 
 
 @Module({
@@ -63,7 +64,8 @@ import { CloudinaryService } from 'src/common/services/claudinary.service';
       NewsLetterEntity,
       CartItemEntity,
       OrderCartEntity,
-      OrderItemEntity
+      OrderItemEntity,
+      VehicleTypeEntity
 
 
     ]),
