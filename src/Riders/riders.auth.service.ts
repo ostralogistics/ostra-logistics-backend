@@ -88,7 +88,7 @@ export class RiderAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = findrider.firstname;
+      notification.account = findrider.id;
       notification.subject = ' login!';
       notification.message = `Hello ${findrider.firstname}, just logged in `;
       await this.notificationripo.save(notification);
