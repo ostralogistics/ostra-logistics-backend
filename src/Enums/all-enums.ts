@@ -150,6 +150,11 @@ export enum VehicleState{
     VERY_BAD = "very_bad"
 }
 
+export enum VehicleAssignedStatus{
+    ASSIGNED ="Assigned",
+    UNASSIGNED='Unassigned'
+}
+
 export enum DeliveryPriority{
     IMMEDIATELY = "immediately",
     LATER_TODAY = "later_today",

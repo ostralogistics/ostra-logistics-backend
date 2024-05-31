@@ -38,6 +38,7 @@ import { RidersRepository } from 'src/Riders/riders.repository';
 import {
   BidStatus,
   ReturnedVehicle,
+  VehicleAssignedStatus,
   channelforconversation,
   complainResolutionStatus,
 } from 'src/Enums/all-enums';
@@ -216,6 +217,7 @@ export class AdminService {
       }
 
       newVehicle.vehicle_model = dto.vehicle_model;
+      newVehicle.status = dto.status;
       newVehicle.RegisteredAt = new Date();
 
       await this.vehiclerepo.save(newVehicle);
@@ -395,6 +397,7 @@ export class AdminService {
 
       //assingn vehicle
       vehicle.assigned_Rider = rider;
+      vehicle.status = VehicleAssignedStatus.ASSIGNED
       vehicle.assignedAT = new Date();
       await this.vehiclerepo.save(vehicle);
 
@@ -453,6 +456,7 @@ export class AdminService {
       if (dto && dto.returned === ReturnedVehicle.YES) {
         //report
         vehicle.returned_vehicle = dto.returned;
+        vehicle.status = VehicleAssignedStatus.UNASSIGNED
         vehicle.assigned_Rider = null;
         vehicle.retrnedAt = new Date();
         await this.vehiclerepo.save(vehicle);

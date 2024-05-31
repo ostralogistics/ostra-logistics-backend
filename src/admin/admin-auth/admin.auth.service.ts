@@ -141,7 +141,7 @@ export class AdminAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = admin.fullname;
+      notification.account = admin.id;
       notification.subject = 'New Super Admin Created!';
       notification.message = `new admin created successfully `;
       await this.notificationrepo.save(notification);
@@ -195,7 +195,7 @@ export class AdminAuthService {
       await this.adminrepo.save(admin);
 
       const notification = new Notifications();
-      (notification.account = admin.fullname),
+      (notification.account = admin.id),
         (notification.subject = 'Super Admin Verified!');
       notification.message = `Hello ${admin.fullname}, your email has been successfully verified `;
       await this.notificationrepo.save(notification);
@@ -267,7 +267,7 @@ export class AdminAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = emailexsist.fullname;
+      notification.account = emailexsist.id;
       notification.subject = 'Otp Resent!';
       notification.message = `Hello ${emailexsist.fullname}, a new verification Link has been resent to your mail `;
       await this.notificationrepo.save(notification);
@@ -327,7 +327,7 @@ export class AdminAuthService {
       await this.adminrepo.save(isEmailReistered);
 
       const notification = new Notifications();
-      (notification.account = isEmailReistered.fullname),
+      (notification.account = isEmailReistered.id),
         (notification.subject = 'password Reset link!');
       notification.message = `Hello ${isEmailReistered.fullname}, password resent link sent `;
       await this.notificationrepo.save(notification);
@@ -367,7 +367,7 @@ export class AdminAuthService {
         );
 
       const notification = new Notifications();
-      (notification.account = verifyuser.fullname),
+      (notification.account = verifyuser.id),
         (notification.subject = 'Verify Password Reset Token!');
       notification.message = `Hello ${verifyuser.fullname}, password reset link verified and the password has been recently reseted `;
       await this.adminrepo.save(verifyuser);
@@ -449,7 +449,7 @@ export class AdminAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = findadmin.fullname;
+      notification.account = findadmin.id;
       notification.subject = ' login!';
       notification.message = `Hello ${findadmin.fullname}, just logged in `;
       await this.notificationrepo.save(notification);
@@ -469,7 +469,7 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'somethig went wrong when trying to login , please try again',
+          'somethig went wrong while trying to login , please try again',
           error.message,
         );
       }

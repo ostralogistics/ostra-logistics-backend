@@ -1,5 +1,5 @@
 import { IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, IsStrongPassword, Matches, matches } from "class-validator";
-import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, ReturnedVehicle, RiderTask, StateOFOrigin, VehicleState, VehicleType, channelforconversation, complainResolutionStatus } from "src/Enums/all-enums";
+import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, ReturnedVehicle, RiderTask, StateOFOrigin, VehicleAssignedStatus, VehicleState, VehicleType, channelforconversation, complainResolutionStatus } from "src/Enums/all-enums";
 
 
 export class ReplyDto{
@@ -388,6 +388,10 @@ export class RegisterVehicleDto{
     @IsEnum(VehicleState)
     @IsNotEmpty()
     state_of_vehicle: VehicleState
+
+    @IsEnum(VehicleAssignedStatus)
+    @IsOptional()
+    status: VehicleAssignedStatus
     
 }
 
@@ -412,6 +416,10 @@ export class UpdateVehicleDto{
     @IsEnum(VehicleState)
     @IsOptional()
     state_of_vehicle: VehicleState
+
+    @IsEnum(VehicleAssignedStatus)
+    @IsOptional()
+    status: VehicleAssignedStatus
     
 }
 

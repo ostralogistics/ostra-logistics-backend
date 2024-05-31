@@ -1,4 +1,4 @@
-import {  ReturnedVehicle, Role, VehicleState, VehicleType } from "src/Enums/all-enums";
+import {  ReturnedVehicle, Role, VehicleAssignedStatus, VehicleState, VehicleType } from "src/Enums/all-enums";
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { RiderEntity } from "./riders.entity";
 import { CartItemEntity } from "./orders.entity";
@@ -13,6 +13,7 @@ export interface IVehicle{
     color: string,
     registration_number: string,
     state_of_vehicle: VehicleState,
+    status:VehicleAssignedStatus
     RegisteredAt: Date,
     UpdatedAt: Date,
     DeletedAt: Date
@@ -41,16 +42,19 @@ export class VehicleEntity implements IVehicle{
     @Column({nullable:true})
     vehicle_type: string;
 
-    @Column({nullable:false})
+    @Column({nullable:true})
     color: string;
 
 
-    @Column({nullable:false})
+    @Column({nullable:true})
     registration_number: string;
 
     
-    @Column({nullable:false,type:'enum', enum:VehicleState})
+    @Column({nullable:true,type:'enum', enum:VehicleState})
     state_of_vehicle: VehicleState;
+
+    @Column({nullable:true,type:'enum', enum:VehicleAssignedStatus})
+    status: VehicleAssignedStatus;
 
     @Column({nullable:true,type:'timestamp'})
     RegisteredAt: Date;

@@ -53,7 +53,7 @@ export class AdminStaffDasboardService {
         await this.generatorservice.generatEmailSuffixNumber();
       const emailfromfirstname = dto.firstname;
       const emaildomain = '_staff@ostralogistics.com';
-      const emailnow = emailfromfirstname + genEmailsuffix + emaildomain;
+      const emailnow = emailfromfirstname+genEmailsuffix+emaildomain;
 
       const dob = new Date(dto.DOB);
       const today = new Date();
@@ -66,6 +66,8 @@ export class AdminStaffDasboardService {
       staff.password = hashedpassword;
       staff.admintype = AdminType.STAFF;
       staff.RegisteredAt = new Date();
+      staff.isVerified = true;
+      staff.isRegistered = true;
 
       (staff.DOB = dto.DOB),
         (staff.age = age),

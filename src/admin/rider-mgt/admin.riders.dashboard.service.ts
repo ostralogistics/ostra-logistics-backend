@@ -97,6 +97,8 @@ export class AdminRiderDashboardService {
       (rider.firstname = dto.firstname), (rider.lastname = dto.lastname);
       rider.email = emailnow;
       rider.password = hashedpassword;
+      rider.isVerified = true;
+      rider.isRegistered = true;
       (rider.DOB = dto.DOB),
         (rider.age = age),
         (rider.mobile = dto.mobile),
