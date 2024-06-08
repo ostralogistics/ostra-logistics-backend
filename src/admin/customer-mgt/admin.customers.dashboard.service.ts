@@ -151,7 +151,6 @@ export class AdminCustomerDashBoardService {
       bid.bid_value = dto.bid;
       bid.initialBidPlacedAt = new Date();
       bid.bidStatus = BidStatus.BID_PLACED;
-      bid.madeby = admin;
       await this.bidRepo.save(bid);
 
       // Assume 'order' and 'bid' are already defined

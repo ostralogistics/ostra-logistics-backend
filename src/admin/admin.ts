@@ -3,7 +3,7 @@ import { OrderCartEntity, OrderEntity } from "src/Entity/orders.entity"
 import { RepliesEntity } from "src/Entity/replies.entity"
 import { AdminAccessLevels, AdminType, Gender, MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums"
 
-export interface IAdmin {
+export interface  IAdmin {
     id:string 
     adminID:string
     fullname:string
@@ -34,7 +34,7 @@ export interface IAdmin {
     replies:RepliesEntity[]
     carts: OrderCartEntity
     my_orders: OrderEntity[];
-    bids_sent: BidEntity[]
+    // bids_sent: BidEntity[]
 
 }
 

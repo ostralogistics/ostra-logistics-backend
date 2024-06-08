@@ -131,7 +131,7 @@ export class CustomerAuthService {
       );
 
         //sms verification
-        await this.smsservice.sendOtpSMSFromInfoBip(dto.mobile,emiailverificationcode,dto.firstname)
+        //await this.smsservice.sendOtpSMSFromInfoBip(dto.mobile,emiailverificationcode,dto.firstname)
 
       //save the notification
       const notification = new Notifications();

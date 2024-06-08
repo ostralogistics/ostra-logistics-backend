@@ -264,7 +264,7 @@ export class AdminStaffDasboardService {
       const staff = await this.adminripo.findAndCount({
         where: { admintype: AdminType.STAFF },
         order: { RegisteredAt: 'DESC' },
-        relations:['bids_sent','my_orders','replies','carts'],
+        relations:[,'my_orders','replies','carts'],
         take: limit,
         skip: skip,
       });
@@ -292,7 +292,7 @@ export class AdminStaffDasboardService {
     try {
       const staff = await this.adminripo.findOne({
         where: { id: staffID, admintype: AdminType.STAFF },
-        relations:['bids_sent','my_orders','replies','carts'],
+        relations:['my_orders','replies','carts'],
       });
       if (!staff)
         throw new NotFoundException(
@@ -321,7 +321,7 @@ export class AdminStaffDasboardService {
           { lastname: ILike(`%${keyword}%`) },
           { email: ILike(`%${keyword}%`) },
         ],
-        relations:['bids_sent','my_orders','replies','carts'],
+        relations:['my_orders','replies','carts'],
         cache: false,
         comment:
           'searching for a staff with either of the keywords , lastname or firstname or email',

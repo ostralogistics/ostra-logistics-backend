@@ -14,7 +14,7 @@ export interface IBids{
     BidDeclinedAt: Date;
     counter_bid_offer: number
     counteredAt:Date
-    madeby:AdminEntity
+    //madeby:AdminEntity
 
 }
 
@@ -50,9 +50,6 @@ bidStatus : BidStatus
 @OneToOne(()=>OrderEntity,order=>order.bid)
 order : OrderEntity
 
-// @Column({ nullable: true })
-// bidGroupId: string; // New column to store the bid group identifier
-
 @Column('numeric',{nullable:true})
 bid_value: number;
 
@@ -71,7 +68,7 @@ counter_bid_offer: number;
 @Column({ nullable: true,type:'timestamp' })
 counteredAt:Date
 
-@ManyToOne(()=>AdminEntity, admin => admin.bids_sent)
-madeby: AdminEntity;
+// @ManyToOne(()=>AdminEntity, admin => admin.bids_sent)
+// madeby: AdminEntity;
 
 }
