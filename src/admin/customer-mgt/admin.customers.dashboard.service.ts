@@ -42,13 +42,13 @@ import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
-import { FirebaseService } from 'src/firebase/firebase.service';
+//import { FirebaseService } from 'src/firebase/firebase.service';
 import * as admin from 'firebase-admin'
 
 @Injectable()
 export class AdminCustomerDashBoardService {
   constructor(
-    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
+    //@Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(AdminEntity) private readonly adminrepo: AdminRepository,
     @InjectRepository(CustomerEntity)
     private readonly customerRepo: CustomerRepository,
@@ -70,7 +70,7 @@ export class AdminCustomerDashBoardService {
     private genratorservice: GeneatorService,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
-    private firebaseservice:FirebaseService
+    //private firebaseservice:FirebaseService
   ) {}
 
   //query orders
@@ -131,14 +131,14 @@ export class AdminCustomerDashBoardService {
       bid.madeby = admin
       await this.bidRepo.save(bid);
 
-      //send push notification to the customer 
-      const payload: admin.messaging.MessagingPayload={
-        notification:{
-          title:'Openning Bid Sent!',
-          body:`starting bid for order ${order.orderID} made by ${order.customer} is ${bid.bid_value}. Please note that, you can only counter this bid once, we believe our bid is very reasonable. Thank you `
-        }
-      }
-      await this.firebaseservice.sendNotification(order.customer.deviceToken,payload)
+      // //send push notification to the customer 
+      // const payload: admin.messaging.MessagingPayload={
+      //   notification:{
+      //     title:'Openning Bid Sent!',
+      //     body:`starting bid for order ${order.orderID} made by ${order.customer} is ${bid.bid_value}. Please note that, you can only counter this bid once, we believe our bid is very reasonable. Thank you `
+      //   }
+      // }
+      // await this.firebaseservice.sendNotification(order.customer.deviceToken,payload)
      
      
 
@@ -146,7 +146,7 @@ export class AdminCustomerDashBoardService {
       const notification = new Notifications();
       notification.account = order.customer.id;
       notification.subject = 'Openning Bid made !';
-      notification.message = `an openning bid have been sent on order with id ${orderID} on the admin portal of ostra ogistics by superadmin  `;
+      notification.message = `starting bid for order ${order.orderID} made by ${order.customer} is ${bid.bid_value}. Please note that, you can only counter this bid once, we believe our bid is very reasonable. Thank you `;
       await this.notificationripo.save(notification);
 
       return bid;
@@ -195,22 +195,22 @@ export class AdminCustomerDashBoardService {
       bid.counteredAt = new Date();
       await this.bidRepo.save(bid);
 
-           // Send push notification to the admin
-    const payload: admin.messaging.MessagingPayload = {
-      notification: {
-        title: 'Bid Countered!',
-        body: `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
-      },
-    };
+    //        // Send push notification to the admin
+    // const payload: admin.messaging.MessagingPayload = {
+    //   notification: {
+    //     title: 'Bid Countered!',
+    //     body: `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
+    //   },
+    // };
 
-    await this.firebaseservice.sendNotification(bid.order.customer.deviceToken, payload);
+    // await this.firebaseservice.sendNotification(bid.order.customer.deviceToken, payload);
 
 
       //save the notification
       const notification = new Notifications();
       notification.account = bid.order.customer.id;
       notification.subject = 'Counter Bid made !';
-      notification.message = `an counter bid  bid have been sent on bid with id ${bidID} on the admin portal of ostra ogistics by superadmin  `;
+      notification.message = `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You  `;
       await this.notificationripo.save(notification);
 
       return bid;

@@ -39,7 +39,7 @@ import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
-import { FirebaseService } from 'src/firebase/firebase.service';
+//import { FirebaseService } from 'src/firebase/firebase.service';
 
 
 @Module({
@@ -94,7 +94,7 @@ import { FirebaseService } from 'src/firebase/firebase.service';
     GeoCodingService,
     CloudinaryService,
     SMSsenderClass,
-    FirebaseService
+    //FirebaseService
   ],
 })
 export class AdminModule {}

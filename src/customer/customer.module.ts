@@ -27,7 +27,7 @@ import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
-import { FirebaseService } from 'src/firebase/firebase.service';
+//import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Module({
   imports: [    
@@ -61,7 +61,7 @@ import { FirebaseService } from 'src/firebase/firebase.service';
     GeneatorService,
     CloudinaryService,
     SMSsenderClass,
-    FirebaseService
+    //FirebaseService
   ],
   controllers: [CustomerAuthController, CustomerController],
 

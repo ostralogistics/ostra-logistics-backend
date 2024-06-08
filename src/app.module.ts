@@ -11,7 +11,7 @@ import { RiderModule } from './Riders/riders.module';
 import { AdminModule } from './admin/admin.module';
 import { WebHookModule } from './Payment/webhook.module';
 import { AuthModule } from './auth/auth.module';
-import { FirebaseModule } from './firebase/firebase.module';
+//import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [CustomerModule,
@@ -20,7 +20,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     AdminModule,
     WebHookModule,
     AuthModule,
-    FirebaseModule,
+    //FirebaseModule,
     
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({ useClass: TypeOrmService }),

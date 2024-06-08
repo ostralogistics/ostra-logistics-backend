@@ -82,12 +82,12 @@ import { plainToInstance } from 'class-transformer';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import * as admin from 'firebase-admin'
-import { FirebaseService } from 'src/firebase/firebase.service';
+//import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class CustomerService {
   constructor(
-    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
+    //@Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(OrderEntity) private readonly orderRepo: OrderRepository,
     @InjectRepository(CustomerEntity)
     private readonly customerRepo: CustomerRepository,
@@ -120,7 +120,7 @@ export class CustomerService {
     private BidEvents: BidEventsService,
     private genratorservice: GeneatorService,
     private cloudinaryservice: CloudinaryService,
-    private firebaseservice:FirebaseService,
+    //private firebaseservice:FirebaseService,
   ) {}
 
   // add to cart
@@ -447,14 +447,14 @@ export class CustomerService {
         await this.processBidDecline(order, bid);
       }
           // Send push notification to the admin
-    const payload: admin.messaging.MessagingPayload = {
-      notification: {
-        title: dto.action === BiddingAction.ACCEPT ? 'Bid Accepted!' : 'Bid Declined!',
-        body: `The customer with ID ${order.customer.id} has ${dto.action === BiddingAction.ACCEPT ? 'accepted' : 'declined'} the bid.`,
-      },
-    };
+    // const payload: admin.messaging.MessagingPayload = {
+    //   notification: {
+    //     title: dto.action === BiddingAction.ACCEPT ? 'Bid Accepted!' : 'Bid Declined!',
+    //     body: `The customer with ID ${order.customer.id} has ${dto.action === BiddingAction.ACCEPT ? 'accepted' : 'declined'} the bid.`,
+    //   },
+    // };
 
-    await this.firebaseservice.sendNotification(bid.madeby.deviceToken, payload);
+    // await this.firebaseservice.sendNotification(bid.madeby.deviceToken, payload);
 
   
       return bid;
@@ -575,22 +575,22 @@ export class CustomerService {
 
       await this.bidRepo.save(bid);
 
-        // Send push notification to the admin
-    const payload: admin.messaging.MessagingPayload = {
-      notification: {
-        title: 'Bid Countered!',
-        body: `The customer with ID ${bid.order.customer.id} has countered the bid.`,
-      },
-    };
+    //     // Send push notification to the admin
+    // const payload: admin.messaging.MessagingPayload = {
+    //   notification: {
+    //     title: 'Bid Countered!',
+    //     body: `The customer with ID ${bid.order.customer.id} has countered the bid.`,
+    //   },
+    // };
 
-    await this.firebaseservice.sendNotification(bid.madeby.deviceToken, payload);
+    // await this.firebaseservice.sendNotification(bid.madeby.deviceToken, payload);
 
 
       //save the notification
       const notification = new Notifications();
       notification.account = bid.order.customer.id;
       notification.subject = 'Customer countered a bid!';
-      notification.message = `the customer with id ${bid.order.customer.id} have countered a bid from the admin in the app of ostra logistics `;
+      notification.message = `the customer with id ${bid.order.customer.id} have countered a bid from the admin in the app of ostra logistics with a new offer of ${bid.counter_bid_offer} `;
       await this.notificationripo.save(notification);
 
       //update ordertable
