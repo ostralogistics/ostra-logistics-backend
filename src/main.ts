@@ -15,15 +15,8 @@ async function bootstrap() {
 
   app.use(cors({origin:"*"})) //will change later after deployment
 
-
-  app.use('/public',express.static(join(__dirname,'..','public')))
-  console.log('Serving static files from:', join(__dirname, '..', 'public'));
-
   app.setGlobalPrefix('api/v1/ostra-logistics_api')
   app.useGlobalPipes(new ValidationPipe)
-
- 
-
   await app.listen(process.env.PORT||8000);
  
 }

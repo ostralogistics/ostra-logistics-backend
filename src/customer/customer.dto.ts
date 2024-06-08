@@ -1,4 +1,4 @@
-import { IsCreditCard, IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsStrongPassword, Matches, MaxLength } from "class-validator";
+import { IsBoolean, IsCreditCard, IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsStrongPassword, Matches, MaxLength } from "class-validator";
 import { DeliveryPriority, Gender, VehicleType } from "src/Enums/all-enums";
 import { Match } from "src/common/helpers/match.decorator";
 
@@ -33,6 +33,12 @@ export class RegisterCustomerDto{
     @IsString()
     @IsOptional()
     deviceToken:string
+}
+
+export class markNotificationAsReadDto{
+    @IsBoolean()
+    @IsOptional()
+    isRead:boolean
 }
 
 export class addPasswordDto{

@@ -55,7 +55,6 @@ import * as nanoid from 'nanoid';
 import { BidEventsService } from 'src/common/Events/bid.events.service';
 import { IOrder } from 'src/order/order';
 import { ILike } from 'typeorm';
-import { find } from 'rxjs';
 import {
   CardDetailsDto,
   ChangePasswordDto,
@@ -63,6 +62,7 @@ import {
   NewsLetterDto,
   UpdateCustomerDto,
   addPasswordDto,
+  markNotificationAsReadDto,
 } from './customer.dto';
 import { CardEntity, ICard } from 'src/Entity/card.entity';
 import { ICustomer } from './customer';
@@ -77,17 +77,13 @@ import { DiscountRepository, VehicleRepository, VehicleTypeRepository } from 'sr
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
-import { trace } from 'console';
 import { plainToInstance } from 'class-transformer';
-import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
-import * as admin from 'firebase-admin'
-//import { FirebaseService } from 'src/firebase/firebase.service';
+
 
 @Injectable()
 export class CustomerService {
   constructor(
-    //@Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(OrderEntity) private readonly orderRepo: OrderRepository,
     @InjectRepository(CustomerEntity)
     private readonly customerRepo: CustomerRepository,
@@ -120,7 +116,7 @@ export class CustomerService {
     private BidEvents: BidEventsService,
     private genratorservice: GeneatorService,
     private cloudinaryservice: CloudinaryService,
-    //private firebaseservice:FirebaseService,
+   
   ) {}
 
   // add to cart
@@ -446,15 +442,6 @@ export class CustomerService {
       } else if (dto.action === BiddingAction.DECLINE) {
         await this.processBidDecline(order, bid);
       }
-          // Send push notification to the admin
-    // const payload: admin.messaging.MessagingPayload = {
-    //   notification: {
-    //     title: dto.action === BiddingAction.ACCEPT ? 'Bid Accepted!' : 'Bid Declined!',
-    //     body: `The customer with ID ${order.customer.id} has ${dto.action === BiddingAction.ACCEPT ? 'accepted' : 'declined'} the bid.`,
-    //   },
-    // };
-
-    // await this.firebaseservice.sendNotification(bid.madeby.deviceToken, payload);
 
   
       return bid;
@@ -575,15 +562,6 @@ export class CustomerService {
 
       await this.bidRepo.save(bid);
 
-    //     // Send push notification to the admin
-    // const payload: admin.messaging.MessagingPayload = {
-    //   notification: {
-    //     title: 'Bid Countered!',
-    //     body: `The customer with ID ${bid.order.customer.id} has countered the bid.`,
-    //   },
-    // };
-
-    // await this.firebaseservice.sendNotification(bid.madeby.deviceToken, payload);
 
 
       //save the notification
@@ -1059,7 +1037,7 @@ export class CustomerService {
       notification.message = `the customer with id ${customer.id} have made changes to his existing record in the customer app of ostra logistics `;
       await this.notificationripo.save(notification);
 
-      return { message: 'passwod chanaged successfully' };
+      return { message: 'password changed successfully' };
     } catch (error) {
       if (error instanceof NotAcceptableException) {
         throw new NotAcceptableException(error.message);
@@ -1138,7 +1116,7 @@ export class CustomerService {
 
   //get all notifications related to the customer
 
-  async AllNotificationsRelatedTocustomer(customer: CustomerEntity) {
+  async AllNotificationsRelatedTocustomer(customer: CustomerEntity,) {
     try {
       const notification = await this.notificationripo.findAndCount({
         where: { account: customer.id },
@@ -1147,6 +1125,7 @@ export class CustomerService {
         throw new NotFoundException(
           'oops! you have no notifications at this time',
         );
+
       return notification;
     } catch (error) {
       if (error instanceof NotFoundException)
@@ -1155,6 +1134,65 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to fetch notifications',
+          error.message,
+        );
+      }
+    }
+  }
+
+  //get one notification and mark it as read
+  async OpenOneNotificationRelatedTocustomer(customer: CustomerEntity,notificationId:number,dto:markNotificationAsReadDto) {
+    try {
+      const notification = await this.notificationripo.findOne({
+        where: { id:notificationId,account: customer.id },
+      });
+      if (!notification)
+        throw new NotFoundException(
+          'notification not found',
+        );
+
+        if (dto){
+          notification.isRead = dto.isRead
+          await this.notificationripo.save(notification)
+        }
+
+      return notification;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch a notifications',
+          error.message,
+        );
+      }
+    }
+  }
+
+
+  //get one notification and mark it as read
+  async DeleteOneNotificationRelatedTocustomer(customer: CustomerEntity,notificationId:number) {
+    try {
+      const notification = await this.notificationripo.findOne({
+        where: { id:notificationId,account: customer.id },
+      });
+      if (!notification)
+        throw new NotFoundException(
+          'notification not found',
+        );
+
+       await this.notificationripo.remove(notification)
+      return notification;
+
+      
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to delete a notification',
           error.message,
         );
       }

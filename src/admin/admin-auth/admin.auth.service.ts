@@ -445,12 +445,6 @@ export class AdminAuthService {
           `Your account has not been verified. Please verify your account by requesting a verification code.`,
         );
 
-        //save device token 
-        const devicetoken = logindto.deviceToken
-        if (devicetoken){
-          findadmin.deviceToken.push(devicetoken)
-        }
-
 
       findadmin.isLoggedIn = true;
       await this.adminrepo.save(findadmin);

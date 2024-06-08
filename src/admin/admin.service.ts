@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ConflictException,
   ConsoleLogger,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
@@ -56,7 +57,7 @@ import {
   complaintRepository,
 } from 'src/customer/customer.repository';
 import { RepliesEntity } from 'src/Entity/replies.entity';
-import { ComplaintDto } from 'src/customer/customer.dto';
+import { ComplaintDto, markNotificationAsReadDto } from 'src/customer/customer.dto';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
@@ -67,10 +68,13 @@ import { OrderEntity } from 'src/Entity/orders.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
+import { FirebaseService } from 'src/firebase/firebase.service';
+import * as admin from 'firebase-admin'
 
 @Injectable()
 export class AdminService {
   constructor(
+    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(AdminEntity) private readonly adminRepo: AdminRepository,
     @InjectRepository(VehicleEntity)
     private readonly vehiclerepo: VehicleRepository,
@@ -96,6 +100,7 @@ export class AdminService {
     private uploadservice: UploadService,
     private genratorservice: GeneatorService,
     private cloudinaryservice: CloudinaryService,
+    private firebaseservice:FirebaseService
   ) {}
 
   async AddVehicleType(dto: VehicleTypeDto) {
@@ -401,6 +406,27 @@ export class AdminService {
       vehicle.assignedAT = new Date();
       await this.vehiclerepo.save(vehicle);
 
+        //send push notification to the rider 
+        const payload: admin.messaging.MessagingPayload={
+          notification:{
+            title:'New Vehicle Assigned!',
+            body:`vehicle with ID: ${vehicle.id} with ${vehicle.vehicle_model} and  ${vehicle.registration_number} have been assigned to you for the day. Please ensure you return it back to the office before clocking out for the day. Thank you `
+          }
+        }
+       // Retrieve the most recent device token
+      const recentDeviceToken =
+      rider.deviceToken[rider.deviceToken.length - 1];
+
+    if (recentDeviceToken) {
+      // Send the push notification to the most recent device token
+      await this.firebaseservice.sendNotification(
+        [recentDeviceToken],
+        payload,
+      );
+    } else {
+      console.log('No device token available for the customer.');
+    }
+
       //save the notification
       const notification = new Notifications();
       notification.account = rider.id;
@@ -460,6 +486,29 @@ export class AdminService {
         vehicle.assigned_Rider = null;
         vehicle.retrnedAt = new Date();
         await this.vehiclerepo.save(vehicle);
+
+          //send push notification to the rider 
+          const payload: admin.messaging.MessagingPayload={
+            notification:{
+              title:'Vehicle Reported As Returned!',
+              body:`vehicle with ID:  ${vehicle.id} with ${vehicle.vehicle_model} and  ${vehicle.registration_number} assigned to ${rider.firstname} for the day have been reported as returned. Thank you `
+            }
+          }
+          // Retrieve the most recent device token
+      const recentDeviceToken =
+      rider.deviceToken[rider.deviceToken.length - 1];
+
+    if (recentDeviceToken) {
+      // Send the push notification to the most recent device token
+      await this.firebaseservice.sendNotification(
+        [recentDeviceToken],
+        payload,
+      );
+    } else {
+      console.log('No device token available for the customer.');
+    }
+         
+         
 
         //save the notification
         const notification = new Notifications();
@@ -1089,4 +1138,91 @@ export class AdminService {
       }
     }
   }
+
+    //get all notifications related to the customer
+
+    async AllNotifications(page:number =1, limit:number=30) {
+      try {
+        const skip = (page - 1) * limit;
+        const notification = await this.notificationripo.findAndCount({
+          take:page,
+          skip:skip,
+        });
+        if (notification[1] === 0)
+          throw new NotFoundException(
+            'oops! you have no notifications at this time',
+          );
+  
+        return notification;
+      } catch (error) {
+        if (error instanceof NotFoundException)
+          throw new NotFoundException(error.message);
+        else {
+          console.log(error);
+          throw new InternalServerErrorException(
+            'something went wrong while trying to fetch notifications',
+            error.message,
+          );
+        }
+      }
+    }
+  
+    //get one notification and mark it as read
+    async OpenOneNotification(notificationId:number,dto:markNotificationAsReadDto) {
+      try {
+        const notification = await this.notificationripo.findOne({
+          where: { id:notificationId},
+        });
+        if (!notification)
+          throw new NotFoundException(
+            'notification not found',
+          );
+  
+          if (dto){
+            notification.isRead = dto.isRead
+            await this.notificationripo.save(notification)
+          }
+  
+        return notification;
+      } catch (error) {
+        if (error instanceof NotFoundException)
+          throw new NotFoundException(error.message);
+        else {
+          console.log(error);
+          throw new InternalServerErrorException(
+            'something went wrong while trying to fetch a notifications',
+            error.message,
+          );
+        }
+      }
+    }
+  
+  
+    //get one notification and mark it as read
+    async DeleteOneNotification(notificationId:number) {
+      try {
+        const notification = await this.notificationripo.findOne({
+          where: { id:notificationId },
+        });
+        if (!notification)
+          throw new NotFoundException(
+            'notification not found',
+          );
+  
+         await this.notificationripo.remove(notification)
+        return notification;
+  
+        
+      } catch (error) {
+        if (error instanceof NotFoundException)
+          throw new NotFoundException(error.message);
+        else {
+          console.log(error);
+          throw new InternalServerErrorException(
+            'something went wrong while trying to delete a notification',
+            error.message,
+          );
+        }
+      }
+    }
 }

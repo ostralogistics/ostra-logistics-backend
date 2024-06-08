@@ -38,6 +38,7 @@ import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
 import { IOrder } from 'src/order/order';
 import { ILike } from 'typeorm';
+import { markNotificationAsReadDto } from 'src/customer/customer.dto';
 
 export class RiderService {
   constructor(
@@ -820,30 +821,7 @@ export class RiderService {
     }
   }
 
-  //fetch all transactions 
 
-  //fetch all notifications 
-  async AllNotificationsRelatedTocustomer(rider: RiderEntity) {
-    try {
-      const notification = await this.notificationripo.findAndCount({
-        where: { account: rider.id },
-      });
-      if (notification[1] === 0)
-        throw new NotFoundException(
-          'oops! you have no notifications at this time',
-        );
-      return notification;
-    } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying to fetch notifications',
-        );
-      }
-    }
-  }
 
     //  track order 
     async TrackOrder(keyword: string | any): Promise<IOrder> {
@@ -899,4 +877,90 @@ export class RiderService {
         }
       }
     }
+
+    //get all notifications related to the customer
+
+  async AllNotificationsRelatedToRider(rider:RiderEntity,) {
+    try {
+      const notification = await this.notificationripo.findAndCount({
+        where: { account: rider.id },
+      });
+      if (notification[1] === 0)
+        throw new NotFoundException(
+          'oops! you have no notifications at this time',
+        );
+
+      return notification;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch notifications',
+          error.message,
+        );
+      }
+    }
+  }
+
+  //get one notification and mark it as read
+  async OpenOneNotificationRelatedTocustomer(rider:RiderEntity,notificationId:number,dto:markNotificationAsReadDto) {
+    try {
+      const notification = await this.notificationripo.findOne({
+        where: { id:notificationId,account: rider.id },
+      });
+      if (!notification)
+        throw new NotFoundException(
+          'notification not found',
+        );
+
+        if (dto){
+          notification.isRead = dto.isRead
+          await this.notificationripo.save(notification)
+        }
+
+      return notification;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch one notification',
+          error.message,
+        );
+      }
+    }
+  }
+
+
+  //get one notification and mark it as read
+  async DeleteOneNotificationRelatedTocustomer(rider: RiderEntity,notificationId:number) {
+    try {
+      const notification = await this.notificationripo.findOne({
+        where: { id:notificationId,account: rider.id },
+      });
+      if (!notification)
+        throw new NotFoundException(
+          'notification not found',
+        );
+
+       await this.notificationripo.remove(notification)
+      return notification;
+
+      
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to delete a notification',
+          error.message,
+        );
+      }
+    }
+  }
+
 }

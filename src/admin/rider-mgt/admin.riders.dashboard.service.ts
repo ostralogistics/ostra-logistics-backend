@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
@@ -7,14 +8,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminEntity } from 'src/Entity/admins.entity';
-import { CustomerEntity } from 'src/Entity/customers.entity';
 import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
 import {
   RidersRepository,
   TaskRepository,
   riderBankDetailsRepository,
 } from 'src/Riders/riders.repository';
-import { CustomerRepository } from 'src/customer/customer.repository';
 import { AdminRepository } from '../admin.repository';
 import { Notifications } from 'src/Entity/notifications.entity';
 import {
@@ -35,10 +34,8 @@ import {
   UpdateRiderInfoByAdminDto,
 } from '../admin.dto';
 import {
-  NotificationType,
   PaymentStatus,
   RequestType,
-  RiderTask,
   TaskStatus,
   TransactionType,
 } from 'src/Enums/all-enums';
@@ -51,10 +48,13 @@ import { GeneatorService } from 'src/common/services/generator.service';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { all } from 'axios';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
+import * as admin from 'firebase-admin'
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class AdminRiderDashboardService {
   constructor(
+    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(RiderEntity) private readonly riderripo: RidersRepository,
     @InjectRepository(AdminEntity) private readonly adminripo: AdminRepository,
     @InjectRepository(Notifications)
@@ -72,6 +72,7 @@ export class AdminRiderDashboardService {
     private cloudinaryservice: CloudinaryService,
     private mailer: Mailer,
     private genratorservice: GeneatorService,
+    private firebaseservice:FirebaseService
   ) {}
 
   //admin register rider
@@ -323,7 +324,6 @@ export class AdminRiderDashboardService {
   }
 
   // admin change rider password
-
   async AdminChangeRiderPassword(
     riderID: string,
   ): Promise<{ message: string; response: IChangeRiderPassword }> {
@@ -600,6 +600,30 @@ export class AdminRiderDashboardService {
       (task.assigned_order = order), (task.assignedAT = new Date());
 
       await this.taskRepo.save(task);
+
+
+      //send push notification to the rider 
+      const payload: admin.messaging.MessagingPayload={
+        notification:{
+          title:'New Task Assigned!',
+          body:`A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `
+        }
+      }
+      // Retrieve the most recent device token
+      const recentDeviceToken =
+        rider.deviceToken[rider.deviceToken.length - 1];
+
+      if (recentDeviceToken) {
+        // Send the push notification to the most recent device token
+        await this.firebaseservice.sendNotification(
+          [recentDeviceToken],
+          payload,
+        );
+      } else {
+        console.log('No device token available for the customer.');
+      }
+     
+     
 
       //save the notification
       const notification = new Notifications();

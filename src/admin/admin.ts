@@ -31,7 +31,6 @@ export interface IAdmin {
     isVerified:boolean
     isRegistered:boolean
     isLoggedOut:boolean 
-    deviceToken:string[]
     replies:RepliesEntity[]
     carts: OrderCartEntity
     my_orders: OrderEntity[];

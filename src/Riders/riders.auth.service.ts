@@ -81,12 +81,26 @@ export class RiderAuthService {
         );
       }
 
-      //save device token for the rider 
-      const devicetoken = logindto.deviceToken
+       // Handle device tokens
+       const devicetoken = logindto.deviceToken;
 
-      if (devicetoken){
-        findrider.deviceToken.push(devicetoken)
-      }
+       if (devicetoken) {
+         // Ensure the deviceToken array is initialized
+         if (!findrider.deviceToken) {
+           findrider.deviceToken = [];
+         }
+   
+         // Check if the token already exists
+         if (!findrider.deviceToken.includes(devicetoken)) {
+           // Add the new token
+           findrider.deviceToken.push(devicetoken);
+   
+           // If there are more than 3 tokens, remove the oldest one
+           if (findrider.deviceToken.length > 3) {
+             findrider.deviceToken.shift();
+           }
+         }
+       }
 
       //If the password matches
 

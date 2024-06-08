@@ -80,9 +80,6 @@ export class AdminEntity implements IAdmin{
     @Column({nullable:true})
     Nationality: string;
 
-    @Column({nullable:true,type:'simple-array'})
-    deviceToken: string[];
-
 
     @Column({nullable:true,default:false})
     isLoggedIn: boolean;

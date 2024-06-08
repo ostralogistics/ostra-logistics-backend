@@ -10,7 +10,7 @@ import { AdminTypeGuard } from "src/auth/guard/admintype.guard";
 import { AdminTypes } from "src/auth/decorator/admintype.decorator";
 import { AdminAcessLevelGuard } from "src/auth/guard/accesslevel.guard";
 import { AdminAccessLevel } from "src/auth/decorator/accesslevel.decorator";
-import { ComplaintDto } from "src/customer/customer.dto";
+import { ComplaintDto, markNotificationAsReadDto } from "src/customer/customer.dto";
 import { ApplypromoCodeDto } from "src/common/common.dto";
 
 @UseGuards(JwtGuard,RoleGuard,AdminTypeGuard,AdminAcessLevelGuard)
@@ -191,6 +191,22 @@ export class Admincontroller{
     @Get('all-subscribers')
     async AllNewsLetterSubscribers( @Query('limit')limit:number, @Query('page')page:number){
         return await this.adminservice.GetAllNewsLetterSubscribers(page,limit)
+    }
+
+
+    @Get('all-notification')
+    async GetAllMyNotification(@Query('page')page:number,@Query('limit')limit:number){
+     return await this.adminservice.AllNotifications(page,limit)
+    }
+
+    @Patch('one-notification/:notificationId')
+    async GetOneOfMyNotification(@Req()req,@Param('notificationId')notificationId:number,@Body()dto:markNotificationAsReadDto){
+     return await this.adminservice.OpenOneNotification(notificationId,dto)
+    }
+
+    @Delete('delete-one-notification/:notificationId')
+    async DeleteOneOfMyNotification(@Req()req,@Param('notificationId')notificationId:number){
+     return await this.adminservice.DeleteOneNotification(notificationId)
     }
 
 

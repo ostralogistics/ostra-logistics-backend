@@ -3,7 +3,7 @@ import { CustomerService } from "./customer.service";
 import { ApplypromoCodeDto, BidActionDto, OrderDto, counterBidDto } from "src/common/common.dto";
 import { Request } from "express";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
-import { CardDetailsDto, ChangePasswordDto, ComplaintDto, NewsLetterDto, UpdateCustomerDto } from "./customer.dto";
+import { CardDetailsDto, ChangePasswordDto, ComplaintDto, NewsLetterDto, UpdateCustomerDto, markNotificationAsReadDto } from "./customer.dto";
 import { CustomerEntity } from "src/Entity/customers.entity";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "src/auth/guard/role.guard";
@@ -137,6 +137,16 @@ export class CustomerController{
      @Get('all-my-notification')
      async GetAllMyNotification(@Req()req){
       return await this.customerservice.AllNotificationsRelatedTocustomer(req.user)
+     }
+
+     @Patch('one-of-my-notification/:notificationId')
+     async GetOneOfMyNotification(@Req()req,@Param('notificationId')notificationId:number,@Body()dto:markNotificationAsReadDto){
+      return await this.customerservice.OpenOneNotificationRelatedTocustomer(req.user,notificationId,dto)
+     }
+
+     @Delete('delete-one-of-my-notification/:notificationId')
+     async DeleteOneOfMyNotification(@Req()req,@Param('notificationId')notificationId:number){
+      return await this.customerservice.DeleteOneNotificationRelatedTocustomer(req.user,notificationId)
      }
 
 

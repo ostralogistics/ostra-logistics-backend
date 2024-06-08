@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { RiderService } from "./riders.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { AcceptOrDeclineTaskDto, ChangeBankPreferenceDto, DropOffCodeDto, MakeRequestDto } from "./riders.dto";
 import { RoleGuard } from "src/auth/guard/role.guard";
 import { Roles } from "src/auth/decorator/role.decorator";
 import { Role } from "src/Enums/all-enums";
+import { markNotificationAsReadDto } from "src/customer/customer.dto";
 
 @UseGuards(JwtGuard,RoleGuard)
 @Roles(Role.RIDER)
@@ -117,11 +118,20 @@ export class RiderController{
         return await this.riderservice.RequestBankinfoChange(req.user.id,dto)
         
     }
-
     @Get('all-my-notification')
-     async GetAllMyNotification(@Req()req){
-      return await this.riderservice.AllNotificationsRelatedTocustomer(req.user)
-     }
+    async GetAllMyNotification(@Req()req){
+     return await this.riderservice.AllNotificationsRelatedToRider(req.user)
+    }
+
+    @Patch('one-of-my-notification/:notificationId')
+    async GetOneOfMyNotification(@Req()req,@Param('notificationId')notificationId:number,@Body()dto:markNotificationAsReadDto){
+     return await this.riderservice.OpenOneNotificationRelatedTocustomer(req.user,notificationId,dto)
+    }
+
+    @Delete('delete-one-of-my-notification/:notificationId')
+    async DeleteOneOfMyNotification(@Req()req,@Param('notificationId')notificationId:number){
+     return await this.riderservice.DeleteOneNotificationRelatedTocustomer(req.user,notificationId)
+    }
 
      @Get('track-order/')
      async TrackOrder(@Query('keyword')keyword:string|any){

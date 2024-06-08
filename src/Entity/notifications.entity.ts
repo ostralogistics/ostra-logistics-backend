@@ -18,6 +18,9 @@ export class Notifications implements INotification{
 
     @Column({nullable:false})
     subject:string
+
+    @Column({nullable:true, type:'boolean',})
+    isRead: boolean;
     
 }
 
@@ -27,6 +30,7 @@ export interface INotification{
     message:string
     subject:string
     date:Date
+    isRead:boolean
     
 }
 
