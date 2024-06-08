@@ -40,10 +40,6 @@ export class CustomerEntity implements ICustomer{
     RegisteredAt:Date
 
     @Column({nullable:true})
-    promoCode: string;
-
-
-    @Column({nullable:true})
     home_address:string
 
     @Column({nullable:true})
@@ -55,6 +51,8 @@ export class CustomerEntity implements ICustomer{
     @Column({nullable:true})
     gender: Gender;
 
+    @Column({nullable:true,type:'simple-array'})
+    deviceToken:string[]
 
 
     @Column({nullable:false,default:false})
@@ -73,14 +71,10 @@ export class CustomerEntity implements ICustomer{
     @Column({nullable:true})
     password_reset_link: string;
 
-    @Column({nullable:false, default:0})
-    loginCount: number;
 
     @Column({nullable:false, default:false})
     isLocked: boolean;
 
-    @Column({ nullable: true,type:'timestamp' })
-    locked_until: Date;
 
     @OneToMany(()=>OrderEntity, order=>order.customer)
     my_orders: OrderEntity[];

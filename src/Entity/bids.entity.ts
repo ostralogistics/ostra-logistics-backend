@@ -1,6 +1,7 @@
 import { BidStatus } from "src/Enums/all-enums";
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OrderEntity } from "./orders.entity";
+import { AdminEntity } from "./admins.entity";
 
 export interface IBids{
     id:number,
@@ -13,6 +14,7 @@ export interface IBids{
     BidDeclinedAt: Date;
     counter_bid_offer: number
     counteredAt:Date
+    madeby:AdminEntity
 
 }
 
@@ -68,5 +70,8 @@ counter_bid_offer: number;
 
 @Column({ nullable: true,type:'timestamp' })
 counteredAt:Date
+
+@ManyToOne(()=>AdminEntity, admin => admin.bids_sent)
+madeby: AdminEntity;
 
 }

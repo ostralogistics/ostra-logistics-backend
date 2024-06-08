@@ -60,9 +60,9 @@ export class AdminAuthService {
   ) {}
 
   // get customer profile
-  async getProfile(Admin: AdminEntity): Promise<IAdmin> {
+  async getProfile(admin: AdminEntity): Promise<IAdmin> {
     try {
-      const admin = await this.adminrepo.findOne({ where: { id: Admin.id } });
+      //const admin = await this.adminrepo.findOne({ where: { id: Admin.id } ,relations:['bids_sent']});
       if (!admin) {
         throw new NotFoundException('Super admin not found');
       }
@@ -73,7 +73,7 @@ export class AdminAuthService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while fetching admin profile, please try again later',
+          'something went wrong while fetching admin profile, please try again later',error.message
         );
       }
     }
@@ -444,6 +444,14 @@ export class AdminAuthService {
         throw new ForbiddenException(
           `Your account has not been verified. Please verify your account by requesting a verification code.`,
         );
+
+        //save device token 
+        const devicetoken = logindto.deviceToken
+        if (devicetoken){
+          findadmin.deviceToken.push(devicetoken)
+        }
+
+
       findadmin.isLoggedIn = true;
       await this.adminrepo.save(findadmin);
 

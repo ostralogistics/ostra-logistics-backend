@@ -49,15 +49,16 @@ export class AdminCustomerDashBoardController {
   async MakeFirstBid(
     @Body() dto: AdminPlaceBidDto,
     @Param('orderID') orderID: number,
+    @Req()req
   ) {
-    return await this.admincustomerservice.MakeOpenningBid(orderID, dto);
+    return await this.admincustomerservice.MakeOpenningBid(orderID, dto,req.user);
   }
 
 
 
   @Patch('counter-bid/:BidID')
-  async CounterBid(@Body() dto: counterBidDto, @Param('BidID') BidID: number) {
-    return await this.admincustomerservice.counterCustomerCouterBid(BidID, dto);
+  async CounterBid(@Body() dto: counterBidDto, @Param('BidID') BidID: number, @Req()req) {
+    return await this.admincustomerservice.counterCustomerCouterBid(BidID, dto,req.user);
   }
 
   @Get('inTransit-orders')

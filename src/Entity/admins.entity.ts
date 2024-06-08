@@ -3,6 +3,7 @@ import { IAdmin } from "src/admin/admin";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { RepliesEntity } from "./replies.entity";
 import { OrderCartEntity, OrderEntity } from "./orders.entity";
+import { BidEntity } from "./bids.entity";
 
 @Entity({name:"Admin",})
 export class AdminEntity implements IAdmin{
@@ -79,6 +80,9 @@ export class AdminEntity implements IAdmin{
     @Column({nullable:true})
     Nationality: string;
 
+    @Column({nullable:true,type:'simple-array'})
+    deviceToken: string[];
+
 
     @Column({nullable:true,default:false})
     isLoggedIn: boolean;
@@ -112,6 +116,9 @@ export class AdminEntity implements IAdmin{
 
     @OneToMany(()=>OrderEntity, order=>order.admin)
     my_orders: OrderEntity[];
+
+    @OneToMany(()=>BidEntity, bids =>bids.madeby)
+    bids_sent: BidEntity[]
     
     
 }

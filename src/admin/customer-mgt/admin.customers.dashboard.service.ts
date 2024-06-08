@@ -24,6 +24,7 @@ import {
 } from 'src/Enums/all-enums';
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
@@ -41,10 +42,13 @@ import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
+import { FirebaseService } from 'src/firebase/firebase.service';
+import * as admin from 'firebase-admin'
 
 @Injectable()
 export class AdminCustomerDashBoardService {
   constructor(
+    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(AdminEntity) private readonly adminrepo: AdminRepository,
     @InjectRepository(CustomerEntity)
     private readonly customerRepo: CustomerRepository,
@@ -65,7 +69,8 @@ export class AdminCustomerDashBoardService {
     private readonly discountRepo: DiscountRepository,
     private genratorservice: GeneatorService,
     private distanceservice: DistanceService,
-    private geocodingservice: GeoCodingService
+    private geocodingservice: GeoCodingService,
+    private firebaseservice:FirebaseService
   ) {}
 
   //query orders
@@ -106,7 +111,7 @@ export class AdminCustomerDashBoardService {
 
   //make openning bid based on influenced matrix cost calculations
 
-  async MakeOpenningBid(orderID: number, dto: AdminPlaceBidDto) {
+  async MakeOpenningBid(orderID: number, dto: AdminPlaceBidDto, admin:AdminEntity) {
     try {
       const order = await this.orderRepo.findOne({
         where: { id: orderID },
@@ -123,10 +128,19 @@ export class AdminCustomerDashBoardService {
       bid.bid_value = dto.bid;
       bid.initialBidPlacedAt = new Date();
       bid.bidStatus = BidStatus.BID_PLACED;
-
-      //this.bidevent.emitBidEvent(BidEvent.BID_INITIATED,{admin,orderID})
-
+      bid.madeby = admin
       await this.bidRepo.save(bid);
+
+      //send push notification to the customer 
+      const payload: admin.messaging.MessagingPayload={
+        notification:{
+          title:'Openning Bid Sent!',
+          body:`starting bid for order ${order.orderID} made by ${order.customer} is ${bid.bid_value}. Please note that, you can only counter this bid once, we believe our bid is very reasonable. Thank you `
+        }
+      }
+      await this.firebaseservice.sendNotification(order.customer.deviceToken,payload)
+     
+     
 
       //save the notification
       const notification = new Notifications();
@@ -153,12 +167,13 @@ export class AdminCustomerDashBoardService {
   async counterCustomerCouterBid(
     bidID: number,
     dto: counterBidDto,
+    admin:AdminEntity
   ): Promise<IBids> {
     try {
       //check if order is related to the countered bid
       const bid = await this.bidRepo.findOne({
         where: { id: bidID },
-        relations: ['order','order.items'],
+        relations: ['order','order.items','madeby'],
       });
       if (!bid) throw new NotFoundException('this bis isnt found');
 
@@ -179,6 +194,17 @@ export class AdminCustomerDashBoardService {
       bid.bidStatus = BidStatus.COUNTERED;
       bid.counteredAt = new Date();
       await this.bidRepo.save(bid);
+
+           // Send push notification to the admin
+    const payload: admin.messaging.MessagingPayload = {
+      notification: {
+        title: 'Bid Countered!',
+        body: `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
+      },
+    };
+
+    await this.firebaseservice.sendNotification(bid.order.customer.deviceToken, payload);
+
 
       //save the notification
       const notification = new Notifications();

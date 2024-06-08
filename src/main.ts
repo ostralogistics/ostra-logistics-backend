@@ -6,12 +6,22 @@ import * as express from 'express'
 import { join } from 'path';
 import { UploadService } from './common/helpers/upload.service';
 import * as cors from "cors"
+import { ConfigService } from '@nestjs/config';
+import { ServiceAccount } from 'firebase-admin';
 async function bootstrap() {
 
 
   const app = await NestFactory.create(AppModule);
 
   app.use(cors({origin:"*"})) //will change later after deployment
+
+  const configService: ConfigService = app.get(ConfigService)
+
+  //set firebase config options 
+  const adminConfig:ServiceAccount ={
+    "projectId":configService.get<string>('projectId'),
+    
+  }
 
   app.use('/public',express.static(join(__dirname,'..','public')))
   console.log('Serving static files from:', join(__dirname, '..', 'public'));

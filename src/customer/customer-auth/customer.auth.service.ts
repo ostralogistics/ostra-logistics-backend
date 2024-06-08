@@ -39,6 +39,7 @@ import { Mailer } from 'src/common/mailer/mailer.service';
 import exp from 'constants';
 import { CustomerService } from '../customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
+import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
 
 @Injectable()
 export class CustomerAuthService {
@@ -50,6 +51,7 @@ export class CustomerAuthService {
     private readonly notificationrepo: NotificationRepository,
     private mailerservice: Mailer,
     private generatorservice: GeneatorService,
+    private smsservice:SMSsenderClass
   ) {}
 
   // get customer profile
@@ -84,6 +86,8 @@ export class CustomerAuthService {
         dto.password,
       );
 
+      const devicetoken = dto.deviceToken
+
       const customer = new CustomerEntity();
       customer.customerID = `#OslC-${await this.generatorservice.generateUserID()}`;
 
@@ -91,15 +95,22 @@ export class CustomerAuthService {
       customer.password = hashedpassword;
       customer.firstname = dto.firstname;
       customer.lastname = dto.lastname;
+      customer.mobile = dto.mobile
       customer.role = Role.CUSTOMER;
       customer.RegisteredAt = new Date();
       customer.isRegistered = true;
+      if (devicetoken){
+        customer.deviceToken.push(devicetoken)
+      }
 
       await this.customerrepo.save(customer);
 
       //2fa authentication
       const emiailverificationcode =
         await this.generatorservice.generateEmailToken();
+
+    
+
 
       //otp
       const otp = new UserOtp();
@@ -118,6 +129,9 @@ export class CustomerAuthService {
         emiailverificationcode,
         twominuteslater,
       );
+
+        //sms verification
+        await this.smsservice.sendOtpSMSFromInfoBip(dto.mobile,emiailverificationcode,dto.firstname)
 
       //save the notification
       const notification = new Notifications();
@@ -187,7 +201,7 @@ export class CustomerAuthService {
       await this.mailerservice.WelcomeMail(
         customer.email,
         customer.firstname,
-        customer.promoCode,
+       
       );
 
       const accessToken = await this.generatorservice.signToken(
@@ -432,6 +446,11 @@ export class CustomerAuthService {
         throw new ForbiddenException(
           'Your account has not been verified. Please verify your account by requesting a verification code.',
         );
+      }
+      const devicetoken = logindto.deviceToken
+
+      if (devicetoken){
+        findcustomer.deviceToken.push(devicetoken)
       }
 
       findcustomer.isLoggedIn = true;

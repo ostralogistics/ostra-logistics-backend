@@ -208,7 +208,7 @@ export class Mailer {
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
 
-  async WelcomeMail(email: string, name: string, promocode:string): Promise<void> {
+  async WelcomeMail(email: string, name: string): Promise<void> {
     const subject = 'Welcome To Ostra Logistics';
     const content = `<!DOCTYPE html>
     <html>
@@ -272,12 +272,10 @@ export class Mailer {
           <p class="message"><span class="username">HI ${name},</span></p>
           <div class="instructions">
             <p>We are thrilled to have you join our platform. With Ostra Logistics, you can easily manage your deliveries, track orders in real-time, and more.</p>
-            <p>As a special promotion for new users like yourself, we are offering a limited-time promo code:</p>
-            <p><strong>Promo Code: ${promocode}</strong></p>
             <p>This promo code is valid for multiple orders and offers a 25% discount on delivery fees. Make sure to use it when placing multiple orders within the next 3 months to enjoy the discount.</p>
             <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
             <p>Happy delivering!</p>
-            <p>For any questions or assistance, contact our support team at <a class="button" href="mailto:nedunestjs@gmail.com">support@ostralogistics.com</a></p>
+            <p>For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
           </div>
           <p class="footer">Ostra Logistics</p>
         </div>
@@ -354,7 +352,7 @@ export class Mailer {
             <p>We are thrilled to have you join our platform. With Ostra Logistics, you can easily manage your deliveries, track orders in real-time, and more.</p>
             <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
             <p>Happy delivering!</p>
-            <p>For any questions or assistance, contact our support team at <a class="button" href="mailto:nedunestjs@gmail.com">support@ostralogistics.com</a></p>
+            <p>For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
           </div>
           <p class="footer">Ostra Logistics</p>
         </div>
@@ -449,7 +447,7 @@ export class Mailer {
 <p>Drop-off Code: ${dropoffcode}</p>
 <p>Thank you for choosing Ostra Logistics. Happy delivering!</p></p>
           <p >
-          For any questions or assistance, contact our support team at <a class="button" href="mailto:nedunestjs@gmail.com">support@ostralogistics.com</a>
+          For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a>
           </p>
         </div>
         <p class="footer">ostra logistics</p>
@@ -544,7 +542,7 @@ export class Mailer {
 <p>Thank you for choosing Ostra Logistics.</p>
 
           <p >
-          For any questions or assistance, contact our support team at <a class="button" href="mailto:nedunestjs@gmail.com">support@ostralogistics.com</a>
+          For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a>
           </p>
         </div>
         <p class="footer">ostra logistics</p>
@@ -643,7 +641,7 @@ async NewPasswordMail(
       <p>Best regards,<br>>
 
         <p >
-        For any questions or assistance, contact our support team at <a class="button" href="mailto:nedunestjs@gmail.com">support@ostralogistics.com</a>
+        For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a>
         </p>
       </div>
       <p class="footer">ostra logistics</p>

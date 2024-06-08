@@ -69,13 +69,16 @@ export class AdminRiderDashboardService {
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
     private uploadservice: UploadService,
-    private cloudinaryservice:CloudinaryService,
+    private cloudinaryservice: CloudinaryService,
     private mailer: Mailer,
     private genratorservice: GeneatorService,
   ) {}
 
   //admin register rider
-  async RegisterRider(dto: RegisterRiderByAdminDto) {
+  async RegisterRider(
+    dto: RegisterRiderByAdminDto,
+    files: Express.Multer.File[],
+  ) {
     try {
       const genpassword = await this.genratorservice.generatePassword();
       const hashedpassword =
@@ -91,9 +94,29 @@ export class AdminRiderDashboardService {
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
 
+      // if (files.length !== 4) {
+      //   throw new NotAcceptableException('Please upload both front and back images of the driver license');
+      // }
+
+      const profilepics = await this.cloudinaryservice.uploadFile(files[0]);
+      const firstguarantorpics = await this.cloudinaryservice.uploadFile(
+        files[1],
+      );
+      const secondguarantorpics = await this.cloudinaryservice.uploadFile(
+        files[2],
+      );
+      const frontLicense = await this.cloudinaryservice.uploadFile(files[3]);
+      const backLicense = await this.cloudinaryservice.uploadFile(files[4]);
+
+      const frontLicenseUrl = frontLicense.secure_url;
+      const backLicenseUrl = backLicense.secure_url;
+      const profilepicsUrl = profilepics.secure_url;
+      const firstgurantorpicsurl = firstguarantorpics.secure_url;
+      const secondguarantorpicsurl = secondguarantorpics.secure_url;
+
       //register new rider
       const rider = new RiderEntity();
-      rider.riderID = `#OslR-${await this.genratorservice.generateUserID}`;
+      rider.riderID = `#OslR-${await this.genratorservice.generateUserID()}`;
       (rider.firstname = dto.firstname), (rider.lastname = dto.lastname);
       rider.email = emailnow;
       rider.password = hashedpassword;
@@ -112,6 +135,11 @@ export class AdminRiderDashboardService {
         dto.guarantor1_relatioship_with_rider;
       rider.gurantor1_mobile = dto.mobile;
       rider.guarantor2_name = dto.guarantor2_name;
+      (rider.driver_license_front = frontLicenseUrl),
+        (rider.driver_license_back = backLicenseUrl),
+        (rider.profile_picture = profilepicsUrl),
+        (rider.guarantor1_picture = firstgurantorpicsurl),
+        (rider.guarantor2_picture = secondguarantorpicsurl);
       rider.guarantor2_relatioship_with_rider =
         dto.guarantor2_relatioship_with_rider;
       //verify the account
@@ -136,9 +164,10 @@ export class AdminRiderDashboardService {
       await this.notificationripo.save(notification);
 
       return {
-        message: 'the rider has been Registered Successfully, these are the login credentials generated for the rider',
+        message:
+          'the rider has been Registered Successfully, these are the login credentials generated for the rider',
         email: emailnow,
-        password:genpassword
+        password: genpassword,
       };
     } catch (error) {
       if (error instanceof NotFoundException)
@@ -146,7 +175,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to Register a Rider, please try again later',error.message
+          'something went wrong while trying to Register a Rider, please try again later',
+          error.message,
         );
       }
     }
@@ -157,192 +187,103 @@ export class AdminRiderDashboardService {
   async UpdateRiderInfoByAdmin(
     riderId: string,
     dto: UpdateRiderInfoByAdminDto,
+    files: Express.Multer.File[],
   ) {
     try {
       const rider = await this.riderripo.findOne({
         where: { id: riderId },
       });
-      if (!rider)
+  
+      if (!rider) {
         throw new NotFoundException(
-          `rider with id:${riderId} is not found in the ostra logistics rider database`,
+          `Rider with id:${riderId} is not found in the Ostra Logistics rider database`,
         );
-
-      const genpassword = await this.genratorservice.generatePassword();
-
+      }
+  
       const dob = new Date(dto.DOB);
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
-
-      //update record
-
-      (rider.firstname = dto.firstname),
-        (rider.lastname = dto.lastname),
-        (rider.mobile = dto.mobile),
-        (rider.marital_status = dto.marital_status);
+  
+      let profilepicsUrl: string | null = null;
+      let firstgurantorpicsurl: string | null = null;
+      let secondguarantorpicsurl: string | null = null;
+      let frontLicenseUrl: string | null = null;
+      let backLicenseUrl: string | null = null;
+  
+      if (files) {
+        if (files[0]) {
+          const profilepics = await this.cloudinaryservice.uploadFile(files[0]);
+          profilepicsUrl = profilepics.secure_url;
+        }
+  
+        if (files[1]) {
+          const firstguarantorpics = await this.cloudinaryservice.uploadFile(files[1]);
+          firstgurantorpicsurl = firstguarantorpics.secure_url;
+        }
+  
+        if (files[2]) {
+          const secondguarantorpics = await this.cloudinaryservice.uploadFile(files[2]);
+          secondguarantorpicsurl = secondguarantorpics.secure_url;
+        }
+  
+        if (files[3]) {
+          const frontLicense = await this.cloudinaryservice.uploadFile(files[3]);
+          frontLicenseUrl = frontLicense.secure_url;
+        }
+  
+        if (files[4]) {
+          const backLicense = await this.cloudinaryservice.uploadFile(files[4]);
+          backLicenseUrl = backLicense.secure_url;
+        }
+      }
+  
+      // Update rider information
+      rider.firstname = dto.firstname;
+      rider.lastname = dto.lastname;
+      rider.mobile = dto.mobile;
+      rider.marital_status = dto.marital_status;
       rider.home_address = dto.home_address;
-      (rider.state_of_orgin = dto.state_of_origin),
-        (rider.LGA_of_origin = dto.LGA_of_origin),
-        (rider.guarantor1_name = dto.guarantor1_name);
-
-      rider.guarantor1_relatioship_with_rider =
-        dto.guarantor1_relatioship_with_rider;
+      rider.state_of_orgin = dto.state_of_origin;
+      rider.LGA_of_origin = dto.LGA_of_origin;
+      rider.guarantor1_name = dto.guarantor1_name;
+      rider.guarantor1_relatioship_with_rider = dto.guarantor1_relatioship_with_rider;
       rider.gurantor1_mobile = dto.mobile;
       rider.guarantor2_name = dto.guarantor2_name;
-
-      rider.guarantor2_relatioship_with_rider =
-        dto.guarantor2_relatioship_with_rider;
-
+      rider.guarantor2_relatioship_with_rider = dto.guarantor2_relatioship_with_rider;
+  
+      // Update only if files are uploaded
+      if (profilepicsUrl) rider.profile_picture = profilepicsUrl;
+      if (backLicenseUrl) rider.driver_license_back = backLicenseUrl;
+      if (frontLicenseUrl) rider.driver_license_front = frontLicenseUrl;
+      if (firstgurantorpicsurl) rider.guarantor1_picture = firstgurantorpicsurl;
+      if (secondguarantorpicsurl) rider.guarantor2_picture = secondguarantorpicsurl;
+  
       await this.riderripo.save(rider);
-
-      //save notification
+  
+      // Save notification
       const notification = new Notifications();
       notification.account = rider.id;
-      notification.subject = 'Admin Updated The Record of a Rider !';
-      notification.message = `the record of the rider with the id ${riderId} has been updated  on ostra logistics platform `;
+      notification.subject = 'Admin Updated The Record of a Rider!';
+      notification.message = `The record of the rider with the id ${riderId} has been updated on Ostra Logistics platform`;
       await this.notificationripo.save(notification);
-
+  
       return {
         message: 'The information of the Rider has been Updated Successfully',
         response: rider,
       };
     } catch (error) {
-      if (error instanceof NotFoundException)
+      if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
-      else {
-        console.log(error);
+      } else {
+        console.error(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update the info of a  Rider, please try again later',error.message
+          'Something went wrong while trying to update the info of a Rider, please try again later',
+          error.message,
         );
       }
     }
   }
-
-  async UploadRiderProfilePics(
-    mediafile: Express.Multer.File,
-    riderID: string,
-  ): Promise<{ message: string }> {
-    try {
-      const findriderbyid = await this.riderripo.findOne({
-        where: { id: riderID },
-      });
-      if (!findriderbyid)
-        throw new NotFoundException(
-          `rider with id:${riderID} is not found in the ostra logistics rider database`,
-        );
-        const display_pics = await this.cloudinaryservice.uploadFile(mediafile);
-        const mediaurl = display_pics.secure_url
-
-      //update the image url
-
-      findriderbyid.profile_picture = mediaurl;
-
-      await this.riderripo.save(findriderbyid);
-
-      //save the notification
-      const notification = new Notifications();
-      notification.account = findriderbyid.id;
-      notification.subject = 'Rider Profile Pics Uploaded !';
-      notification.message = `the Rider with id ${riderID} proile picture have been uploaded on the admin portal of ostra ogistics by superadmin  `;
-      await this.notificationripo.save(notification);
-
-      return { message: 'your profile picture has been uploaded successully ' };
-    } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying to upload the profile picture of the Rider, please try again later',error.message
-        );
-      }
-    }
-  }
-
-  async UploadDriverLicenseFront(
-    mediafile: Express.Multer.File,
-    riderID: string,
-  ): Promise<{ message: string }> {
-    try {
-      const findriderbyid = await this.riderripo.findOne({
-        where: { id: riderID },
-      });
-      if (!findriderbyid)
-        throw new NotFoundException(
-          `rider with id:${riderID} is not found in the ostra logistics rider database`,
-        );
-        const display_pics = await this.cloudinaryservice.uploadFile(mediafile);
-        const mediaurl = display_pics.secure_url
-
-      //update the image url
-
-      findriderbyid.driver_license = mediaurl;
-
-      await this.riderripo.save(findriderbyid);
-
-      //save the notification
-      const notification = new Notifications();
-      notification.account = findriderbyid.id;
-      notification.subject = 'Rider driver license Uploaded !';
-      notification.message = `the Rider with id ${riderID} front driver lisence  have been uploaded on the admin portal of ostra ogistics by superadmin  `;
-      await this.notificationripo.save(notification);
-
-      return {
-        message: 'your driver license front has been uploaded successully ',
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying to upload the drivers license front of the Rider, please try again later',error.message
-        );
-      }
-    }
-  }
-
-  async UploadDriverLicenseBack(
-    mediafile: Express.Multer.File,
-    riderID: string,
-  ): Promise<{ message: string }> {
-    try {
-      const findriderbyid = await this.riderripo.findOne({
-        where: { id: riderID },
-      });
-      if (!findriderbyid)
-        throw new NotFoundException(
-          `rider with id:${riderID} is not found in the ostra logistics rider database`,
-        );
-        const display_pics = await this.cloudinaryservice.uploadFile(mediafile);
-        const mediaurl = display_pics.secure_url
-
-      //update the image url
-
-      findriderbyid.driver_license = mediaurl;
-
-      await this.riderripo.save(findriderbyid);
-
-      //save the notification
-      const notification = new Notifications();
-      notification.account = findriderbyid.id;
-      notification.subject = 'Rider driver license Uploaded !';
-      notification.message = `the Rider with id ${riderID} back driver lisence  have been uploaded on the admin portal of ostra ogistics by superadmin  `;
-      await this.notificationripo.save(notification);
-
-      return {
-        message: 'your driver license back has been uploaded successully ',
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying to upload the drivers license back of the Rider, please try again later',error.message
-        );
-      }
-    }
-  }
+  
 
   //admin delete rider
   async AdminDeleteRider(riderID: string): Promise<{ message: string }> {
@@ -374,7 +315,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to delete Rider, Please try again',error.message
+          'something went wrong while trying to delete Rider, Please try again',
+          error.message,
         );
       }
     }
@@ -424,7 +366,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to reset Rider Password based on request',error.message
+          'something went wrong while trying to reset Rider Password based on request',
+          error.message,
         );
       }
     }
@@ -447,7 +390,8 @@ export class AdminRiderDashboardService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to get all request sent by riders, please try again later',error.message
+          'something went wrong while trying to get all request sent by riders, please try again later',
+          error.message,
         );
       }
     }
@@ -520,7 +464,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to reset Rider Password based on request',error.message
+          'something went wrong while trying to reset Rider Password based on request',
+          error.message,
         );
       }
     }
@@ -534,7 +479,7 @@ export class AdminRiderDashboardService {
       //fetch riders with pagination
       const findallriders = await this.riderripo.findAndCount({
         order: { RegisteredAt: 'DESC' },
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests'],
+        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
         take: limit,
         skip: skip,
       });
@@ -548,7 +493,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch all riders, please try again',error.message
+          'something went wrong while trying to fetch all riders, please try again',
+          error.message,
         );
       }
     }
@@ -558,7 +504,7 @@ export class AdminRiderDashboardService {
     try {
       const findriderbyid = await this.riderripo.findOne({
         where: { id: riderID },
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests'],
+        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
       });
       if (!findriderbyid)
         throw new NotFoundException(
@@ -571,7 +517,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch one rider, please try again',error.message
+          'something went wrong while trying to fetch one rider, please try again',
+          error.message,
         );
       }
     }
@@ -586,7 +533,7 @@ export class AdminRiderDashboardService {
           { lastname: ILike(`%${keyword}%`) },
           { email: ILike(`%${keyword}%`) },
         ],
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests'],
+        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
         cache: false,
         comment:
           'searching for a rider with either of the keywords , lastname or firstname or email',
@@ -604,7 +551,8 @@ export class AdminRiderDashboardService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'Something went wrong when trying to fetch all your cards. Please try again later.',error.message
+          'Something went wrong when trying to fetch all your cards. Please try again later.',
+          error.message,
         );
       }
     }
@@ -632,7 +580,7 @@ export class AdminRiderDashboardService {
 
       const order = await this.orderripo.findOne({
         where: { id: orderID },
-        relations: ['customer','items','items.vehicleType'],
+        relations: ['customer', 'items', 'items.vehicleType'],
       });
       if (!order) throw new NotFoundException('order not found ');
 
@@ -668,7 +616,8 @@ export class AdminRiderDashboardService {
         throw new NotAcceptableException(error.message);
       else {
         throw new InternalServerErrorException(
-          'Something went wrong when trying to assign a task to a rider. Please try again later.',error.message
+          'Something went wrong when trying to assign a task to a rider. Please try again later.',
+          error.message,
         );
       }
     }
@@ -711,7 +660,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to add the bank details of the rider, please try again later',error.message
+          'something went wrong while trying to add the bank details of the rider, please try again later',
+          error.message,
         );
       }
     }
@@ -767,7 +717,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update  the bank details  based on request of the Rider, please try again later',error.message
+          'something went wrong while trying to update  the bank details  based on request of the Rider, please try again later',
+          error.message,
         );
       }
     }
@@ -816,7 +767,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to log payments made to a rider, please try again later',error.message
+          'something went wrong while trying to log payments made to a rider, please try again later',
+          error.message,
         );
       }
     }
@@ -836,19 +788,19 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying fetch all rider task',error.message
+          'something went wrong while trying fetch all rider task',
+          error.message,
         );
       }
     }
   }
-
 
   //admin fetch all riders with ongoing tasks
   async getAllriderwithOngoingTaskTask() {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { status: TaskStatus.ONGOING },
-        relations:['rider','assigned_order']
+        relations: ['rider', 'assigned_order'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -862,19 +814,19 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying fetch all riders with ongoing tasks',error.message
+          'something went wrong while trying fetch all riders with ongoing tasks',
+          error.message,
         );
       }
     }
   }
-
 
   //admin fetch all riders with concluded tasks
   async getAllriderwithConcludedTask() {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { status: TaskStatus.CONCLUDED },
-        relations:['rider','assigned_order']
+        relations: ['rider', 'assigned_order'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -888,7 +840,8 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying fetch all riders with ongoing tasks',error.message
+          'something went wrong while trying fetch all riders with ongoing tasks',
+          error.message,
         );
       }
     }

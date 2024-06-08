@@ -25,6 +25,14 @@ export class RegisterCustomerDto{
     @IsString()
     @IsNotEmpty()
     lastname:string
+
+    @IsString()
+    @IsNotEmpty()
+    mobile:string
+
+    @IsString()
+    @IsOptional()
+    deviceToken:string
 }
 
 export class addPasswordDto{

@@ -16,12 +16,10 @@ export interface ICustomer {
     RegisteredAt : Date
     UpdatedAt : Date
     role:Role
-    promoCode:string
     isLoggedIn:boolean
     isVerified:boolean
     isRegistered:boolean 
-    loginCount:number
-    locked_until : Date
+    deviceToken:string[]
     my_orders: OrderEntity[]
     my_cards :CardEntity[]
     my_complains:ComplaintEntity[]

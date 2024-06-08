@@ -15,7 +15,8 @@ export interface IRider{
     age:number
     marital_status:MaritalStatus
     mobile: string 
-    driver_license :string //file to be uploaded the drivers license 
+    driver_license_front :string
+    driver_license_back :string  
     email:string
     password:string
     guarantor1_name:string
@@ -33,6 +34,7 @@ export interface IRider{
     isLoggedIn:boolean
     isVerified:boolean
     isRegistered:boolean
+    deviceToken:string[]
     tasks : TaskEntity[]
     my_requests: RequestEntity[];
     vehicle_for_the_day:VehicleEntity

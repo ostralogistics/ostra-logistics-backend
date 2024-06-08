@@ -26,6 +26,8 @@ import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
+import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Module({
   imports: [    
@@ -57,7 +59,9 @@ import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
     UploadService,
     BidEventsService,
     GeneatorService,
-    CloudinaryService
+    CloudinaryService,
+    SMSsenderClass,
+    FirebaseService
   ],
   controllers: [CustomerAuthController, CustomerController],
 

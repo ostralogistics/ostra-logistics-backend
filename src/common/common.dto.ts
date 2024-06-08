@@ -72,6 +72,11 @@ export class Logindto{
     @IsNotEmpty()
     password:string
 
+    @IsOptional()
+    @IsString()
+    deviceToken :string
+
+
    
 }
 

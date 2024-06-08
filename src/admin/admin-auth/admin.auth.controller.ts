@@ -16,7 +16,7 @@ export class AdminAuthController{
     @UseGuards(JwtGuard)
     @Get('profile')
     async getProfile(@Req() req: any): Promise<any> {
-      const userId = req.user.id;
+      const userId = req.user;
       return this.adminauthservice.getProfile(userId);
     }
 

@@ -81,6 +81,13 @@ export class RiderAuthService {
         );
       }
 
+      //save device token for the rider 
+      const devicetoken = logindto.deviceToken
+
+      if (devicetoken){
+        findrider.deviceToken.push(devicetoken)
+      }
+
       //If the password matches
 
       findrider.isLoggedIn = true;

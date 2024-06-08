@@ -40,7 +40,11 @@ export class RiderEntity implements IRider{
 
 
     @Column({nullable:true})
-    driver_license: string;
+    driver_license_front: string;
+
+    @Column({nullable:true})
+    driver_license_back: string;
+
 
     @Column({nullable:true})
     DOB: string;
@@ -106,6 +110,10 @@ export class RiderEntity implements IRider{
 
     @Column({nullable:false, default:false})
     isLocked: boolean;
+
+
+    @Column({nullable:true,type:'simple-array'})
+    deviceToken:string[]
 
 
     @OneToOne(()=>OrderEntity,order=> order.Rider)

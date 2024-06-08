@@ -1,3 +1,4 @@
+import { BidEntity } from "src/Entity/bids.entity"
 import { OrderCartEntity, OrderEntity } from "src/Entity/orders.entity"
 import { RepliesEntity } from "src/Entity/replies.entity"
 import { AdminAccessLevels, AdminType, Gender, MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums"
@@ -30,9 +31,11 @@ export interface IAdmin {
     isVerified:boolean
     isRegistered:boolean
     isLoggedOut:boolean 
+    deviceToken:string[]
     replies:RepliesEntity[]
     carts: OrderCartEntity
     my_orders: OrderEntity[];
+    bids_sent: BidEntity[]
 
 }
 
