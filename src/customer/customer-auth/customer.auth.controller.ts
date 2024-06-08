@@ -28,7 +28,6 @@ export class CustomerAuthController{
     }
 
  
-
     @Post('/resend-otp')
     async resendVerificationLink(@Req()req:Request):Promise<{message:string}>{
         const email = req.headers.email
