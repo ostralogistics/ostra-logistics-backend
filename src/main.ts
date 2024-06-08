@@ -32,5 +32,14 @@ async function bootstrap() {
  
 
   await app.listen(process.env.PORT||8000);
+
+//   const { rss, heapTotal, heapUsed, external } = process.memoryUsage();
+
+// console.log('Memory Usage:');
+// console.log(`  RSS: ${rss / 1024 / 1024} MB`);  // Resident Set Size (total memory allocated)
+// console.log(`  Heap Total: ${heapTotal / 1024 / 1024} MB`);  // Total heap size allocated
+// console.log(`  Heap Used: ${heapUsed / 1024 / 1024} MB`);  // Memory used by the JavaScript heap
+// console.log(`  External: ${external / 1024 / 1024} MB`);  // Memory used by C++ objects
+// 
 }
 bootstrap();

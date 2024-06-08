@@ -65,7 +65,6 @@ export class AdminRiderDashBoardController {
     @Body() dto: UpdateRiderInfoByAdminDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-     [];
     return await this.adminriderservice.UpdateRiderInfoByAdmin(
       riderId,
       dto,

@@ -160,7 +160,7 @@ export class AdminRiderDashboardService {
       const notification = new Notifications();
       notification.account = rider.id;
       notification.subject = 'Admin Registered a Rider !';
-      notification.message = `a new rider has ben created on ostra logistics platform `;
+      notification.message = `a new rider has been created on ostra logistics platform `;
       await this.notificationripo.save(notification);
 
       return {
