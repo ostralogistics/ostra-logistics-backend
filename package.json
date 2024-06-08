@@ -56,8 +56,8 @@
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "socket.io": "^4.7.5",
+    "twilio": "^5.1.1",
     "typeorm": "^0.3.20"
-   
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
