@@ -62,13 +62,13 @@ import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
-import { FirebaseService } from 'src/firebase/firebase.service';
-import * as admin from 'firebase-admin';
+//import { FirebaseService } from 'src/firebase/firebase.service';
+//import * as admin from 'firebase-admin';
 
 @Injectable()
 export class AdminCustomerDashBoardService {
   constructor(
-    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
+    //@Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(AdminEntity) private readonly adminrepo: AdminRepository,
     @InjectRepository(CustomerEntity)
     private readonly customerRepo: CustomerRepository,
@@ -88,7 +88,7 @@ export class AdminCustomerDashBoardService {
     private genratorservice: GeneatorService,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
-    private firebaseservice: FirebaseService,
+    //private firebaseservice: FirebaseService,
   ) {}
 
   //query orders
@@ -129,7 +129,6 @@ export class AdminCustomerDashBoardService {
   }
 
   //make openning bid based on influenced matrix cost calculations
-
   async MakeOpenningBid(
     orderID: number,
     dto: AdminPlaceBidDto,
@@ -156,27 +155,27 @@ export class AdminCustomerDashBoardService {
 
       // Assume 'order' and 'bid' are already defined
 
-      // Construct the payload for the push notification
-      const payload: admin.messaging.MessagingPayload = {
-        notification: {
-          title: 'Opening Bid Sent!',
-          body: `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
-        },
-      };
+      // // Construct the payload for the push notification
+      // const payload: admin.messaging.MessagingPayload = {
+      //   notification: {
+      //     title: 'Opening Bid Sent!',
+      //     body: `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
+      //   },
+      // };
 
-      // Retrieve the most recent device token
-      const recentDeviceToken =
-        order.customer.deviceToken[order.customer.deviceToken.length - 1];
+      // // Retrieve the most recent device token
+      // const recentDeviceToken =
+      //   order.customer.deviceToken[order.customer.deviceToken.length - 1];
 
-      if (recentDeviceToken) {
-        // Send the push notification to the most recent device token
-        await this.firebaseservice.sendNotification(
-          [recentDeviceToken],
-          payload,
-        );
-      } else {
-        console.log('No device token available for the customer.');
-      }
+      // if (recentDeviceToken) {
+      //   // Send the push notification to the most recent device token
+      //   await this.firebaseservice.sendNotification(
+      //     [recentDeviceToken],
+      //     payload,
+      //   );
+      // } else {
+      //   console.log('No device token available for the customer.');
+      // }
 
       //save the notification
       const notification = new Notifications();
@@ -233,27 +232,27 @@ export class AdminCustomerDashBoardService {
       
       await this.bidRepo.save(bid);
 
-      // Send push notification to the admin
-      const payload: admin.messaging.MessagingPayload = {
-        notification: {
-          title: 'Bid Countered!',
-          body: `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
-        },
-      };
+      // // Send push notification to the admin
+      // const payload: admin.messaging.MessagingPayload = {
+      //   notification: {
+      //     title: 'Bid Countered!',
+      //     body: `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
+      //   },
+      // };
 
-      // Retrieve the most recent device token
-      const recentDeviceToken =
-        bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1];
+      // // Retrieve the most recent device token
+      // const recentDeviceToken =
+      //   bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1];
 
-      if (recentDeviceToken) {
-        // Send the push notification to the most recent device token
-        await this.firebaseservice.sendNotification(
-          [recentDeviceToken],
-          payload,
-        );
-      } else {
-        console.log('No device token available for the customer.');
-      }
+      // if (recentDeviceToken) {
+      //   // Send the push notification to the most recent device token
+      //   await this.firebaseservice.sendNotification(
+      //     [recentDeviceToken],
+      //     payload,
+      //   );
+      // } else {
+      //   console.log('No device token available for the customer.');
+      // }
 
       //save the notification
       const notification = new Notifications();

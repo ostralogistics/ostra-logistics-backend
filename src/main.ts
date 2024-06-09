@@ -7,7 +7,7 @@ import { join } from 'path';
 import { UploadService } from './common/helpers/upload.service';
 import * as cors from "cors"
 import { ConfigService } from '@nestjs/config';
-import { ServiceAccount } from 'firebase-admin';
+//import { ServiceAccount } from 'firebase-admin';
 async function bootstrap() {
 
 
