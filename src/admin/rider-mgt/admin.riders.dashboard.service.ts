@@ -76,169 +76,104 @@ export class AdminRiderDashboardService {
   ) {}
 
   //admin register rider
-  async RegisterRider(
-    dto: RegisterRiderByAdminDto,
-    files: Express.Multer.File[],
-  ) {
+  async RegisterRider(dto: RegisterRiderByAdminDto, files: Express.Multer.File[]) {
     try {
       const genpassword = await this.genratorservice.generatePassword();
-      const hashedpassword =
-        await this.genratorservice.hashpassword(genpassword);
-
-      const genEmailsuffix =
-        await this.genratorservice.generatEmailSuffixNumber();
-      const emailfromfirstname = dto.firstname;
-      const emaildomain = '_rider@ostralogistics.com';
-      const emailnow = emailfromfirstname + genEmailsuffix + emaildomain;
-
+      const hashedpassword = await this.genratorservice.hashpassword(genpassword);
+  
+      const genEmailsuffix = await this.genratorservice.generatEmailSuffixNumber();
+      const emailnow = `${dto.firstname}${genEmailsuffix}_rider@ostralogistics.com`;
+  
       const dob = new Date(dto.DOB);
-      const today = new Date();
-      const age = today.getFullYear() - dob.getFullYear();
-
-      // if (files.length !== 4) {
-      //   throw new NotAcceptableException('Please upload both front and back images of the driver license');
-      // }
-
-      const profilepics = await this.cloudinaryservice.uploadFile(files[0]);
-      const firstguarantorpics = await this.cloudinaryservice.uploadFile(
-        files[1],
-      );
-      const secondguarantorpics = await this.cloudinaryservice.uploadFile(
-        files[2],
-      );
-      const frontLicense = await this.cloudinaryservice.uploadFile(files[3]);
-      const backLicense = await this.cloudinaryservice.uploadFile(files[4]);
-
-      const frontLicenseUrl = frontLicense.secure_url;
-      const backLicenseUrl = backLicense.secure_url;
-      const profilepicsUrl = profilepics.secure_url;
-      const firstgurantorpicsurl = firstguarantorpics.secure_url;
-      const secondguarantorpicsurl = secondguarantorpics.secure_url;
-
-      //register new rider
+      const age = new Date().getFullYear() - dob.getFullYear();
+  
+      const fileUploadPromises = files.map(file => this.cloudinaryservice.uploadFile(file));
+      const uploadResults = await Promise.all(fileUploadPromises);
+  
+      const profilepicsUrl = uploadResults[0].secure_url;
+      const firstgurantorpicsurl = uploadResults[1].secure_url;
+      const secondguarantorpicsurl = uploadResults[2].secure_url;
+      const frontLicenseUrl = uploadResults[3].secure_url;
+      const backLicenseUrl = uploadResults[4].secure_url;
+  
       const rider = new RiderEntity();
       rider.riderID = `#OslR-${await this.genratorservice.generateUserID()}`;
-      (rider.firstname = dto.firstname), (rider.lastname = dto.lastname);
+      rider.firstname = dto.firstname;
+      rider.lastname = dto.lastname;
       rider.email = emailnow;
       rider.password = hashedpassword;
       rider.isVerified = true;
       rider.isRegistered = true;
-      (rider.DOB = dto.DOB),
-        (rider.age = age),
-        (rider.mobile = dto.mobile),
-        (rider.marital_status = dto.marital_status);
+      rider.DOB = dto.DOB;
+      rider.age = age;
+      rider.mobile = dto.mobile;
+      rider.marital_status = dto.marital_status;
       rider.home_address = dto.home_address;
-      (rider.state_of_orgin = dto.state_of_origin),
-        (rider.LGA_of_origin = dto.LGA_of_origin),
-        (rider.guarantor1_name = dto.guarantor1_name);
-
-      rider.guarantor1_relatioship_with_rider =
-        dto.guarantor1_relatioship_with_rider;
+      rider.state_of_orgin = dto.state_of_origin;
+      rider.LGA_of_origin = dto.LGA_of_origin;
+      rider.guarantor1_name = dto.guarantor1_name;
+      rider.guarantor1_relatioship_with_rider = dto.guarantor1_relatioship_with_rider;
       rider.gurantor1_mobile = dto.mobile;
       rider.guarantor2_name = dto.guarantor2_name;
-      (rider.driver_license_front = frontLicenseUrl),
-        (rider.driver_license_back = backLicenseUrl),
-        (rider.profile_picture = profilepicsUrl),
-        (rider.guarantor1_picture = firstgurantorpicsurl),
-        (rider.guarantor2_picture = secondguarantorpicsurl);
-      rider.guarantor2_relatioship_with_rider =
-        dto.guarantor2_relatioship_with_rider;
-      //verify the account
-      (rider.isVerified = true), (rider.isRegistered = true);
-
-      //find if rider already exists
-      const findrider = await this.riderripo.findOne({
-        where: { email: emailnow },
-      });
-      if (findrider)
-        throw new NotAcceptableException(
-          `email: ${emailnow} already exists, please generate another one`,
-        );
-
+      rider.driver_license_front = frontLicenseUrl;
+      rider.driver_license_back = backLicenseUrl;
+      rider.profile_picture = profilepicsUrl;
+      rider.guarantor1_picture = firstgurantorpicsurl;
+      rider.guarantor2_picture = secondguarantorpicsurl;
+      rider.guarantor2_relatioship_with_rider = dto.guarantor2_relatioship_with_rider;
+  
+      const findrider = await this.riderripo.findOne({ where: { email: emailnow } });
+      if (findrider) {
+        throw new NotAcceptableException(`email: ${emailnow} already exists, please generate another one`);
+      }
+  
       await this.riderripo.save(rider);
-
-      //save notification
+  
       const notification = new Notifications();
       notification.account = rider.id;
       notification.subject = 'Admin Registered a Rider !';
       notification.message = `a new rider has been created on ostra logistics platform `;
       await this.notificationripo.save(notification);
-
+  
       return {
-        message:
-          'the rider has been Registered Successfully, these are the login credentials generated for the rider',
+        message: 'The rider has been Registered Successfully, these are the login credentials generated for the rider',
         email: emailnow,
         password: genpassword,
       };
     } catch (error) {
-      if (error instanceof NotFoundException)
+      if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
-      else {
-        console.log(error);
+      } else {
+        console.error(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to Register a Rider, please try again later',
+          'Something went wrong while trying to Register a Rider, please try again later',
           error.message,
         );
       }
     }
   }
+  
 
-  //update rider information
-
-  async UpdateRiderInfoByAdmin(
-    riderId: string,
-    dto: UpdateRiderInfoByAdminDto,
-    files: Express.Multer.File[],
-  ) {
+  async UpdateRiderInfoByAdmin(riderId: string, dto: UpdateRiderInfoByAdminDto, files: Express.Multer.File[]) {
     try {
-      const rider = await this.riderripo.findOne({
-        where: { id: riderId },
-      });
+      const rider = await this.riderripo.findOne({ where: { id: riderId } });
   
       if (!rider) {
-        throw new NotFoundException(
-          `Rider with id:${riderId} is not found in the Ostra Logistics rider database`,
-        );
+        throw new NotFoundException(`Rider with id:${riderId} is not found in the Ostra Logistics rider database`);
       }
   
       const dob = new Date(dto.DOB);
-      const today = new Date();
-      const age = today.getFullYear() - dob.getFullYear();
+      const age = new Date().getFullYear() - dob.getFullYear();
   
-      let profilepicsUrl: string | null = null;
-      let firstgurantorpicsurl: string | null = null;
-      let secondguarantorpicsurl: string | null = null;
-      let frontLicenseUrl: string | null = null;
-      let backLicenseUrl: string | null = null;
+      const fileUploadPromises = files.map(file => this.cloudinaryservice.uploadFile(file));
+      const uploadResults = await Promise.all(fileUploadPromises);
   
-      if (files) {
-        if (files[0]) {
-          const profilepics = await this.cloudinaryservice.uploadFile(files[0]);
-          profilepicsUrl = profilepics.secure_url;
-        }
+      if (files[0]) rider.profile_picture = uploadResults[0].secure_url;
+      if (files[1]) rider.guarantor1_picture = uploadResults[1].secure_url;
+      if (files[2]) rider.guarantor2_picture = uploadResults[2].secure_url;
+      if (files[3]) rider.driver_license_front = uploadResults[3].secure_url;
+      if (files[4]) rider.driver_license_back = uploadResults[4].secure_url;
   
-        if (files[1]) {
-          const firstguarantorpics = await this.cloudinaryservice.uploadFile(files[1]);
-          firstgurantorpicsurl = firstguarantorpics.secure_url;
-        }
-  
-        if (files[2]) {
-          const secondguarantorpics = await this.cloudinaryservice.uploadFile(files[2]);
-          secondguarantorpicsurl = secondguarantorpics.secure_url;
-        }
-  
-        if (files[3]) {
-          const frontLicense = await this.cloudinaryservice.uploadFile(files[3]);
-          frontLicenseUrl = frontLicense.secure_url;
-        }
-  
-        if (files[4]) {
-          const backLicense = await this.cloudinaryservice.uploadFile(files[4]);
-          backLicenseUrl = backLicense.secure_url;
-        }
-      }
-  
-      // Update rider information
       rider.firstname = dto.firstname;
       rider.lastname = dto.lastname;
       rider.mobile = dto.mobile;
@@ -252,16 +187,8 @@ export class AdminRiderDashboardService {
       rider.guarantor2_name = dto.guarantor2_name;
       rider.guarantor2_relatioship_with_rider = dto.guarantor2_relatioship_with_rider;
   
-      // Update only if files are uploaded
-      if (profilepicsUrl) rider.profile_picture = profilepicsUrl;
-      if (backLicenseUrl) rider.driver_license_back = backLicenseUrl;
-      if (frontLicenseUrl) rider.driver_license_front = frontLicenseUrl;
-      if (firstgurantorpicsurl) rider.guarantor1_picture = firstgurantorpicsurl;
-      if (secondguarantorpicsurl) rider.guarantor2_picture = secondguarantorpicsurl;
-  
       await this.riderripo.save(rider);
   
-      // Save notification
       const notification = new Notifications();
       notification.account = rider.id;
       notification.subject = 'Admin Updated The Record of a Rider!';
@@ -479,7 +406,7 @@ export class AdminRiderDashboardService {
       //fetch riders with pagination
       const findallriders = await this.riderripo.findAndCount({
         order: { RegisteredAt: 'DESC' },
-        relations: ['bids_sent','vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
         take: limit,
         skip: skip,
       });
@@ -504,7 +431,7 @@ export class AdminRiderDashboardService {
     try {
       const findriderbyid = await this.riderripo.findOne({
         where: { id: riderID },
-        relations: ['bids_sent','vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
       });
       if (!findriderbyid)
         throw new NotFoundException(
@@ -533,7 +460,7 @@ export class AdminRiderDashboardService {
           { lastname: ILike(`%${keyword}%`) },
           { email: ILike(`%${keyword}%`) },
         ],
-        relations: ['bids_sent','vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
         cache: false,
         comment:
           'searching for a rider with either of the keywords , lastname or firstname or email',

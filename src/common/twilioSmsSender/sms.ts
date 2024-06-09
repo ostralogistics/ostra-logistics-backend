@@ -1,45 +1,39 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { GeneatorService } from '../services/generator.service';
 import { ConfigService } from '@nestjs/config';
-import * as twilio from 'twilio';
 import axios from 'axios';
 
 @Injectable()
 export class SMSsenderClass {
-  private client: twilio.Twilio;
   private readonly baseUrl = 'https://api.infobip.com/sms/2/text/advanced';
   private readonly apiKey: string;
 
   constructor(
-    private readonly generatorService: GeneatorService,
     private readonly configService: ConfigService,
   ) {
-    const accountSid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
-    const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
-    this.client = twilio(accountSid, authToken);
+    
     this.apiKey = this.configService.get<string>('INFOBIP_API_KEY');
   }
 
-  async sendOtpSMS(to: string, name: string): Promise<void> {
-    try {
-      const otp = this.generatorService.generateEmailToken();
-      const messageBody = `Hello ${name}, your one time password (OTP) for verification is ${otp}. This OTP is valid for a single use and expires in the next 2 minutes. If you did not request this OTP from OSTRA LOGISTICS, please ignore this SMS`;
+  // async sendOtpSMS(to: string, name: string): Promise<void> {
+  //   try {
+  //     const otp = this.generatorService.generateEmailToken();
+  //     const messageBody = `Hello ${name}, your one time password (OTP) for verification is ${otp}. This OTP is valid for a single use and expires in the next 2 minutes. If you did not request this OTP from OSTRA LOGISTICS, please ignore this SMS`;
 
-      await this.client.messages.create({
-        body: messageBody,
-        from: '23408078236697', // Your Twilio phone number
-        to: to,
-      });
+  //     await this.client.messages.create({
+  //       body: messageBody,
+  //       from: '23408078236697', // Your Twilio phone number
+  //       to: to,
+  //     });
 
-      console.log(`OTP sent to ${to}: ${otp}`);
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'Unable to send OTP SMS',
-        error.message,
-      );
-    }
-  }
+  //     console.log(`OTP sent to ${to}: ${otp}`);
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw new InternalServerErrorException(
+  //       'Unable to send OTP SMS',
+  //       error.message,
+  //     );
+  //   }
+  // }
 
   async sendOtpSMSFromInfoBip(
     to: string,

@@ -52,7 +52,7 @@ import {
 } from 'src/common/common.repositories';
 import axios from 'axios';
 import * as nanoid from 'nanoid';
-import { BidEventsService } from 'src/common/Events/bid.events.service';
+
 import { IOrder } from 'src/order/order';
 import { ILike } from 'typeorm';
 import {
@@ -113,7 +113,6 @@ export class CustomerService {
     private readonly vehicletypeRepo: VehicleTypeRepository,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
-    private BidEvents: BidEventsService,
     private genratorservice: GeneatorService,
     private cloudinaryservice: CloudinaryService,
    
@@ -482,7 +481,7 @@ export class CustomerService {
   }
   
   private async processBidAcceptance(order: OrderEntity, bid: BidEntity): Promise<void> {
-    this.BidEvents.emitBidEvent(BidEvent.ACCEPTED, { bidID: bid.id, orderID: order.id });
+    
   
     order.bidStatus = BidStatus.ACCEPTED;
     order.accepted_cost_of_delivery = bid.bid_value;
@@ -497,7 +496,7 @@ export class CustomerService {
   }
   
   private async processBidDecline(order: OrderEntity, bid: BidEntity): Promise<void> {
-    this.BidEvents.emitBidEvent(BidEvent.DECLINED, { bidID: bid.id, orderID: order.id });
+   
   
     order.bidStatus = BidStatus.DECLINED;
     await this.orderRepo.save(order);

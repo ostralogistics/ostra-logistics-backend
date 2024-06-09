@@ -20,7 +20,6 @@ import { AdminAuthService } from './admin-auth/admin.auth.service';
 import { CartItemEntity, OrderCartEntity, OrderEntity, OrderItemEntity } from 'src/Entity/orders.entity';
 import { AdminCustomerDashBoardController } from './customer-mgt/admin.customers.dashboard.controller';
 import { AdminCustomerDashBoardService } from './customer-mgt/admin.customers.dashboard.service';
-import { BidEventsService } from 'src/common/Events/bid.events.service';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
@@ -90,7 +89,6 @@ import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
     GeneatorService,
     AdminAuthService,
     AdminCustomerDashBoardService,
-    BidEventsService,
     AdminService,
     DistanceService,
     GeoCodingService,

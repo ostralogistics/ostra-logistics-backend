@@ -14,7 +14,7 @@ export interface IBids{
     BidDeclinedAt: Date;
     counter_bid_offer: number
     counteredAt:Date
-    //madeby:AdminEntity
+    madeby:AdminEntity
 
 }
 

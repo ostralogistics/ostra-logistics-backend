@@ -14,7 +14,6 @@ import { CartItemEntity, OrderCartEntity, OrderEntity, OrderItemEntity } from 's
 import { CustomerController } from './customer.controller';
 import { CustomerService } from './customer.service';
 import { BidEntity } from 'src/Entity/bids.entity';
-import { BidEventsService } from 'src/common/Events/bid.events.service';
 import { CardEntity } from 'src/Entity/card.entity';
 import { UploadService } from 'src/common/helpers/upload.service';
 import { GeneatorService } from 'src/common/services/generator.service';
@@ -57,7 +56,6 @@ import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
     GeoCodingService,
     CustomerService,
     UploadService,
-    BidEventsService,
     GeneatorService,
     CloudinaryService,
     SMSsenderClass,
