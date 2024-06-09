@@ -114,8 +114,8 @@ export class AdminEntity implements IAdmin{
     @OneToMany(()=>OrderEntity, order=>order.admin)
     my_orders: OrderEntity[];
 
-    // @OneToMany(()=>BidEntity, bids =>bids.madeby)
-    // bids_sent: BidEntity[]
+     @OneToMany(()=>BidEntity, bids =>bids.madeby)
+    bids_sent: BidEntity[]
     
     
 }

@@ -479,7 +479,7 @@ export class AdminRiderDashboardService {
       //fetch riders with pagination
       const findallriders = await this.riderripo.findAndCount({
         order: { RegisteredAt: 'DESC' },
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: ['bids_sent','vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
         take: limit,
         skip: skip,
       });
@@ -504,7 +504,7 @@ export class AdminRiderDashboardService {
     try {
       const findriderbyid = await this.riderripo.findOne({
         where: { id: riderID },
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: ['bids_sent','vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
       });
       if (!findriderbyid)
         throw new NotFoundException(
@@ -533,7 +533,7 @@ export class AdminRiderDashboardService {
           { lastname: ILike(`%${keyword}%`) },
           { email: ILike(`%${keyword}%`) },
         ],
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: ['bids_sent','vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
         cache: false,
         comment:
           'searching for a rider with either of the keywords , lastname or firstname or email',

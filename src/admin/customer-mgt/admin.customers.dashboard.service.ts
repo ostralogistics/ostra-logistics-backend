@@ -151,6 +151,7 @@ export class AdminCustomerDashBoardService {
       bid.bid_value = dto.bid;
       bid.initialBidPlacedAt = new Date();
       bid.bidStatus = BidStatus.BID_PLACED;
+      bid.madeby = admin
       await this.bidRepo.save(bid);
 
       // Assume 'order' and 'bid' are already defined
@@ -229,6 +230,7 @@ export class AdminCustomerDashBoardService {
       bid.counter_bid_offer = dto.counter_bid;
       bid.bidStatus = BidStatus.COUNTERED;
       bid.counteredAt = new Date();
+      
       await this.bidRepo.save(bid);
 
       // Send push notification to the admin
