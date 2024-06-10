@@ -162,6 +162,12 @@ export enum DeliveryPriority{
     
 }
 
+export enum RiderStatus{
+    AVAILABLE ="Available",
+    OFFLINE ="Offline",
+    IN_TRANSIT = "In_transit"
+}
+
 export enum PriorityDeliveryType{
     EXPRESS_DELIVERY ="Express_Delivery",
     SAME_DAY_DELIVERY ="same_day_delivery",

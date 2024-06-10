@@ -36,6 +36,7 @@ import {
 import {
   PaymentStatus,
   RequestType,
+  RiderStatus,
   TaskStatus,
   TransactionType,
 } from 'src/Enums/all-enums';
@@ -106,6 +107,7 @@ export class AdminRiderDashboardService {
       rider.isRegistered = true;
       rider.DOB = dto.DOB;
       rider.age = age;
+      rider.status = RiderStatus.OFFLINE;
       rider.mobile = dto.mobile;
       rider.RegisteredAt = new Date();
       rider.marital_status = dto.marital_status;

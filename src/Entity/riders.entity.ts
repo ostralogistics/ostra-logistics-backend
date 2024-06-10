@@ -1,4 +1,4 @@
-import { BankDetailsStatus, MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums";
+import { BankDetailsStatus, MaritalStatus, RiderStatus, Role, StateOFOrigin } from "src/Enums/all-enums";
 import { IMyBankAccountDetails, IRider } from "src/Riders/riders";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OrderEntity } from "./orders.entity";
@@ -114,6 +114,9 @@ export class RiderEntity implements IRider{
 
     @Column({nullable:true,type:'simple-array'})
     deviceToken:string[]
+
+    @Column({nullable:true,  type:'enum', enum:RiderStatus})
+    status :RiderStatus
 
 
     @OneToOne(()=>OrderEntity,order=> order.Rider)

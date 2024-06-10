@@ -2,7 +2,7 @@ import { RequestEntity } from "src/Entity/requests.entity"
 import { RiderEntity } from "src/Entity/riders.entity"
 import { TaskEntity } from "src/Entity/ridersTasks.entity"
 import { VehicleEntity } from "src/Entity/vehicle.entity"
-import { BankDetailsStatus, MaritalStatus, StateOFOrigin, TaskStatus, VehicleType } from "src/Enums/all-enums"
+import { BankDetailsStatus, MaritalStatus, RiderStatus, StateOFOrigin, TaskStatus, VehicleType } from "src/Enums/all-enums"
 
 export interface IRider{
     id:string
@@ -11,6 +11,7 @@ export interface IRider{
     lastname:string
     profile_picture:string
     state_of_orgin:StateOFOrigin
+    status :RiderStatus
     DOB: string
     age:number
     marital_status:MaritalStatus

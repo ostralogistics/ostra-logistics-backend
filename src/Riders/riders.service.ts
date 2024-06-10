@@ -32,6 +32,7 @@ import {
   OrderStatus,
   RequestType,
   RiderMileStones,
+  RiderStatus,
   RiderTask,
   TaskStatus,
 } from 'src/Enums/all-enums';
@@ -135,6 +136,11 @@ export class RiderService {
         task.acceptedAt = new Date();
         task.status = TaskStatus.ONGOING;
         await this.taskRepo.save(task);
+
+        //update rider info 
+        Rider.status = RiderStatus.IN_TRANSIT
+        await this.riderRepo.save(Rider)
+
 
         //save notification
         const notification = new Notifications();
@@ -406,6 +412,14 @@ export class RiderService {
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
+      //update rider 
+      if (task.task === RiderTask.PICKUP){
+        Rider.status = RiderStatus.AVAILABLE
+        await this.riderRepo.save(Rider)
+      }
+
+
+
       //save notification
       const notification = new Notifications();
       notification.account = Rider.id;
@@ -568,6 +582,10 @@ export class RiderService {
       isOrder.order_status = OrderStatus.DROPPED_OFF;
       isOrder.pickupTime = new Date();
       await this.orderRepo.save(isOrder);
+
+      //update the rider entity
+      Rider.status = RiderStatus.AVAILABLE
+      await this.riderRepo.save(Rider)
 
       //send mail
       await this.mailer.ParcelDroppedOfMail(

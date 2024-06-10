@@ -39,6 +39,7 @@ import { RidersRepository } from 'src/Riders/riders.repository';
 import {
   BidStatus,
   ReturnedVehicle,
+  RiderStatus,
   VehicleAssignedStatus,
   channelforconversation,
   complainResolutionStatus,
@@ -401,6 +402,10 @@ export class AdminService {
       vehicle.assignedAT = new Date();
       await this.vehiclerepo.save(vehicle);
 
+      //update rider entity
+      rider.status = RiderStatus.AVAILABLE
+      await this.riderrepo.save(rider)
+
 
       //save the notification
       const notification = new Notifications();
@@ -471,6 +476,7 @@ export class AdminService {
 
         //update the rider db too
         rider.vehicle_for_the_day = null;
+        rider.status = RiderStatus.OFFLINE
         await this.riderrepo.save(rider);
       }
 

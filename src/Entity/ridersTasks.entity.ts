@@ -25,8 +25,6 @@ export class TaskEntity implements IRiderTask{
     @Column({nullable:true, type:'enum', enum:RiderTask})
     task: RiderTask;
 
-    
-
     @ManyToOne(()=>RiderEntity,rider=>rider.tasks)
     rider: RiderEntity;
 
