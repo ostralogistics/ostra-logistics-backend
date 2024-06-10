@@ -21,7 +21,7 @@ import { UserOtp } from 'src/Entity/otp.entity';
 import { Notifications } from 'src/Entity/notifications.entity';
 import { IRider } from './riders';
 import { ConfigService } from '@nestjs/config';
-import { Logindto } from 'src/common/common.dto';
+import { GetDeviceTokenDto, Logindto } from 'src/common/common.dto';
 import { NotificationType, RequestType } from 'src/Enums/all-enums';
 import { RequestResetPasswordDto } from './riders.dto';
 import { customAlphabet } from 'nanoid';
@@ -45,11 +45,35 @@ export class RiderAuthService {
   ) {}
 
   // get rider profile
-  async getProfile(rider: RiderEntity): Promise<IRider> {
+  async getProfile(rider: RiderEntity,dto:GetDeviceTokenDto): Promise<IRider> {
     try {
       if (!rider) {
         throw new NotFoundException('Rider not found');
       }
+
+        // Handle device tokens
+        const devicetoken = dto.deviceToken;
+
+        if (devicetoken) {
+          // Ensure the deviceToken array is initialized
+          if (!rider.deviceToken) {
+            rider.deviceToken = [];
+          }
+    
+          // Check if the token already exists
+          if (!rider.deviceToken.includes(devicetoken)) {
+            // Add the new token
+            rider.deviceToken.push(devicetoken);
+    
+            // If there are more than 3 tokens, remove the oldest one
+            if (rider.deviceToken.length > 3) {
+              rider.deviceToken.shift();
+            }
+               // Save the updated rider entity
+          await this.riderrepo.save(rider)
+          }
+        }
+
       return rider;
     } catch (error) {
       console.log(error);
@@ -81,26 +105,7 @@ export class RiderAuthService {
         );
       }
 
-       // Handle device tokens
-       const devicetoken = logindto.deviceToken;
-
-       if (devicetoken) {
-         // Ensure the deviceToken array is initialized
-         if (!findrider.deviceToken) {
-           findrider.deviceToken = [];
-         }
-   
-         // Check if the token already exists
-         if (!findrider.deviceToken.includes(devicetoken)) {
-           // Add the new token
-           findrider.deviceToken.push(devicetoken);
-   
-           // If there are more than 3 tokens, remove the oldest one
-           if (findrider.deviceToken.length > 3) {
-             findrider.deviceToken.shift();
-           }
-         }
-       }
+     
 
       //If the password matches
 

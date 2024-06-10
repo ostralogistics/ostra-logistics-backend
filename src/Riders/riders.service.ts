@@ -15,6 +15,7 @@ import {
 import { Mailer } from 'src/common/mailer/mailer.service';
 import {
   ConflictException,
+  Inject,
   InternalServerErrorException,
   NotAcceptableException,
   NotFoundException,
@@ -39,9 +40,12 @@ import { RequestEntity } from 'src/Entity/requests.entity';
 import { IOrder } from 'src/order/order';
 import { ILike } from 'typeorm';
 import { markNotificationAsReadDto } from 'src/customer/customer.dto';
+import * as admin from 'firebase-admin';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 export class RiderService {
   constructor(
+    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(RiderEntity) private readonly riderRepo: RidersRepository,
     @InjectRepository(OrderEntity) private readonly orderRepo: OrderRepository,
     @InjectRepository(TaskEntity) private readonly taskRepo: TaskRepository,
@@ -52,6 +56,7 @@ export class RiderService {
     @InjectRepository(RequestEntity)
     private readonly requestrepo: RequestRepository,
     private mailer: Mailer,
+    private firebaseservice: FirebaseService,
   ) {}
 
   //get orders assigned to him
@@ -570,6 +575,27 @@ export class RiderService {
         isOrder.customer.firstname,
         isOrder.trackingID,
       );
+
+      //       //send push notification to the customer 
+          const payload: admin.messaging.MessagingPayload={
+            notification:{
+              title:'Order Successfully DroppedOff!',
+              body:`Order with ID:  ${isOrder.orderID} belonging to  ${isOrder.customer.firstname} has been droppedOff to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`
+            }
+          }
+          // Retrieve the most recent device token
+      const recentDeviceToken =
+      isOrder.customer.deviceToken[isOrder.customer.deviceToken.length - 1];
+
+    if (recentDeviceToken) {
+      // Send the push notification to the most recent device token
+      await this.firebaseservice.sendNotification(
+        [recentDeviceToken],
+        payload,
+      );
+    } else {
+      console.log('No device token available for the customer.');
+    }
 
       //save notification
       const notification = new Notifications();

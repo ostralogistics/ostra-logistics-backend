@@ -37,14 +37,14 @@ import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
-import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
-//import { FirebaseService } from 'src/firebase/firebase.service';
-//import { FirebaseModule } from 'src/firebase/firebase.module';
+import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
+import { FirebaseService } from 'src/firebase/firebase.service';
+import { FirebaseModule } from 'src/firebase/firebase.module';
 
 
 @Module({
   imports: [
-    //FirebaseModule,
+    FirebaseModule,
   
     TypeOrmModule.forFeature([
       AdminEntity,
@@ -69,8 +69,6 @@ import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
       OrderCartEntity,
       OrderItemEntity,
       VehicleTypeEntity
-
-
     ]),
   ],
   controllers: [
@@ -93,8 +91,8 @@ import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
     DistanceService,
     GeoCodingService,
     CloudinaryService,
-    SMSsenderClass,
-    //FirebaseService
+    SmsSenderService,
+    FirebaseService
   ],
 })
 export class AdminModule {}

@@ -72,12 +72,14 @@ export class Logindto{
     @IsNotEmpty()
     password:string
 
+    
+}
+
+export class GetDeviceTokenDto{
     @IsOptional()
     @IsString()
     deviceToken :string
 
-
-   
 }
 
 export class ApplypromoCodeDto{

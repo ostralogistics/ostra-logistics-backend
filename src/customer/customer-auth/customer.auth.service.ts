@@ -29,6 +29,7 @@ import {
 } from 'src/common/common.repositories';
 import { Notifications } from 'src/Entity/notifications.entity';
 import {
+  GetDeviceTokenDto,
   Logindto,
   RequestOtpResendDto,
   SendPasswordResetLinkDto,
@@ -39,7 +40,7 @@ import { Mailer } from 'src/common/mailer/mailer.service';
 import exp from 'constants';
 import { CustomerService } from '../customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
-import { SMSsenderClass } from 'src/common/twilioSmsSender/sms';
+import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 
 @Injectable()
 export class CustomerAuthService {
@@ -51,15 +52,37 @@ export class CustomerAuthService {
     private readonly notificationrepo: NotificationRepository,
     private mailerservice: Mailer,
     private generatorservice: GeneatorService,
-    private smsservice:SMSsenderClass
+    private smsservice:SmsSenderService
   ) {}
 
   // get customer profile
-  async getProfile(customer: CustomerEntity): Promise<ICustomer> {
+  async getProfile(customer: CustomerEntity, dto:GetDeviceTokenDto): Promise<ICustomer> {
     try {
       if (!customer) {
         throw new NotFoundException('Customer not found');
       }
+       // Handle device tokens
+       const devicetoken = dto.deviceToken;
+
+       if (devicetoken) {
+         // Ensure the deviceToken array is initialized
+         if (!customer.deviceToken) {
+           customer.deviceToken = [];
+         }
+   
+         // Check if the token already exists
+         if (!customer.deviceToken.includes(devicetoken)) {
+           // Add the new token
+           customer.deviceToken.push(devicetoken);
+   
+           // If there are more than 3 tokens, remove the oldest one
+           if (customer.deviceToken.length > 3) {
+             customer.deviceToken.shift();
+           }
+             // Save the updated customer entity
+          await this.customerrepo.save(customer);
+         }
+       }
       return customer;
     } catch (error) {
       console.log(error);
@@ -130,8 +153,10 @@ export class CustomerAuthService {
         twominuteslater,
       );
 
-        //sms verification
-        //await this.smsservice.sendOtpSMSFromInfoBip(dto.mobile,emiailverificationcode,dto.firstname)
+        // //sms verification
+        // const text = `Hello ${customer.firstname}, your one time password (OTP) for verification is ${emiailverificationcode}. This OTP is valid for a single use and expires in the next 2 minutes. If you did not request this OTP from OSTRA LOGISTICS, please ignore this SMS`
+        // const formatNumber = await this.generatorservice.formatPhoneNumber(customer.mobile)
+        // await this.smsservice.sendSms(formatNumber,text)
 
       //save the notification
       const notification = new Notifications();
@@ -447,11 +472,7 @@ export class CustomerAuthService {
           'Your account has not been verified. Please verify your account by requesting a verification code.',
         );
       }
-      const devicetoken = logindto.deviceToken
-
-      if (devicetoken){
-        findcustomer.deviceToken.push(devicetoken)
-      }
+    
 
       findcustomer.isLoggedIn = true;
       findcustomer.isLocked = false;

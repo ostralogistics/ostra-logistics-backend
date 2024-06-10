@@ -1,5 +1,5 @@
 import { Controller,Post,Patch,Body, Req,Get, UseGuards, Param } from "@nestjs/common";
-import {  Logindto, RequestOtpResendDto, SendPasswordResetLinkDto, VerifyOtpDto, VerifyOtpForResetPasswordDto } from "src/common/common.dto";
+import {  GetDeviceTokenDto, Logindto, RequestOtpResendDto, SendPasswordResetLinkDto, VerifyOtpDto, VerifyOtpForResetPasswordDto } from "src/common/common.dto";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { CustomerAuthService } from "./customer.auth.service";
 import { RegisterCustomerDto, addPasswordDto } from "../customer.dto";
@@ -12,9 +12,9 @@ export class CustomerAuthController{
 
     @UseGuards(JwtGuard)
     @Get('profile')
-    async getProfile(@Req() req): Promise<any> {
+    async getProfile(@Req()req, @Body()dto:GetDeviceTokenDto): Promise<any> {
       
-      return this.customerauthservice.getProfile(req.user);
+      return this.customerauthservice.getProfile(req.user,dto);
     }
 
     @Post('/register')

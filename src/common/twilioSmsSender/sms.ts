@@ -1,108 +1,35 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
+import { Vonage } from '@vonage/server-sdk';
+import { Auth } from '@vonage/auth';
 
 @Injectable()
-export class SMSsenderClass {
-  private readonly baseUrl = 'https://api.infobip.com/sms/2/text/advanced';
-  private readonly apiKey: string;
+export class SmsSenderService {
+  private readonly vonage: Vonage;
 
-  constructor(
-    private readonly configService: ConfigService,
-  ) {
-    
-    this.apiKey = this.configService.get<string>('INFOBIP_API_KEY');
+  constructor(private readonly configService: ConfigService) {
+    const apiKey = this.configService.get<string>('VONAGE_API_KEY');
+    const apiSecret = this.configService.get<string>('VONAGE_API_SECRET');
+
+    const auth = new Auth({
+      apiKey: apiKey,
+      apiSecret: apiSecret,
+    });
+
+    this.vonage = new Vonage(auth);
   }
 
-  // async sendOtpSMS(to: string, name: string): Promise<void> {
-  //   try {
-  //     const otp = this.generatorService.generateEmailToken();
-  //     const messageBody = `Hello ${name}, your one time password (OTP) for verification is ${otp}. This OTP is valid for a single use and expires in the next 2 minutes. If you did not request this OTP from OSTRA LOGISTICS, please ignore this SMS`;
+  async sendSms(to: string, text: string,): Promise<void> {
+    const from = 'Vonage APIs';
 
-  //     await this.client.messages.create({
-  //       body: messageBody,
-  //       from: '23408078236697', // Your Twilio phone number
-  //       to: to,
-  //     });
-
-  //     console.log(`OTP sent to ${to}: ${otp}`);
-  //   } catch (error) {
-  //     console.log(error);
-  //     throw new InternalServerErrorException(
-  //       'Unable to send OTP SMS',
-  //       error.message,
-  //     );
-  //   }
-  // }
-
-  async sendOtpSMSFromInfoBip(
-    to: string,
-    otp: string,
-    name: string,
-  ): Promise<void> {
     try {
-      // Validate and format phone number
-      const formattedNumber = this.formatPhoneNumber(to);
-      if (!formattedNumber) {
-        throw new Error(`Invalid phone number format: ${to}`);
-      }
-      const message = `Hello ${name}, your one time password (OTP) for verification is ${otp}. This OTP is valid for a single use and expires in the next 2 minutes. If you did not request this OTP from OSTRA LOGISTICS, please ignore this SMS`;
-      const payload = {
-        messages: [
-          {
-            from: 'Ostra Logistics',
-            destinations: [
-              {
-                to:formattedNumber,
-              },
-            ],
-            text: message,
-          },
-        ],
-      };
-
-      const response = await axios.post(this.baseUrl, payload, {
-        headers: {
-          Authorization: `App ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (
-        response.data.messages[0].status.groupName !== 'PENDING' &&
-        response.data.messages[0].status.groupName !== 'SENT'
-      ) {
-        throw new Error(
-          `Failed to send SMS: ${response.data.messages[0].status.description}`,
-        );
-      }
-
-      console.log(`SMS sent to ${to}: ${message}`);
-    } catch (error) {
-      console.error(
-        'Error sending SMS:',
-        error.response ? error.response.data : error.message,
-      );
+      const response = await this.vonage.sms.send({ to, from, text, });
+      console.log('Message sent successfully');
+      console.log(response);
+    } catch (err) {
+      console.log('There was an error sending the messages.');
+      console.error(err);
       throw new Error('Failed to send SMS');
     }
-  }
-
-
-  
-  // Helper method to validate and format phone number
-  formatPhoneNumber(phone: string): string | null {
-    // Remove non-numeric characters
-    const cleaned = phone.replace(/\D/g, '');
-    // Check if the number starts with '0' and is 11 digits long (for Nigerian numbers)
-    if (cleaned.startsWith('0') && cleaned.length === 11) {
-      // Replace leading '0' with '+234'
-      return `+234${cleaned.substring(1)}`;
-    }
-    // Check if the number is already in international format
-    if (cleaned.startsWith('234') && cleaned.length === 13) {
-      return `+${cleaned}`;
-    }
-    // Invalid number format
-    return null;
   }
 }

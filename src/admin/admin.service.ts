@@ -68,13 +68,9 @@ import { OrderEntity } from 'src/Entity/orders.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
-//import { FirebaseService } from 'src/firebase/firebase.service';
-//import * as admin from 'firebase-admin'
-
 @Injectable()
 export class AdminService {
   constructor(
-    //@Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(AdminEntity) private readonly adminRepo: AdminRepository,
     @InjectRepository(VehicleEntity)
     private readonly vehiclerepo: VehicleRepository,
@@ -100,7 +96,6 @@ export class AdminService {
     private uploadservice: UploadService,
     private genratorservice: GeneatorService,
     private cloudinaryservice: CloudinaryService,
-    //private firebaseservice:FirebaseService
   ) {}
 
   async AddVehicleType(dto: VehicleTypeDto) {
@@ -406,26 +401,6 @@ export class AdminService {
       vehicle.assignedAT = new Date();
       await this.vehiclerepo.save(vehicle);
 
-    //     //send push notification to the rider 
-    //     const payload: admin.messaging.MessagingPayload={
-    //       notification:{
-    //         title:'New Vehicle Assigned!',
-    //         body:`vehicle with ID: ${vehicle.id} with ${vehicle.vehicle_model} and  ${vehicle.registration_number} have been assigned to you for the day. Please ensure you return it back to the office before clocking out for the day. Thank you `
-    //       }
-    //     }
-    //    // Retrieve the most recent device token
-    //   const recentDeviceToken =
-    //   rider.deviceToken[rider.deviceToken.length - 1];
-
-    // if (recentDeviceToken) {
-    //   // Send the push notification to the most recent device token
-    //   await this.firebaseservice.sendNotification(
-    //     [recentDeviceToken],
-    //     payload,
-    //   );
-    // } else {
-    //   console.log('No device token available for the customer.');
-    // }
 
       //save the notification
       const notification = new Notifications();
@@ -486,29 +461,6 @@ export class AdminService {
         vehicle.assigned_Rider = null;
         vehicle.retrnedAt = new Date();
         await this.vehiclerepo.save(vehicle);
-
-    //       //send push notification to the rider 
-    //       const payload: admin.messaging.MessagingPayload={
-    //         notification:{
-    //           title:'Vehicle Reported As Returned!',
-    //           body:`vehicle with ID:  ${vehicle.id} with ${vehicle.vehicle_model} and  ${vehicle.registration_number} assigned to ${rider.firstname} for the day have been reported as returned. Thank you `
-    //         }
-    //       }
-    //       // Retrieve the most recent device token
-    //   const recentDeviceToken =
-    //   rider.deviceToken[rider.deviceToken.length - 1];
-
-    // if (recentDeviceToken) {
-    //   // Send the push notification to the most recent device token
-    //   await this.firebaseservice.sendNotification(
-    //     [recentDeviceToken],
-    //     payload,
-    //   );
-    // } else {
-    //   console.log('No device token available for the customer.');
-    // }
-         
-         
 
         //save the notification
         const notification = new Notifications();

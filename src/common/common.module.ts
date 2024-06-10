@@ -14,7 +14,8 @@ import { Notifications } from 'src/Entity/notifications.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryConfig } from './config/claudinary.config';
 import { CloudinaryService } from './services/claudinary.service';
-import { SMSsenderClass } from './twilioSmsSender/sms';
+import { SmsSenderService } from './twilioSmsSender/sms';
+
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { SMSsenderClass } from './twilioSmsSender/sms';
     PublicService,
     CloudinaryConfig,
     CloudinaryService,
-    SMSsenderClass
+    SmsSenderService
   ],
   controllers: [CommonController],
   exports: [
@@ -42,7 +43,7 @@ import { SMSsenderClass } from './twilioSmsSender/sms';
     GeneatorService,
     CloudinaryService,
     CloudinaryConfig,
-    SMSsenderClass
+    SmsSenderService
   ],
 })
 export class CommonModule {}

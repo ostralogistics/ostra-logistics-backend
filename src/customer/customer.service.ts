@@ -184,7 +184,7 @@ export class CustomerService {
         dto.house_apartment_number_of_dropoff;
         if (dto.vehicleTypeID){
           const vehicle =await this.vehicletypeRepo.findOne({where:{id:dto.vehicleTypeID}})
-          if (!vehicle) throw new NotFoundException('vehicle not found');
+          if (!vehicle) throw new NotFoundException('vehicle type not found');
           item.vehicleType = vehicle
         
         }
@@ -202,7 +202,7 @@ export class CustomerService {
       cart.updatedAt = new Date();
       await this.orderCartRepo.save(cart);
 
-      // Convert cart entity to plain object to avoid circular reference issues
+      
       return cart;
     } catch (error) {
       if (error instanceof NotAcceptableException)

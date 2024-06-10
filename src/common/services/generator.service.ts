@@ -34,7 +34,7 @@ export class GeneatorService{
         const payload = {
           sub: id,
           email,
-          role,
+          role
         };
         const secret = this.configservice.get('SECRETKEY');
         const token = await this.jwt.signAsync(payload, {
@@ -127,6 +127,25 @@ export class GeneatorService{
       throw new InternalServerErrorException('something went wrong while creating qrcode, please try again')
       
     }
+  }
+
+  async formatPhoneNumber(phone: string): Promise<string|null> {
+    // Remove non-numeric characters
+    const cleaned = phone.replace(/\D/g, '');
+  
+    // Check if the number starts with '0' and is 11 digits long (for Nigerian numbers)
+    if (cleaned.startsWith('0') && cleaned.length === 11) {
+      // Replace leading '0' with '+234'
+      return `+234${cleaned.substring(1)}`;
+    }
+  
+    // Check if the number is already in international format
+    if (cleaned.startsWith('234') && cleaned.length === 13) {
+      return `+${cleaned}`;
+    }
+  
+    // Invalid number format
+    return null;
   }
 
 

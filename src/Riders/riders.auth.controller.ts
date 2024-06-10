@@ -1,6 +1,6 @@
 import { Body, Controller, Post,UseGuards,Get,Req, Patch } from "@nestjs/common";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
-import { Logindto } from "src/common/common.dto";
+import { GetDeviceTokenDto, Logindto } from "src/common/common.dto";
 import { RiderAuthService } from "./riders.auth.service";
 import { RequestResetPasswordDto } from "./riders.dto";
 
@@ -11,9 +11,9 @@ export class RiderAuthController{
 
     @UseGuards(JwtGuard)
     @Get('profile')
-    async getProfile(@Req() req): Promise<any> {
+    async getProfile(@Req()req,@Body()dto:GetDeviceTokenDto): Promise<any> {
       
-      return this.riderauthsrvice.getProfile(req.user);
+      return this.riderauthsrvice.getProfile(req.user,dto);
     }
 
     @Post('/login')
