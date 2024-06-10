@@ -16,12 +16,12 @@ import { OrderEntity } from 'src/Entity/orders.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
 import { CustomerService } from 'src/customer/customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
-import { FirebaseService } from 'src/firebase/firebase.service';
-import { FirebaseModule } from 'src/firebase/firebase.module';
+// import { FirebaseService } from 'src/firebase/firebase.service';
+// import { FirebaseModule } from 'src/firebase/firebase.module';
 
-@Module({
+ @Module({
   imports: [
-    FirebaseModule,
+    //FirebaseModule,
     TypeOrmModule.forFeature([
       RiderEntity,
       Notifications,
@@ -40,7 +40,7 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
     Mailer,
     RiderService,
     GeneatorService,
-    FirebaseService
+    //FirebaseService
   ],
   controllers: [RiderAuthController, RiderController],
 })

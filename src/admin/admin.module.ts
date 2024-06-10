@@ -38,13 +38,13 @@ import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
-import { FirebaseService } from 'src/firebase/firebase.service';
-import { FirebaseModule } from 'src/firebase/firebase.module';
+// import { FirebaseService } from 'src/firebase/firebase.service';
+// import { FirebaseModule } from 'src/firebase/firebase.module';
 
 
 @Module({
   imports: [
-    FirebaseModule,
+    //FirebaseModule,
   
     TypeOrmModule.forFeature([
       AdminEntity,
@@ -92,7 +92,7 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
     GeoCodingService,
     CloudinaryService,
     SmsSenderService,
-    FirebaseService
+    //FirebaseService
   ],
 })
 export class AdminModule {}
