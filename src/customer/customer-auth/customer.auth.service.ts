@@ -40,7 +40,7 @@ import { Mailer } from 'src/common/mailer/mailer.service';
 import exp from 'constants';
 import { CustomerService } from '../customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
-import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
+//import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 
 @Injectable()
 export class CustomerAuthService {
@@ -52,7 +52,7 @@ export class CustomerAuthService {
     private readonly notificationrepo: NotificationRepository,
     private mailerservice: Mailer,
     private generatorservice: GeneatorService,
-    private smsservice:SmsSenderService
+    //private smsservice:SmsSenderService
   ) {}
 
   // get customer profile

@@ -233,7 +233,7 @@ export class AdminRiderDashboardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = findriderbyid.id;
+      notification.account = "super admin";
       notification.subject = 'Rider deleted !';
       notification.message = `the rider with id ${riderID}  has been deleted from the ostra logistics application by superAdmin  `;
       await this.notificationripo.save(notification);

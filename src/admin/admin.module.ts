@@ -37,7 +37,7 @@ import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
-import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
+//import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 // import { FirebaseService } from 'src/firebase/firebase.service';
 // import { FirebaseModule } from 'src/firebase/firebase.module';
 
@@ -91,7 +91,7 @@ import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
     DistanceService,
     GeoCodingService,
     CloudinaryService,
-    SmsSenderService,
+    //SmsSenderService,
     //FirebaseService
   ],
 })
