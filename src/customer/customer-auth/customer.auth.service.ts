@@ -122,10 +122,6 @@ export class CustomerAuthService {
       customer.role = Role.CUSTOMER;
       customer.RegisteredAt = new Date();
       customer.isRegistered = true;
-      if (devicetoken){
-        customer.deviceToken.push(devicetoken)
-      }
-
       await this.customerrepo.save(customer);
 
       //2fa authentication
