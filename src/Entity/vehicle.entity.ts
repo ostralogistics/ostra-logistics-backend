@@ -65,7 +65,7 @@ export class VehicleEntity implements IVehicle{
     @Column({nullable:true, type:'timestamp'})
     DeletedAt: Date; 
 
-    @ManyToOne(()=>RiderEntity,rider=>rider.vehicle_for_the_day)
+    @ManyToOne(()=>RiderEntity,rider=>rider.vehicle_for_the_day,{nullable:true})
     assigned_Rider: RiderEntity;
 
     @Column({nullable:true,type:'timestamp'})

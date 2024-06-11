@@ -55,13 +55,13 @@ export class TransactionEntity implements ITransactions{
   @Column({nullable:true})
   amount: number;
 
-  @ManyToOne(() => CustomerEntity)
+  @ManyToOne(() => CustomerEntity,{nullable:true,onDelete:'CASCADE'})
   customer: CustomerEntity;
 
-  @ManyToOne(() => RiderEntity)
+  @ManyToOne(() => RiderEntity,{nullable:true,onDelete:'CASCADE'})
   Rider: RiderEntity;
 
-  @ManyToOne(()=>RiderBankDetailsEntity)
+  @ManyToOne(()=>RiderBankDetailsEntity,{nullable:true,onDelete:'CASCADE'})
   bankInfo: RiderBankDetailsEntity
 
 

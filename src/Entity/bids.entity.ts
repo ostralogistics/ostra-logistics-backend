@@ -68,7 +68,7 @@ counter_bid_offer: number;
 @Column({ nullable: true,type:'timestamp' })
 counteredAt:Date
 
-@ManyToOne(()=>AdminEntity, admin => admin.bids_sent)
+@ManyToOne(()=>AdminEntity, admin => admin.bids_sent,{onDelete:'CASCADE'})
 madeby: AdminEntity;
 
 }

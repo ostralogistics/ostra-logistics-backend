@@ -50,10 +50,10 @@ export class ComplaintEntity implements IComplaints{
     updatedAT:Date
 
 
-    @ManyToOne(()=>CustomerEntity, customer=>customer.my_complains)
+    @ManyToOne(()=>CustomerEntity, customer=>customer.my_complains,{nullable:true,onDelete:'CASCADE'})
     customer: CustomerEntity
 
-    @OneToMany(()=>RepliesEntity,replies=>replies.complaint)
+    @OneToMany(()=>RepliesEntity,replies=>replies.complaint,{nullable:true})
     replies: RepliesEntity[]
 
 

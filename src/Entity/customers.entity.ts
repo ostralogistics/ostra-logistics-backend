@@ -76,19 +76,19 @@ export class CustomerEntity implements ICustomer{
     isLocked: boolean;
 
 
-    @OneToMany(()=>OrderEntity, order=>order.customer)
+    @OneToMany(()=>OrderEntity, order=>order.customer,{nullable:true})
     my_orders: OrderEntity[];
 
-    @OneToMany(()=>CardEntity,card => card.card_owner )
+    @OneToMany(()=>CardEntity,card => card.card_owner, {nullable:true} )
     my_cards :CardEntity[]
 
-    @OneToMany(()=>ComplaintEntity,complain=>complain.customer)
+    @OneToMany(()=>ComplaintEntity,complain=>complain.customer,{nullable:true})
     my_complains: ComplaintEntity[];
 
-    @OneToMany(()=>OrderCartEntity, cart =>cart.customer)
+    @OneToMany(()=>OrderCartEntity, cart =>cart.customer,{nullable:true})
     carts: OrderCartEntity;
 
-    @OneToMany(() => DiscountUsageEntity, (usage) => usage.appliedBy)
+    @OneToMany(() => DiscountUsageEntity, (usage) => usage.appliedBy, {nullable:true, onDelete:'CASCADE'})
     discountUsages: DiscountUsageEntity[];
     
 

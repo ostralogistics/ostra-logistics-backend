@@ -29,7 +29,7 @@ export class CardEntity implements ICard{
     @Column({nullable:false})
     cvv: string;
 
-    @ManyToOne(()=>CustomerEntity, owner=>owner.my_cards)
+    @ManyToOne(()=>CustomerEntity, owner=>owner.my_cards,{onDelete:'CASCADE'})
     card_owner: CustomerEntity;
 
     @Column({ nullable: true,type:'timestamp' })

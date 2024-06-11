@@ -14,7 +14,7 @@ import {
   TaskRepository,
   riderBankDetailsRepository,
 } from 'src/Riders/riders.repository';
-import { AdminRepository } from '../admin.repository';
+import { AdminRepository, VehicleRepository } from '../admin.repository';
 import { Notifications } from 'src/Entity/notifications.entity';
 import {
   NotificationRepository,
@@ -49,6 +49,7 @@ import { GeneatorService } from 'src/common/services/generator.service';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { all } from 'axios';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
+import { VehicleEntity } from 'src/Entity/vehicle.entity';
 // import * as admin from 'firebase-admin'
 // import { FirebaseService } from 'src/firebase/firebase.service';
 
@@ -69,10 +70,13 @@ export class AdminRiderDashboardService {
     private readonly riderbankdetailsRepo: riderBankDetailsRepository,
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
+    @InjectRepository(VehicleEntity)
+    private readonly vehicleRepository: VehicleRepository,
     private uploadservice: UploadService,
     private cloudinaryservice: CloudinaryService,
     private mailer: Mailer,
     private genratorservice: GeneatorService,
+    
     //private firebaseservice:FirebaseService
   ) {}
 
@@ -221,12 +225,18 @@ export class AdminRiderDashboardService {
   async AdminDeleteRider(riderID: string): Promise<{ message: string }> {
     try {
       const findriderbyid = await this.riderripo.findOne({
-        where: { id: riderID },
+        where: { id: riderID },relations:['vehicle_for_the_day']
       });
       if (!findriderbyid)
         throw new NotFoundException(
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
+
+         // Set assigned_Rider to null in related vehicle
+    if (findriderbyid.vehicle_for_the_day) {
+      findriderbyid.vehicle_for_the_day.assigned_Rider = null;
+      await this.vehicleRepository.save(findriderbyid.vehicle_for_the_day);
+  }
 
       //remove rider from the platorm
       await this.riderripo.remove(findriderbyid);

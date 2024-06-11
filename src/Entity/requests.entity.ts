@@ -24,6 +24,6 @@ export class RequestEntity implements IRequests{
     @Column({nullable:true, type:'timestamp'})
     requestedAt: Date
 
-    @ManyToOne(()=>RiderEntity, request=> request.my_requests )
+    @ManyToOne(()=>RiderEntity, request=> request.my_requests,{nullable:true,onDelete:'CASCADE'} )
     Rider: RiderEntity
 }

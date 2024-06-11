@@ -22,10 +22,10 @@ export class RepliesEntity implements IReplies{
     @Column({nullable:true,type:"timestamp"})
     repliedAT: Date
 
-    @ManyToOne(()=>AdminEntity,admin=>admin)
+    @ManyToOne(()=>AdminEntity,admin=>admin,{nullable:true,onDelete:'CASCADE'})
     repliedBy: AdminEntity
 
-    @ManyToOne(()=>ComplaintEntity,complain=>complain.replies)
+    @ManyToOne(()=>ComplaintEntity,complain=>complain.replies,{nullable:true,onDelete:'CASCADE'})
     complaint: ComplaintEntity
 
 

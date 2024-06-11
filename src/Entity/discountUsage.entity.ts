@@ -23,7 +23,7 @@ export class DiscountUsageEntity implements IDiscountUsage{
     @Column({nullable:true, type:"timestamp"})
     expiredAT: Date
 
-    @ManyToOne(()=>CustomerEntity, customer => customer.discountUsages)
+    @ManyToOne(()=>CustomerEntity, customer => customer.discountUsages,{nullable:true, onDelete:'CASCADE'})
     appliedBy: CustomerEntity
 
 

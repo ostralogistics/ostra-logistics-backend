@@ -104,17 +104,17 @@ export class AdminEntity implements IAdmin{
     isLocked: boolean;
 
 
-    @OneToMany(()=>RepliesEntity,replies=>replies.repliedBy)
+    @OneToMany(()=>RepliesEntity,replies=>replies.repliedBy,{nullable:true})
     replies: RepliesEntity[];
 
 
-    @OneToMany(()=>OrderCartEntity, cart =>cart.admin)
+    @OneToMany(()=>OrderCartEntity, cart =>cart.admin,{nullable:true})
     carts: OrderCartEntity;
 
-    @OneToMany(()=>OrderEntity, order=>order.admin)
+    @OneToMany(()=>OrderEntity, order=>order.admin, {nullable:true})
     my_orders: OrderEntity[];
 
-    @OneToMany(()=>BidEntity, bids =>bids.madeby)
+    @OneToMany(()=>BidEntity, bids =>bids.madeby,{nullable:true})
     bids_sent: BidEntity[]
     
     

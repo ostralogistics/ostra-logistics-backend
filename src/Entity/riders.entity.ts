@@ -119,19 +119,19 @@ export class RiderEntity implements IRider{
     status :RiderStatus
 
 
-    @OneToOne(()=>OrderEntity,order=> order.Rider)
+    @OneToOne(()=>OrderEntity,order=> order.Rider, {nullable:true})
     assigned_order:OrderEntity
 
-    @OneToMany(()=>TaskEntity, task=>task.rider)
+    @OneToMany(()=>TaskEntity, task=>task.rider,{nullable:true})
     tasks: TaskEntity[];
 
-    @OneToMany(()=>RequestEntity, request=>request.Rider)
+    @OneToMany(()=>RequestEntity, request=>request.Rider,{nullable:true})
     my_requests: RequestEntity[];
 
-    @OneToOne(()=>VehicleEntity, Vehicle=>Vehicle.assigned_Rider)
+    @OneToOne(()=>VehicleEntity, Vehicle=>Vehicle.assigned_Rider,{nullable:true})
     vehicle_for_the_day: VehicleEntity;
 
-    @OneToMany(()=>RiderBankDetailsEntity,details=>details.owner)
+    @OneToMany(()=>RiderBankDetailsEntity,details=>details.owner,{ nullable:true})
     bank_details : RiderBankDetailsEntity[]
     
     
@@ -154,7 +154,7 @@ export class RiderBankDetailsEntity implements IMyBankAccountDetails{
      @Column({nullable:true, type:'enum', enum:BankDetailsStatus})
      status: BankDetailsStatus;
 
-     @ManyToOne(()=>RiderEntity, rider=>rider.bank_details)
+     @ManyToOne(()=>RiderEntity, rider=>rider.bank_details,{nullable:true, onDelete:'CASCADE'})
      owner: RiderEntity;
  
 

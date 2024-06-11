@@ -25,7 +25,7 @@ export class TaskEntity implements IRiderTask{
     @Column({nullable:true, type:'enum', enum:RiderTask})
     task: RiderTask;
 
-    @ManyToOne(()=>RiderEntity,rider=>rider.tasks)
+    @ManyToOne(()=>RiderEntity,rider=>rider.tasks,{onDelete:'CASCADE'})
     rider: RiderEntity;
 
     @Column({ nullable: true,type:'timestamp' })
