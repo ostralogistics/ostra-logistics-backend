@@ -6,9 +6,7 @@ import {
   Get,
   Patch,
   Delete,
-  BadRequestException,
   Query,
-  InternalServerErrorException,
   Body,
   Param,
   UseGuards,
@@ -24,10 +22,8 @@ import {
   UpdateRiderInfoByAdminDto,
 } from '../admin.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { IChangeRiderPassword } from 'src/Riders/riders';
-import { RiderEntity } from 'src/Entity/riders.entity';
+
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
-import { Multer } from 'multer';
 import { RoleGuard } from 'src/auth/guard/role.guard';
 import { Roles } from 'src/auth/decorator/role.decorator';
 import { AdminAccessLevels, AdminType, Role } from 'src/Enums/all-enums';
@@ -121,6 +117,49 @@ export class AdminRiderDashBoardController {
   ) {
     return await this.adminriderservice.GetAllRiders(page, limit);
   }
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
+  @Get('/all-riders-offline')
+  async GetAllRidersOffline(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return await this.adminriderservice.GetAllRidersWithStatusOffline(page, limit);
+  }
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
+  @Get('/all-riders-inTransit')
+  async GetAllRidersIntransit(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return await this.adminriderservice.GetAllRidersWithStatusIntransit(page, limit);
+  }
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
+  @Get('/all-riders-available')
+  async GetAllRidersAvailable(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return await this.adminriderservice.GetAllRidersWithStatusIntransit(page, limit);
+  }
+
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(
@@ -226,10 +265,62 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL2,
     AdminAccessLevels.LEVEL1,
   )
+  @Get('one-rider-tasks/:riderID')
+  async GetOneriderTasks(@Param('riderID')riderID:string) {
+    return await this.adminriderservice.getOneriderTask(riderID);
+  }
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
+  @Get('one-rider-tasks-count/:riderID')
+  async GetOneriderTasksCount(@Param('riderID')riderID:string) {
+    return await this.adminriderservice.getOneriderTaskCount(riderID);
+  }
+
+
+
+
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
   @Get('all-ongoing-tasks')
   async GetallOngoingTaskTasks() {
     return await this.adminriderservice.getAllriderwithOngoingTaskTask();
   }
+
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
+  @Get('one-rider-ongoing-tasks/:riderID')
+  async GetaOneRiderOngoingTaskTasks(@Param('riderID')riderID:string) {
+    return await this.adminriderservice.getOneriderOngoingTaskTask(riderID);
+  }
+
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
+  @Get('one-rider-ongoing-tasks-count/:riderID')
+  async GetaOneRiderOngoingTaskCount(@Param('riderID')riderID:string) {
+    return await this.adminriderservice.getOneriderOngoingTaskCount(riderID);
+  }
+
+
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(
@@ -240,5 +331,27 @@ export class AdminRiderDashBoardController {
   @Get('all-concluded-tasks')
   async GetallConcludedTaskTasks() {
     return await this.adminriderservice.getAllriderwithConcludedTask();
+  }
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
+  @Get('one-rider-concluded-tasks/:riderID')
+  async GetOneRiderConcludedTaskTasks(@Param('riderID')riderID:string) {
+    return await this.adminriderservice.getOneriderwithConcludedTask(riderID);
+  }
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
+  @Get('one-rider-concluded-tasks-count/:riderID')
+  async GetOneRiderConcludedTaskCount(@Param('riderID')riderID:string) {
+    return await this.adminriderservice.getOneriderCompletedTaskCount(riderID);
   }
 }

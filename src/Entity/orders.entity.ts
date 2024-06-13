@@ -1,6 +1,7 @@
 // the table that holds all the orders and it will have its relatiohip with the customer and also have relationship with the rider who the order was assigned to and then it will be saved to the tasks given
 import {
   BidStatus,
+  OrderDisplayStatus,
   OrderStatus,
   PaymentStatus,
   PriorityDeliveryType,
@@ -38,36 +39,58 @@ export class OrderEntity implements IOrder {
   @Column({ nullable: true })
   orderID: string;
 
+  @Column({ nullable: true,type:'timestamp' })
+  orderPlacedAt: Date;
+
+  @Column({ nullable: true,type:'timestamp' })
+  payment_verifiedAT: Date;
+
   @OneToMany(() => OrderItemEntity, (orderItem) => orderItem.order, { cascade: true })
   items: OrderItemEntity[];
+
+  @Column({ nullable: true,type:'timestamp' })
+  processingOrderAT: Date;
   
   @Column({ nullable: true, type: 'enum', enum: PaymentStatus })
   payment_status: PaymentStatus;
 
   @Column({ nullable: true,type:'timestamp' })
-  payment_verifiedAT: Date;
+  paymentVerifiedAT: Date;
 
   @Column({ nullable: true,type:'timestamp' })
-  pickupTime: Date;
+  RiderAssignedAT:Date;
 
   @Column({ nullable: true,type:'timestamp' })
-  dropOffTime: Date;
+  EnrouteToPickupAT:Date;
 
   @Column({ nullable: true, type: 'enum', enum: OrderStatus })
   order_status: OrderStatus;
 
+  @Column({ nullable: true,type:'timestamp' })
+  AtThePickUpLocationAT:Date;
+
+  @Column({ nullable: true,type:'timestamp' })
+  RiderRecieveParcelAT:Date;
+
+  @Column({ nullable: true,type:'timestamp' })
+  EnrouteToOfficeAT:Date;
+
+  @Column({ nullable: true,type:'timestamp' })
+  ArrivesAtTheOfficeAT:Date;
+
+
+  @Column({ nullable: true,type:'timestamp' })
+  EnrouteToDropOffAT:Date;
+
+  @Column({ nullable: true,type:'timestamp' })
+  RiderAtDropOffLocationAT:Date;
+
+  @Column({ nullable: true,type:'timestamp' })
+  DeliveredAT:Date;
 
   @Column({ nullable: true, type: 'enum', enum: BidStatus })
   bidStatus: BidStatus;
 
-  @Column({ nullable: true,type:'timestamp' })
-  orderCreatedAtTime: Date;
-
-  @Column({ nullable: true,type:'timestamp' })
-  RiderArrivaltime: Date;
-
-  @Column({ nullable: true,type:'timestamp' })
-  RiderAssignedAT: Date;
 
   @Column({ length: 255, nullable: true })
   trackingID: string;
@@ -106,6 +129,9 @@ export class OrderEntity implements IOrder {
 
   @OneToMany(() => TaskEntity, (task) => task.assigned_order)
   assigned_task: TaskEntity;
+
+  @Column({ nullable: true, type: 'enum', enum: OrderDisplayStatus })
+  order_display_status: OrderDisplayStatus;
 
 }
 

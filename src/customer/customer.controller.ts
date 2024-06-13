@@ -74,12 +74,6 @@ export class CustomerController{
       return await this.customerservice.fetchallOngoingOrders(req.user)
      }
 
-   
-     @Get('pickedup-orders')
-     async GetallOrdersPickup(@Req()req){
-      return await this.customerservice.fetchallPickedupOrders(req.user)
-     }
-
      
      @Get('droppedOff-orders')
      async GetallOrdersdroppedOff(@Req()req){

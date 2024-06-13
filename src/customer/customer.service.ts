@@ -39,6 +39,7 @@ import {
   BidEvent,
   BidStatus,
   BiddingAction,
+  OrderDisplayStatus,
   OrderStatus,
   PaymentStatus,
   channelforconversation,
@@ -349,8 +350,9 @@ export class CustomerService {
         await this.discountusageRepo.save(discountUsage);
       }
   
-      order.orderCreatedAtTime = new Date();
-      order.order_status = OrderStatus.BIDDING_ONGOING;
+      order.orderPlacedAt = new Date();
+      order.order_status = OrderStatus.ORDER_PLACED;
+      order.order_display_status = OrderDisplayStatus.ORDER_PLACED
   
       // Add items to the order
       order.items = cart.items.map(cartItem => {
@@ -499,6 +501,7 @@ export class CustomerService {
    
   
     order.bidStatus = BidStatus.DECLINED;
+    order.order_display_status = OrderDisplayStatus.DECLINED
     await this.orderRepo.save(order);
   
     bid.bidStatus = BidStatus.DECLINED;
@@ -745,7 +748,7 @@ export class CustomerService {
       const findorder = await this.orderRepo.findAndCount({
         where: {
           customer: { id: customer.id },
-          order_status: OrderStatus.IN_TRANSIT,
+          order_display_status:OrderDisplayStatus.IN_TRANSIT,
         },
         relations: ['customer', 'bid','items','items.vehicleType'],
         comment: 'fetching orders that are in transit ',
@@ -768,34 +771,6 @@ export class CustomerService {
     }
   }
 
-  //fetching all orders intransit
-  async fetchallPickedupOrders(customer: CustomerEntity) {
-    try {
-      const findorder = await this.orderRepo.findAndCount({
-        where: {
-          customer: { id: customer.id },
-          order_status: OrderStatus.PICKED_UP,
-        },
-        relations: ['customer', 'bid','items','items.vehicleType'],
-        comment: 'fetching orders that are picked up ',
-      });
-
-      if (findorder[1] === 0)
-        throw new NotFoundException(' you have no order in transit ');
-
-      return findorder;
-    } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while fetching all picked up orders, please try again later',
-          error.message,
-        );
-      }
-    }
-  }
 
   //fetching all orders intransit
   async fetchalldroppedoff(customer: CustomerEntity) {
@@ -803,7 +778,7 @@ export class CustomerService {
       const findorder = await this.orderRepo.findAndCount({
         where: {
           customer: { id: customer.id },
-          order_status: OrderStatus.DROPPED_OFF,
+          order_display_status:OrderDisplayStatus.COMPLETED
         },
         relations: ['customer', 'bid','items','items.vehicleType'],
         comment: 'fetching orders that have been dropped off ',

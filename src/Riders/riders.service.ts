@@ -29,6 +29,7 @@ import {
 } from './riders.dto';
 import {
   AcceptOrDeclineTask,
+  OrderDisplayStatus,
   OrderStatus,
   RequestType,
   RiderMileStones,
@@ -137,6 +138,11 @@ export class RiderService {
         task.status = TaskStatus.ONGOING;
         await this.taskRepo.save(task);
 
+        //update order status
+        task.assigned_order.order_status =OrderStatus.RIDER_ASSIGNED
+        task.assigned_order.RiderAssignedAT = new Date()
+        await this.orderRepo.save(task.assigned_order)
+
         //update rider info 
         Rider.status = RiderStatus.IN_TRANSIT
         await this.riderRepo.save(Rider)
@@ -203,6 +209,12 @@ export class RiderService {
       task.milestone = RiderMileStones.ENROUTE_TO_PICKUP_LOCATION;
       await this.taskRepo.save(task);
 
+      //update order table 
+      task.assigned_order.order_status = OrderStatus.ENROUTE_TO_PICKUP
+      task.assigned_order.EnrouteToPickupAT = new Date()
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
+      await this.orderRepo.save(task.assigned_order)
+
       //save notification
       const notification = new Notifications();
       notification.account = Rider.id;
@@ -251,6 +263,12 @@ export class RiderService {
       task.milestone = RiderMileStones.AT_PICKUP_LOCATION;
       await this.taskRepo.save(task);
 
+      //update order table 
+      task.assigned_order.order_status = OrderStatus.AT_PICKUP_LOCATION
+      task.assigned_order.AtThePickUpLocationAT = new Date()
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
+      await this.orderRepo.save(task.assigned_order)
+
       //save notification
       const notification = new Notifications();
       notification.account = Rider.id;
@@ -291,27 +309,11 @@ export class RiderService {
           `task with the id: ${taskID} is not assigned to this rider`,
         );
 
-      //check the order
-      const isOrder = await this.orderRepo.findOne({
-        where: {
-          id: orderID,
-          assigned_task: { id: taskID, rider: { id: Rider.id } },
-        },
-        relations: ['Rider', 'assigned_task'],
-      });
-      if (!isOrder)
-        throw new NotAcceptableException(
-          'this order you are about to pickup was not assigned to you',
-        );
-
-      //updtae pickup milestone
-      task.milestone = RiderMileStones.PICKED_UP_PARCEL;
-      await this.taskRepo.save(task);
-
-      //update the order table
-      isOrder.order_status = OrderStatus.PICKED_UP;
-      isOrder.pickupTime = new Date();
-      await this.orderRepo.save(isOrder);
+     //update order table 
+     task.assigned_order.order_status = OrderStatus.RIDER_RECEIVE_PARCEL
+     task.assigned_order.RiderRecieveParcelAT = new Date()
+     task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
+     await this.orderRepo.save(task.assigned_order)
 
       //save notification
       const notification = new Notifications();
@@ -361,6 +363,17 @@ export class RiderService {
       task.milestone = RiderMileStones.ENROUTE_TO_THE_OFFICE_FOR_REBRANDING;
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
+
+       //update order table 
+       task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE
+       await this.orderRepo.save(task.assigned_order)
+
+       //update order table 
+      task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE
+      task.assigned_order.EnrouteToOfficeAT = new Date()
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
+      await this.orderRepo.save(task.assigned_order)
+ 
 
       //save notification
       const notification = new Notifications();
@@ -418,6 +431,13 @@ export class RiderService {
         await this.riderRepo.save(Rider)
       }
 
+       //update order table 
+       task.assigned_order.order_status = OrderStatus.ARRIVES_AT_THE_OFFICE
+       task.assigned_order.ArrivesAtTheOfficeAT = new Date()
+       task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
+       await this.orderRepo.save(task.assigned_order)
+ 
+
 
 
       //save notification
@@ -467,6 +487,13 @@ export class RiderService {
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
+       //update order table 
+       task.assigned_order.order_status = OrderStatus.ENROUTE_TO_DROPOFF
+       task.assigned_order.EnrouteToDropOffAT = new Date()
+       task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
+       await this.orderRepo.save(task.assigned_order)
+ 
+
       //save notification
       const notification = new Notifications();
       notification.account = Rider.id;
@@ -512,6 +539,12 @@ export class RiderService {
       task.milestone = RiderMileStones.AT_DROPOFF_LOCATION;
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
+
+       //update order table 
+       task.assigned_order.order_status = OrderStatus.RIDER_AT_DROPOFF_LOCATION
+       task.assigned_order.RiderAtDropOffLocationAT = new Date()
+       task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
+       await this.orderRepo.save(task.assigned_order)
 
       //save notification
       const notification = new Notifications();
@@ -579,8 +612,9 @@ export class RiderService {
       await this.taskRepo.save(task);
 
       //update the order table
-      isOrder.order_status = OrderStatus.DROPPED_OFF;
-      isOrder.pickupTime = new Date();
+      isOrder.order_status = OrderStatus.DELIVERED;
+      isOrder.order_display_status = OrderDisplayStatus.COMPLETED;
+      isOrder.DeliveredAT = new Date();
       await this.orderRepo.save(isOrder);
 
       //update the rider entity

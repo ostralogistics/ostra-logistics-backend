@@ -133,10 +133,14 @@ export class AdminRiderDashboardService {
       if (findrider) {
         throw new NotAcceptableException(`email: ${emailnow} already exists, please generate another one`);
       }
+
+      
   
       await this.riderripo.save(rider);
+
+      console.log(rider.RegisteredAt)
   
-      const notification = new Notifications();
+      const notification = new Notifications();4
       notification.account = rider.id;
       notification.subject = 'Admin Registered a Rider !';
       notification.message = `a new rider has been created on ostra logistics platform `;
@@ -440,6 +444,95 @@ export class AdminRiderDashboardService {
       }
     }
   }
+
+  async GetAllRidersWithStatusOffline(page: number = 1, limit: number = 15) {
+    try {
+      const skip = (page - 1) * limit;
+
+      //fetch riders with pagination
+      const findallriders = await this.riderripo.findAndCount({
+        where:{status:RiderStatus.OFFLINE},
+        order: { RegisteredAt: 'DESC' },
+        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        take: limit,
+        skip: skip,
+      });
+
+      if (findallriders[1] === 0)
+        throw new NotFoundException('no riders were found');
+      return findallriders;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch all riders that are offline, please try again',
+          error.message,
+        );
+      }
+    }
+  }
+
+  async GetAllRidersWithStatusIntransit(page: number = 1, limit: number = 15) {
+    try {
+      const skip = (page - 1) * limit;
+
+      //fetch riders with pagination
+      const findallriders = await this.riderripo.findAndCount({
+        where:{status:RiderStatus.IN_TRANSIT},
+        order: { RegisteredAt: 'DESC' },
+        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        take: limit,
+        skip: skip,
+      });
+
+      if (findallriders[1] === 0)
+        throw new NotFoundException('no riders were found');
+      return findallriders;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch all riders that are in transit, please try again',
+          error.message,
+        );
+      }
+    }
+  }
+
+  async GetAllRidersWithStatusOfAvailable(page: number = 1, limit: number = 15) {
+    try {
+      const skip = (page - 1) * limit;
+
+      //fetch riders with pagination
+      const findallriders = await this.riderripo.findAndCount({
+        where:{status:RiderStatus.AVAILABLE},
+        order: { RegisteredAt: 'DESC' },
+        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        take: limit,
+        skip: skip,
+      });
+
+      if (findallriders[1] === 0)
+        throw new NotFoundException('no riders were found');
+      return findallriders;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch all riders that are available, please try again',
+          error.message,
+        );
+      }
+    }
+  }
+
+
   //admin get one rider by id
   async GetOneRiderByID(riderID: string): Promise<IRider> {
     try {
@@ -739,10 +832,12 @@ export class AdminRiderDashboardService {
     }
   }
 
+
+
   //admin get all rider tasks
   async getAllriderTask() {
     try {
-      const alltasks = await this.taskRepo.findAndCount();
+      const alltasks = await this.taskRepo.findAndCount({relations:['rider','assigned_order','assigned_order.customer']});
       if (alltasks[1] === 0)
         throw new NotFoundException('there are no Rider tasks at the moment');
 
@@ -760,12 +855,53 @@ export class AdminRiderDashboardService {
     }
   }
 
+  //get one rider tasks or rides 
+  async getOneriderTask(riderID:string) {
+    try {
+      const alltasks = await this.taskRepo.findAndCount({where:{rider:{id:riderID}},relations:['rider','assigned_order','assigned_order.customer']});
+      if (alltasks[1] === 0)
+        throw new NotFoundException('there are no tasks for this Rider at the moment');
+
+      return alltasks;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying fetch this rider task',
+          error.message,
+        );
+      }
+    }
+  }
+
+  //get all the count of the task for one rider 
+  async getOneriderTaskCount(riderID:string) {
+    try {
+      const taskcount = await this.taskRepo.count({where:{rider:{id:riderID}}});
+
+      return taskcount;
+    } catch (error) {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying fetch the count of the riders task',
+          error.message,
+        );
+    }
+  }
+
+
+
+
+
+
   //admin fetch all riders with ongoing tasks
   async getAllriderwithOngoingTaskTask() {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { status: TaskStatus.ONGOING },
-        relations: ['rider', 'assigned_order'],
+        relations: ['rider', 'assigned_order','assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -786,12 +922,57 @@ export class AdminRiderDashboardService {
     }
   }
 
+  async getOneriderOngoingTaskTask(riderId:string) {
+    try {
+      const alltasks = await this.taskRepo.findAndCount({
+        where: { rider:{id:riderId},status: TaskStatus.ONGOING },
+        relations: ['rider', 'assigned_order','assigned_order.customer'],
+      });
+      if (alltasks[1] === 0)
+        throw new NotFoundException(
+          'there are no  ongoing tasks for this Rider at the moment',
+        );
+
+      return alltasks;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying fetch this riders with ongoing tasks',
+          error.message,
+        );
+      }
+    }
+  }
+
+    //get all the count of the ongoing task for one rider 
+    async getOneriderOngoingTaskCount(riderID:string) {
+      try {
+        const taskcount = await this.taskRepo.count({where:{rider:{id:riderID},status:TaskStatus.ONGOING}});
+  
+        return taskcount;
+      } catch (error) {
+          console.log(error);
+          throw new InternalServerErrorException(
+            'something went wrong while trying fetch the count of the riders ongoing task',
+            error.message,
+          );
+      }
+    }
+
+
+
+
+
+
   //admin fetch all riders with concluded tasks
   async getAllriderwithConcludedTask() {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { status: TaskStatus.CONCLUDED },
-        relations: ['rider', 'assigned_order'],
+        relations: ['rider', 'assigned_order','assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -805,12 +986,54 @@ export class AdminRiderDashboardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying fetch all riders with ongoing tasks',
+          'something went wrong while trying to fetch all riders with ongoing tasks',
           error.message,
         );
       }
     }
   }
+
+   //admin fetch all riders with concluded tasks
+   async getOneriderwithConcludedTask(riderID) {
+    try {
+      const alltasks = await this.taskRepo.findAndCount({
+        where: { rider:{id:riderID},status: TaskStatus.CONCLUDED },
+        relations: ['rider', 'assigned_order','assigned_order.customer'],
+      });
+      if (alltasks[1] === 0)
+        throw new NotFoundException(
+          'there are no concluded Rides For this Rider at the moment',
+        );
+
+      return alltasks;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch all riders with ongoing tasks',
+          error.message,
+        );
+      }
+    }
+  }
+
+     //get all the count of the ongoing task for one rider 
+     async getOneriderCompletedTaskCount(riderID:string) {
+      try {
+        const taskcount = await this.taskRepo.count({where:{rider:{id:riderID},status:TaskStatus.CONCLUDED}});
+  
+        return taskcount;
+      } catch (error) {
+          console.log(error);
+          throw new InternalServerErrorException(
+            'something went wrong while trying fetch the count of the riders ongoing task',
+            error.message,
+          );
+      }
+    }
+
 
   //admin fetch all riders with pending tasks
 }

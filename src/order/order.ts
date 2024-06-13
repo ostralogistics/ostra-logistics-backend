@@ -1,7 +1,8 @@
 import { CustomerEntity } from "src/Entity/customers.entity"
+import { OrderItemEntity } from "src/Entity/orders.entity"
 import { RiderEntity } from "src/Entity/riders.entity"
 import { TaskEntity } from "src/Entity/ridersTasks.entity"
-import { OrderStatus, ParcelStatus, PaymentStatus, PriorityDeliveryType } from "src/Enums/all-enums"
+import { OrderDisplayStatus, OrderStatus, ParcelStatus, PaymentStatus, PriorityDeliveryType } from "src/Enums/all-enums"
 import { BidStatus, VehicleType } from "src/Enums/all-enums"
 
 
@@ -9,18 +10,24 @@ import { BidStatus, VehicleType } from "src/Enums/all-enums"
 export interface IOrder{
     id:number
     orderID:string
-    //after bid is accepted
+    orderPlacedAt:Date
+    items: OrderItemEntity[];
+    processingOrderAT:Date
     payment_status: PaymentStatus
-    payment_verifiedAT: Date
-    pickupTime:Date,
-    dropOffTime:Date,
+    paymentVerifiedAT: Date
+    RiderAssignedAT:Date
+    EnrouteToPickupAT:Date
+    AtThePickUpLocationAT:Date
+    RiderRecieveParcelAT:Date
+    EnrouteToOfficeAT:Date
+    ArrivesAtTheOfficeAT:Date
+    EnrouteToDropOffAT:Date
+    RiderAtDropOffLocationAT:Date
+    DeliveredAT:Date,
     trackingID:string 
     dropoffCode :string
     barcodeDigits :string
     order_status:OrderStatus
-    orderCreatedAtTime:Date
-    RiderArrivaltime:Date
-    RiderAssignedAT:Date
     Rider:RiderEntity
     assigned_task :TaskEntity
     accepted_cost_of_delivery : number
@@ -28,6 +35,8 @@ export interface IOrder{
     IsDiscountApplied:boolean
     discount?:number
     bidStatus: BidStatus;
+    order_display_status:OrderDisplayStatus
+    customer: CustomerEntity;
 
 
    

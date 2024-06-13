@@ -21,7 +21,6 @@ import { AdminTypeGuard } from 'src/auth/guard/admintype.guard';
 import { AdminTypes } from 'src/auth/decorator/admintype.decorator';
 import { AdminAcessLevelGuard } from 'src/auth/guard/accesslevel.guard';
 import { AdminAccessLevel } from 'src/auth/decorator/accesslevel.decorator';
-import { Response } from 'express';
 
 
 
@@ -37,6 +36,16 @@ export class AdminCustomerDashBoardController {
     private readonly admincustomerservice: AdminCustomerDashBoardService,
   ) {}
 
+
+  @Get('all-orders')
+  async GetAllOrders(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return await this.admincustomerservice.GetOrders(page, limit);
+  }
+
+
   @Get('pending-orders')
   async GetAllPendingOrders(
     @Query('page') page: number,
@@ -45,21 +54,7 @@ export class AdminCustomerDashBoardController {
     return await this.admincustomerservice.GetOrdersThatArePending(page, limit);
   }
 
-  @Post('initial-bid/:orderID')
-  async MakeFirstBid(
-    @Body() dto: AdminPlaceBidDto,
-    @Param('orderID') orderID: number,
-    @Req()req
-  ) {
-    return await this.admincustomerservice.MakeOpenningBid(orderID, dto,req.user);
-  }
 
-
-
-  @Patch('counter-bid/:BidID')
-  async CounterBid(@Body() dto: counterBidDto, @Param('BidID') BidID: number, @Req()req) {
-    return await this.admincustomerservice.counterCustomerCouterBid(BidID, dto,req.user);
-  }
 
   @Get('inTransit-orders')
   async GetAllOrdersInTransit(
@@ -72,18 +67,8 @@ export class AdminCustomerDashBoardController {
     );
   }
 
-  @Get('pickedup-orders')
-  async GetAllPickedUpOrders(
-    @Query('page') page: number,
-    @Query('limit') limit: number,
-  ) {
-    return await this.admincustomerservice.GetOrdersThatArePickedUp(
-      page,
-      limit,
-    );
-  }
 
-  @Get('droppedoff-orders')
+  @Get('completed-orders')
   async GetAllDroppedOffOrders(
     @Query('page') page: number,
     @Query('limit') limit: number,
@@ -93,6 +78,46 @@ export class AdminCustomerDashBoardController {
       limit,
     );
   }
+
+
+  @Get('just-placed-orders')
+  async GetAllJustPlacedOrder(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return await this.admincustomerservice.GetOrdersThatAreJustPlaced(
+      page,
+      limit,
+    );
+  }
+
+  @Get('declined-orders')
+  async GetAllDeclinedOffOrders(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return await this.admincustomerservice.GetOrdersThatAreDeclined(
+      page,
+      limit,
+    );
+  }
+
+
+  @Post('initial-bid/:orderID')
+  async MakeFirstBid(
+    @Body() dto: AdminPlaceBidDto,
+    @Param('orderID') orderID: number,
+    @Req()req
+  ) {
+    return await this.admincustomerservice.MakeOpenningBid(orderID, dto,req.user);
+  }
+
+  @Patch('counter-bid/:BidID')
+  async CounterBid(@Body() dto: counterBidDto, @Param('BidID') BidID: number, @Req()req) {
+    return await this.admincustomerservice.counterCustomerCouterBid(BidID, dto,req.user);
+  }
+
+ 
 
   @Get('all-customers')
   async GetAllCustomers(

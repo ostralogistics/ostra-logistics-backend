@@ -135,12 +135,27 @@ export enum RequestType{
 
 
 export enum OrderStatus{
-    BIDDING_ONGOING ="bidding_ongoing",
-    ENROUTE_TO_PICKUP ="enroute_to_pick_up",
-    PARCEL_REBRANDING ="parcel_rebranding",
-    PICKED_UP ="picked_up",
-    IN_TRANSIT = "in_transit",
-    DROPPED_OFF ="dropped_off"
+    ORDER_PLACED = "Order_Placed",
+    PROCESSING_ORDER ="Processing_Order",
+    PAYMENT_VERIFIED ="payment_Verified",
+    RIDER_ASSIGNED ="Rider_Assigned",
+    ENROUTE_TO_PICKUP ="Enroute_To_Pickup",
+    AT_PICKUP_LOCATION ="At_Pickup_Location",
+    RIDER_RECEIVE_PARCEL ="Rider_Recieve_Parcel",
+    ENROUTE_TO_OFFICE ="Enroute_To_Office",
+    ARRIVES_AT_THE_OFFICE ="Arrives_At_Office",
+    ENROUTE_TO_DROPOFF ="Enroute_To_DropOff",
+    RIDER_AT_DROPOFF_LOCATION ="Rider_At_DropOff_Location",
+    DELIVERED ="Delivered",
+   
+}
+
+export enum OrderDisplayStatus{
+    COMPLETED ="Completed",
+    PENDING = "Pending",
+    DECLINED ="Declined",
+    IN_TRANSIT ="In_Transit",
+    ORDER_PLACED = "Order_Placed"
 }
 
 export enum VehicleState{

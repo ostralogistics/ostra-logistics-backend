@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { OrderRepository } from 'src/order/order.reposiroty';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderEntity } from 'src/Entity/orders.entity';
-import { PaymentStatus, TransactionType } from 'src/Enums/all-enums';
+import { OrderDisplayStatus, PaymentStatus, TransactionType } from 'src/Enums/all-enums';
 import * as nanoid from 'nanoid';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
@@ -92,6 +92,8 @@ export class PaystackWebhookService {
 
   private async updateOrderPaymentStatus(order: OrderEntity): Promise<void> {
     order.payment_status = PaymentStatus.SUCCESSFUL;
+    order.paymentVerifiedAT = new Date()
+    order.order_display_status = OrderDisplayStatus.PENDING
     await this.orderRepo.save(order);
   }
 
