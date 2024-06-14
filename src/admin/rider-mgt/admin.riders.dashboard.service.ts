@@ -38,6 +38,7 @@ import {
   RequestType,
   RiderStatus,
   TaskStatus,
+  TransactionConfirmation,
   TransactionType,
 } from 'src/Enums/all-enums';
 import { ILike } from 'typeorm';
@@ -46,7 +47,10 @@ import { OrderRepository } from 'src/order/order.reposiroty';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { IRequests, RequestEntity } from 'src/Entity/requests.entity';
 import { GeneatorService } from 'src/common/services/generator.service';
-import { TransactionEntity } from 'src/Entity/transactions.entity';
+import {
+  ITransactions,
+  TransactionEntity,
+} from 'src/Entity/transactions.entity';
 import { all } from 'axios';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
@@ -56,7 +60,7 @@ import { VehicleEntity } from 'src/Entity/vehicle.entity';
 @Injectable()
 export class AdminRiderDashboardService {
   constructor(
-   // @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
+    // @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(RiderEntity) private readonly riderripo: RidersRepository,
     @InjectRepository(AdminEntity) private readonly adminripo: AdminRepository,
     @InjectRepository(Notifications)
@@ -76,31 +80,38 @@ export class AdminRiderDashboardService {
     private cloudinaryservice: CloudinaryService,
     private mailer: Mailer,
     private genratorservice: GeneatorService,
-    
+
     //private firebaseservice:FirebaseService
   ) {}
 
   //admin register rider
-  async RegisterRider(dto: RegisterRiderByAdminDto, files: Express.Multer.File[]) {
+  async RegisterRider(
+    dto: RegisterRiderByAdminDto,
+    files: Express.Multer.File[],
+  ) {
     try {
       const genpassword = await this.genratorservice.generatePassword();
-      const hashedpassword = await this.genratorservice.hashpassword(genpassword);
-  
-      const genEmailsuffix = await this.genratorservice.generatEmailSuffixNumber();
+      const hashedpassword =
+        await this.genratorservice.hashpassword(genpassword);
+
+      const genEmailsuffix =
+        await this.genratorservice.generatEmailSuffixNumber();
       const emailnow = `${dto.firstname}${genEmailsuffix}_rider@ostralogistics.com`;
-  
+
       const dob = new Date(dto.DOB);
       const age = new Date().getFullYear() - dob.getFullYear();
-  
-      const fileUploadPromises = files.map(file => this.cloudinaryservice.uploadFile(file));
+
+      const fileUploadPromises = files.map((file) =>
+        this.cloudinaryservice.uploadFile(file),
+      );
       const uploadResults = await Promise.all(fileUploadPromises);
-  
+
       const profilepicsUrl = uploadResults[0].secure_url;
       const firstgurantorpicsurl = uploadResults[1].secure_url;
       const secondguarantorpicsurl = uploadResults[2].secure_url;
       const frontLicenseUrl = uploadResults[3].secure_url;
       const backLicenseUrl = uploadResults[4].secure_url;
-  
+
       const rider = new RiderEntity();
       rider.riderID = `#OslR-${await this.genratorservice.generateUserID()}`;
       rider.firstname = dto.firstname;
@@ -119,7 +130,8 @@ export class AdminRiderDashboardService {
       rider.state_of_orgin = dto.state_of_origin;
       rider.LGA_of_origin = dto.LGA_of_origin;
       rider.guarantor1_name = dto.guarantor1_name;
-      rider.guarantor1_relatioship_with_rider = dto.guarantor1_relatioship_with_rider;
+      rider.guarantor1_relatioship_with_rider =
+        dto.guarantor1_relatioship_with_rider;
       rider.gurantor1_mobile = dto.mobile;
       rider.guarantor2_name = dto.guarantor2_name;
       rider.driver_license_front = frontLicenseUrl;
@@ -127,27 +139,32 @@ export class AdminRiderDashboardService {
       rider.profile_picture = profilepicsUrl;
       rider.guarantor1_picture = firstgurantorpicsurl;
       rider.guarantor2_picture = secondguarantorpicsurl;
-      rider.guarantor2_relatioship_with_rider = dto.guarantor2_relatioship_with_rider;
-  
-      const findrider = await this.riderripo.findOne({ where: { email: emailnow } });
+      rider.guarantor2_relatioship_with_rider =
+        dto.guarantor2_relatioship_with_rider;
+
+      const findrider = await this.riderripo.findOne({
+        where: { email: emailnow },
+      });
       if (findrider) {
-        throw new NotAcceptableException(`email: ${emailnow} already exists, please generate another one`);
+        throw new NotAcceptableException(
+          `email: ${emailnow} already exists, please generate another one`,
+        );
       }
 
-      
-  
       await this.riderripo.save(rider);
 
-      console.log(rider.RegisteredAt)
-  
-      const notification = new Notifications();4
+      console.log(rider.RegisteredAt);
+
+      const notification = new Notifications();
+      4;
       notification.account = rider.id;
       notification.subject = 'Admin Registered a Rider !';
       notification.message = `a new rider has been created on ostra logistics platform `;
       await this.notificationripo.save(notification);
-  
+
       return {
-        message: 'The rider has been Registered Successfully, these are the login credentials generated for the rider',
+        message:
+          'The rider has been Registered Successfully, these are the login credentials generated for the rider',
         email: emailnow,
         password: genpassword,
       };
@@ -163,28 +180,35 @@ export class AdminRiderDashboardService {
       }
     }
   }
-  
 
-  async UpdateRiderInfoByAdmin(riderId: string, dto: UpdateRiderInfoByAdminDto, files: Express.Multer.File[]) {
+  async UpdateRiderInfoByAdmin(
+    riderId: string,
+    dto: UpdateRiderInfoByAdminDto,
+    files: Express.Multer.File[],
+  ) {
     try {
       const rider = await this.riderripo.findOne({ where: { id: riderId } });
-  
+
       if (!rider) {
-        throw new NotFoundException(`Rider with id:${riderId} is not found in the Ostra Logistics rider database`);
+        throw new NotFoundException(
+          `Rider with id:${riderId} is not found in the Ostra Logistics rider database`,
+        );
       }
-  
+
       const dob = new Date(dto.DOB);
       const age = new Date().getFullYear() - dob.getFullYear();
-  
-      const fileUploadPromises = files.map(file => this.cloudinaryservice.uploadFile(file));
+
+      const fileUploadPromises = files.map((file) =>
+        this.cloudinaryservice.uploadFile(file),
+      );
       const uploadResults = await Promise.all(fileUploadPromises);
-  
+
       if (files[0]) rider.profile_picture = uploadResults[0].secure_url;
       if (files[1]) rider.guarantor1_picture = uploadResults[1].secure_url;
       if (files[2]) rider.guarantor2_picture = uploadResults[2].secure_url;
       if (files[3]) rider.driver_license_front = uploadResults[3].secure_url;
       if (files[4]) rider.driver_license_back = uploadResults[4].secure_url;
-  
+
       rider.firstname = dto.firstname;
       rider.lastname = dto.lastname;
       rider.mobile = dto.mobile;
@@ -193,20 +217,22 @@ export class AdminRiderDashboardService {
       rider.state_of_orgin = dto.state_of_origin;
       rider.LGA_of_origin = dto.LGA_of_origin;
       rider.guarantor1_name = dto.guarantor1_name;
-      rider.guarantor1_relatioship_with_rider = dto.guarantor1_relatioship_with_rider;
+      rider.guarantor1_relatioship_with_rider =
+        dto.guarantor1_relatioship_with_rider;
       rider.gurantor1_mobile = dto.mobile;
       rider.guarantor2_name = dto.guarantor2_name;
-      rider.guarantor2_relatioship_with_rider = dto.guarantor2_relatioship_with_rider;
-      rider.UpdatedAt = new Date()
-  
+      rider.guarantor2_relatioship_with_rider =
+        dto.guarantor2_relatioship_with_rider;
+      rider.UpdatedAt = new Date();
+
       await this.riderripo.save(rider);
-  
+
       const notification = new Notifications();
       notification.account = rider.id;
       notification.subject = 'Admin Updated The Record of a Rider!';
       notification.message = `The record of the rider with the id ${riderId} has been updated on Ostra Logistics platform`;
       await this.notificationripo.save(notification);
-  
+
       return {
         message: 'The information of the Rider has been Updated Successfully',
         response: rider,
@@ -223,31 +249,31 @@ export class AdminRiderDashboardService {
       }
     }
   }
-  
 
   //admin delete rider
   async AdminDeleteRider(riderID: string): Promise<{ message: string }> {
     try {
       const findriderbyid = await this.riderripo.findOne({
-        where: { id: riderID },relations:['vehicle_for_the_day']
+        where: { id: riderID },
+        relations: ['vehicle_for_the_day'],
       });
       if (!findriderbyid)
         throw new NotFoundException(
           `rider with id:${riderID} is not found in the ostra logistics rider database`,
         );
 
-         // Set assigned_Rider to null in related vehicle
-    if (findriderbyid.vehicle_for_the_day) {
-      findriderbyid.vehicle_for_the_day.assigned_Rider = null;
-      await this.vehicleRepository.save(findriderbyid.vehicle_for_the_day);
-  }
+      // Set assigned_Rider to null in related vehicle
+      if (findriderbyid.vehicle_for_the_day) {
+        findriderbyid.vehicle_for_the_day.assigned_Rider = null;
+        await this.vehicleRepository.save(findriderbyid.vehicle_for_the_day);
+      }
 
       //remove rider from the platorm
       await this.riderripo.remove(findriderbyid);
 
       //save the notification
       const notification = new Notifications();
-      notification.account = "super admin";
+      notification.account = 'super admin';
       notification.subject = 'Rider deleted !';
       notification.message = `the rider with id ${riderID}  has been deleted from the ostra logistics application by superAdmin  `;
       await this.notificationripo.save(notification);
@@ -424,7 +450,12 @@ export class AdminRiderDashboardService {
       //fetch riders with pagination
       const findallriders = await this.riderripo.findAndCount({
         order: { RegisteredAt: 'DESC' },
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: [
+          'vehicle_for_the_day',
+          'tasks',
+          'my_requests',
+          'bank_details',
+        ],
         take: limit,
         skip: skip,
       });
@@ -451,9 +482,14 @@ export class AdminRiderDashboardService {
 
       //fetch riders with pagination
       const findallriders = await this.riderripo.findAndCount({
-        where:{status:RiderStatus.OFFLINE},
+        where: { status: RiderStatus.OFFLINE },
         order: { RegisteredAt: 'DESC' },
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: [
+          'vehicle_for_the_day',
+          'tasks',
+          'my_requests',
+          'bank_details',
+        ],
         take: limit,
         skip: skip,
       });
@@ -480,9 +516,14 @@ export class AdminRiderDashboardService {
 
       //fetch riders with pagination
       const findallriders = await this.riderripo.findAndCount({
-        where:{status:RiderStatus.IN_TRANSIT},
+        where: { status: RiderStatus.IN_TRANSIT },
         order: { RegisteredAt: 'DESC' },
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: [
+          'vehicle_for_the_day',
+          'tasks',
+          'my_requests',
+          'bank_details',
+        ],
         take: limit,
         skip: skip,
       });
@@ -503,15 +544,23 @@ export class AdminRiderDashboardService {
     }
   }
 
-  async GetAllRidersWithStatusOfAvailable(page: number = 1, limit: number = 15) {
+  async GetAllRidersWithStatusOfAvailable(
+    page: number = 1,
+    limit: number = 15,
+  ) {
     try {
       const skip = (page - 1) * limit;
 
       //fetch riders with pagination
       const findallriders = await this.riderripo.findAndCount({
-        where:{status:RiderStatus.AVAILABLE},
+        where: { status: RiderStatus.AVAILABLE },
         order: { RegisteredAt: 'DESC' },
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: [
+          'vehicle_for_the_day',
+          'tasks',
+          'my_requests',
+          'bank_details',
+        ],
         take: limit,
         skip: skip,
       });
@@ -532,13 +581,17 @@ export class AdminRiderDashboardService {
     }
   }
 
-
   //admin get one rider by id
   async GetOneRiderByID(riderID: string): Promise<IRider> {
     try {
       const findriderbyid = await this.riderripo.findOne({
         where: { id: riderID },
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: [
+          'vehicle_for_the_day',
+          'tasks',
+          'my_requests',
+          'bank_details',
+        ],
       });
       if (!findriderbyid)
         throw new NotFoundException(
@@ -567,7 +620,12 @@ export class AdminRiderDashboardService {
           { lastname: ILike(`%${keyword}%`) },
           { email: ILike(`%${keyword}%`) },
         ],
-        relations: ['vehicle_for_the_day', 'tasks', 'my_requests','bank_details'],
+        relations: [
+          'vehicle_for_the_day',
+          'tasks',
+          'my_requests',
+          'bank_details',
+        ],
         cache: false,
         comment:
           'searching for a rider with either of the keywords , lastname or firstname or email',
@@ -635,8 +693,7 @@ export class AdminRiderDashboardService {
 
       await this.taskRepo.save(task);
 
-
-      // // //send push notification to the rider 
+      // // //send push notification to the rider
       // const payload: admin.messaging.MessagingPayload={
       //   notification:{
       //     title:'New Task Assigned!',
@@ -656,8 +713,6 @@ export class AdminRiderDashboardService {
       // } else {
       //   console.log('No device token available for the customer.');
       // }
-     
-     
 
       //save the notification
       const notification = new Notifications();
@@ -782,6 +837,55 @@ export class AdminRiderDashboardService {
     }
   }
 
+  //delete the bank details 
+  async DeleteRiderBankDetails(
+    bankdetailsID: number,
+    riderID: string,
+  ) {
+    try {
+      const findriderbyid = await this.riderripo.findOne({
+        where: { id: riderID },
+      });
+      if (!findriderbyid)
+        throw new NotFoundException(
+          `rider with id:${riderID} is not found in the ostra logistics rider database`,
+        );
+
+      const bankdetails = await this.riderbankdetailsRepo.findOne({
+        where: { id: bankdetailsID, owner: { id: riderID } },
+        relations: ['owner'],
+      });
+      if (!bankdetails)
+        throw new NotFoundException(
+          `bankdetails with id:${bankdetailsID} is not found in the ostra logistics rider database`,
+        );
+
+      await this.riderbankdetailsRepo.remove(bankdetails);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = findriderbyid.id;
+      notification.subject = 'Rider bank details added !';
+      notification.message = `the Rider with id ${riderID} bank details have been updated based on request  on the admin portal of ostra ogistics by superadmin  `;
+      await this.notificationripo.save(notification);
+
+      return {
+        message: 'your bank details has been deleted successfully',
+        bankdetails,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to update  the bank details  based on request of the Rider, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
   //admin log paymet of payment for staff and riders
 
   async LogPaymentForRiders(
@@ -808,6 +912,7 @@ export class AdminRiderDashboardService {
       transaction.transactionID = `#osl-${this.genratorservice.generateTransactionCode()}`;
       transaction.transactedAT = new Date();
       transaction.bankInfo = bankDetails;
+      transaction.status = TransactionConfirmation.CONFIRMED
 
       await this.transactionRepo.save(transaction);
 
@@ -832,12 +937,37 @@ export class AdminRiderDashboardService {
     }
   }
 
+  async fetchRiderPaymentTransactionHistory(riderID: string) {
+    try {
+      const mytransactions = await this.transactionRepo.findAndCount({
+        where: { Rider: { id: riderID } },
+        relations: ['Rider', 'bankInfo'],
+      });
+      if (mytransactions[1] == 0)
+        throw new NotFoundException(
+          'there are no transaction logs for this rider at the moment',
+        );
 
+      return mytransactions;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching the logged transactions of this rider',
+          error.message,
+        );
+      }
+    }
+  }
 
   //admin get all rider tasks
   async getAllriderTask() {
     try {
-      const alltasks = await this.taskRepo.findAndCount({relations:['rider','assigned_order','assigned_order.customer']});
+      const alltasks = await this.taskRepo.findAndCount({
+        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
+      });
       if (alltasks[1] === 0)
         throw new NotFoundException('there are no Rider tasks at the moment');
 
@@ -855,12 +985,17 @@ export class AdminRiderDashboardService {
     }
   }
 
-  //get one rider tasks or rides 
-  async getOneriderTask(riderID:string) {
+  //get one rider tasks or rides
+  async getOneriderTask(riderID: string) {
     try {
-      const alltasks = await this.taskRepo.findAndCount({where:{rider:{id:riderID}},relations:['rider','assigned_order','assigned_order.customer']});
+      const alltasks = await this.taskRepo.findAndCount({
+        where: { rider: { id: riderID } },
+        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
+      });
       if (alltasks[1] === 0)
-        throw new NotFoundException('there are no tasks for this Rider at the moment');
+        throw new NotFoundException(
+          'there are no tasks for this Rider at the moment',
+        );
 
       return alltasks;
     } catch (error) {
@@ -876,32 +1011,30 @@ export class AdminRiderDashboardService {
     }
   }
 
-  //get all the count of the task for one rider 
-  async getOneriderTaskCount(riderID:string) {
+
+  //get all the count of the task for one rider
+  async getOneriderTaskCount(riderID: string) {
     try {
-      const taskcount = await this.taskRepo.count({where:{rider:{id:riderID}}});
+      const taskcount = await this.taskRepo.count({
+        where: { rider: { id: riderID } },
+      });
 
       return taskcount;
     } catch (error) {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying fetch the count of the riders task',
-          error.message,
-        );
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while trying fetch the count of the riders task',
+        error.message,
+      );
     }
   }
-
-
-
-
-
 
   //admin fetch all riders with ongoing tasks
   async getAllriderwithOngoingTaskTask() {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { status: TaskStatus.ONGOING },
-        relations: ['rider', 'assigned_order','assigned_order.customer'],
+        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -922,11 +1055,11 @@ export class AdminRiderDashboardService {
     }
   }
 
-  async getOneriderOngoingTaskTask(riderId:string) {
+  async getOneriderOngoingTaskTask(riderId: string) {
     try {
       const alltasks = await this.taskRepo.findAndCount({
-        where: { rider:{id:riderId},status: TaskStatus.ONGOING },
-        relations: ['rider', 'assigned_order','assigned_order.customer'],
+        where: { rider: { id: riderId }, status: TaskStatus.ONGOING },
+        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -947,24 +1080,22 @@ export class AdminRiderDashboardService {
     }
   }
 
-    //get all the count of the ongoing task for one rider 
-    async getOneriderOngoingTaskCount(riderID:string) {
-      try {
-        const taskcount = await this.taskRepo.count({where:{rider:{id:riderID},status:TaskStatus.ONGOING}});
-  
-        return taskcount;
-      } catch (error) {
-          console.log(error);
-          throw new InternalServerErrorException(
-            'something went wrong while trying fetch the count of the riders ongoing task',
-            error.message,
-          );
-      }
+  //get all the count of the ongoing task for one rider
+  async getOneriderOngoingTaskCount(riderID: string) {
+    try {
+      const taskcount = await this.taskRepo.count({
+        where: { rider: { id: riderID }, status: TaskStatus.ONGOING },
+      });
+
+      return taskcount;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while trying fetch the count of the riders ongoing task',
+        error.message,
+      );
     }
-
-
-
-
+  }
 
 
   //admin fetch all riders with concluded tasks
@@ -972,7 +1103,7 @@ export class AdminRiderDashboardService {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { status: TaskStatus.CONCLUDED },
-        relations: ['rider', 'assigned_order','assigned_order.customer'],
+        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -993,12 +1124,12 @@ export class AdminRiderDashboardService {
     }
   }
 
-   //admin fetch all riders with concluded tasks
-   async getOneriderwithConcludedTask(riderID) {
+  //admin fetch all riders with concluded tasks
+  async getOneriderwithConcludedTask(riderID) {
     try {
       const alltasks = await this.taskRepo.findAndCount({
-        where: { rider:{id:riderID},status: TaskStatus.CONCLUDED },
-        relations: ['rider', 'assigned_order','assigned_order.customer'],
+        where: { rider: { id: riderID }, status: TaskStatus.CONCLUDED },
+        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -1019,21 +1150,22 @@ export class AdminRiderDashboardService {
     }
   }
 
-     //get all the count of the ongoing task for one rider 
-     async getOneriderCompletedTaskCount(riderID:string) {
-      try {
-        const taskcount = await this.taskRepo.count({where:{rider:{id:riderID},status:TaskStatus.CONCLUDED}});
-  
-        return taskcount;
-      } catch (error) {
-          console.log(error);
-          throw new InternalServerErrorException(
-            'something went wrong while trying fetch the count of the riders ongoing task',
-            error.message,
-          );
-      }
-    }
+  //get all the count of the ongoing task for one rider
+  async getOneriderCompletedTaskCount(riderID: string) {
+    try {
+      const taskcount = await this.taskRepo.count({
+        where: { rider: { id: riderID }, status: TaskStatus.CONCLUDED },
+      });
 
+      return taskcount;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while trying fetch the count of the riders ongoing task',
+        error.message,
+      );
+    }
+  }
 
   //admin fetch all riders with pending tasks
 }

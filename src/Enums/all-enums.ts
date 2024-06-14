@@ -132,7 +132,9 @@ export enum RequestType{
     BANK_DETAILS_CHANGE ="bank details change"
 }
 
-
+export enum TransactionConfirmation{
+    CONFIRMED = "Confirmed"
+}
 
 export enum OrderStatus{
     ORDER_PLACED = "Order_Placed",

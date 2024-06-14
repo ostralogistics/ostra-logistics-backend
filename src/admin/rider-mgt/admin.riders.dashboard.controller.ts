@@ -225,12 +225,24 @@ export class AdminRiderDashBoardController {
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(AdminAccessLevels.LEVEL3, AdminAccessLevels.LEVEL2)
-  @Patch('update-rider-bank-details/:riderID')
+  @Patch('update-rider-bank-details/:bankdetailsID/:riderID')
   async EditRiderBankDetails(
     @Param('riderID') riderID: string,
+    @Param('bankdetailsID') bankdetailsID: number,
     @Body() dto: EditBankDetailsDto,
   ) {
-    return await this.adminriderservice.addRiderBankDetails(dto, riderID);
+    return await this.adminriderservice.EditRiderBankDetails(dto,bankdetailsID,riderID);
+  }
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(AdminAccessLevels.LEVEL3, AdminAccessLevels.LEVEL2)
+  @Patch('delete-rider-bank-details/:bankdetailsID/:riderID')
+  async DeleteRiderBankDetails(
+    @Param('riderID') riderID: string,
+    @Param('bankdetailsID') bankdetailsID: number,
+
+  ) {
+    return await this.adminriderservice.DeleteRiderBankDetails(bankdetailsID,riderID);
   }
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
@@ -247,6 +259,18 @@ export class AdminRiderDashBoardController {
       riderID,
     );
   }
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
+  @Get('/one-rider-paymet-transaction-history/:riderID')
+  async GetRiderTransaction(@Param('riderID') riderID: string) {
+    return await this.adminriderservice.fetchRiderPaymentTransactionHistory(riderID);
+  }
+
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(
@@ -280,8 +304,6 @@ export class AdminRiderDashBoardController {
   async GetOneriderTasksCount(@Param('riderID')riderID:string) {
     return await this.adminriderservice.getOneriderTaskCount(riderID);
   }
-
-
 
 
 

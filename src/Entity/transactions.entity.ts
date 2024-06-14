@@ -1,4 +1,4 @@
-import { TransactionType } from "src/Enums/all-enums"
+import { TransactionConfirmation, TransactionType } from "src/Enums/all-enums"
 import { CustomerEntity } from "./customers.entity"
 import { RiderBankDetailsEntity, RiderEntity } from "./riders.entity"
 import { IMyBankAccountDetails } from "src/Riders/riders"
@@ -21,6 +21,7 @@ export interface ITransactions{
     customer:CustomerEntity
     Rider:RiderEntity
     bankInfo:RiderBankDetailsEntity
+    status:TransactionConfirmation
 
 
 
@@ -63,6 +64,9 @@ export class TransactionEntity implements ITransactions{
 
   @ManyToOne(()=>RiderBankDetailsEntity,{nullable:true,onDelete:'CASCADE'})
   bankInfo: RiderBankDetailsEntity
+
+  @Column({nullable:true, type:'enum', enum:TransactionConfirmation})
+  status:TransactionConfirmation
 
 
 }
