@@ -146,7 +146,7 @@ export class RiderBankDetailsEntity implements IMyBankAccountDetails{
      Bank_account_name: string;
  
      @Column('numeric',{nullable:true})
-     Bank_account_number: number;
+     Bank_account_number: string;
  
      @Column({nullable:true})
      Bank_name: string;

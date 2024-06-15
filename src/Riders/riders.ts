@@ -46,7 +46,7 @@ export interface IMyBankAccountDetails{
     id:number
     Bank_account_name :string
     Bank_name:string
-    Bank_account_number:number
+    Bank_account_number:string
     status:BankDetailsStatus
     owner:RiderEntity
 

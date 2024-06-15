@@ -33,7 +33,7 @@ export class BankDetailsDto{
 
     @IsNotEmpty()
     @IsNumber()
-    account_number :number
+    account_number :string
 
 }
 
@@ -50,7 +50,7 @@ export class EditBankDetailsDto{
 
     @IsOptional()
     @IsNumber()
-    account_number:number
+    account_number:string
 
 }
 
