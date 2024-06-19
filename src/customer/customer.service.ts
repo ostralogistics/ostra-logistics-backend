@@ -270,7 +270,7 @@ export class CustomerService {
       });
       if (!cart) throw new NotFoundException('cart not found');
       // Convert cart entity to plain object to avoid circular reference issues
-      return plainToInstance(OrderCartEntity, cart);
+      return cart
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);

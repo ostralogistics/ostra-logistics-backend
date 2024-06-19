@@ -77,7 +77,6 @@ export class AdminCustomerDashBoardService {
     @InjectRepository(BidEntity) private readonly bidRepo: BidRepository,
     @InjectRepository(Notifications)
     private readonly notificationripo: NotificationRepository,
-    @InjectRepository(DiscountUsageEntity)
     @InjectRepository(OrderCartEntity)
     private readonly orderCartRepo: OrderCartRepository,
     @InjectRepository(CartItemEntity)
@@ -1159,7 +1158,7 @@ export class AdminCustomerDashBoardService {
     try {
       const cart = await this.orderCartRepo.findOne({
         where: { admin: { id: admin.id }, checkedOut: false },
-        relations: ['admin', 'items', 'items.vehicleType'],
+        //relations: ['admin','items','items.vehicleType']
       });
       if (!cart) throw new NotFoundException('cart not found');
       return cart;

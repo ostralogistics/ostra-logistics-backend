@@ -82,7 +82,7 @@ export class GetDeviceTokenDto{
 
 }
 
-export class ApplypromoCodeDto{
+export class  ApplypromoCodeDto{
     @IsString()
     @IsOptional()
     code:string
@@ -154,7 +154,7 @@ export class InOfficeOrderDto {
 
     @IsOptional()
     @IsString()
-    weight_of_parcel:number
+    weight_of_parcel:string
 
     @IsOptional()
     @IsString()
@@ -248,7 +248,7 @@ export class OrderDto {
 
     @IsOptional()
     @IsString()
-    weight_of_parcel:number
+    weight_of_parcel:string
 
     @IsOptional()
     @IsString()

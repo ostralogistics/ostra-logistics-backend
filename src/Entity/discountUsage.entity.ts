@@ -26,5 +26,7 @@ export class DiscountUsageEntity implements IDiscountUsage{
     @ManyToOne(()=>CustomerEntity, customer => customer.discountUsages,{nullable:true, onDelete:'CASCADE'})
     appliedBy: CustomerEntity
 
+   
+
 
 }

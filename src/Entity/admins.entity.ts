@@ -5,6 +5,7 @@ import { RepliesEntity } from "./replies.entity";
 import { OrderCartEntity, OrderEntity } from "./orders.entity";
 import { BidEntity } from "./bids.entity";
 
+
 @Entity({name:"Admin",})
 export class AdminEntity implements IAdmin{
     @PrimaryGeneratedColumn()
@@ -116,6 +117,8 @@ export class AdminEntity implements IAdmin{
 
     @OneToMany(()=>BidEntity, bids =>bids.madeby,{nullable:true})
     bids_sent: BidEntity[]
+
+ 
     
     
 }

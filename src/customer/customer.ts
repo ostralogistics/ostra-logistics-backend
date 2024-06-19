@@ -23,7 +23,6 @@ export interface ICustomer {
     my_orders: OrderEntity[]
     my_cards :CardEntity[]
     my_complains:ComplaintEntity[]
-    discountUsages: DiscountUsageEntity[];
     carts:OrderCartEntity
 
 

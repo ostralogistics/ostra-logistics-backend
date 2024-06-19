@@ -319,8 +319,8 @@ export class CartItemEntity {
   @Column({nullable:false})
   parcelWorth: string;
 
-  @Column('numeric', { nullable: true })
-  weight_of_parcel: number;
+  @Column( { nullable: true })
+  weight_of_parcel: string;
 
   @Column({nullable:true})
   describe_weight_of_parcel: string;
