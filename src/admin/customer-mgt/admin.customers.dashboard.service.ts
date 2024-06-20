@@ -1158,7 +1158,7 @@ export class AdminCustomerDashBoardService {
     try {
       const cart = await this.orderCartRepo.findOne({
         where: { admin: { id: admin.id }, checkedOut: false },
-        //relations: ['admin','items','items.vehicleType']
+        relations: ['items','items.vehicleType']
       });
       if (!cart) throw new NotFoundException('cart not found');
       return cart;
