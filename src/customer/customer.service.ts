@@ -317,6 +317,7 @@ export class CustomerService {
       const dropoffCode = this.genratorservice.generateDropOffCode();
       const orderID = `osl-${this.genratorservice.generateOrderID()}`;
       const barcode = `${this.genratorservice.generateBarcodeGigits()}`;
+      
       const order = new OrderEntity();
       order.orderID = orderID;
       order.trackingID = trackingToken;

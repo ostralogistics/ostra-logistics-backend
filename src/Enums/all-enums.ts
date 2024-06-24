@@ -186,8 +186,8 @@ export enum RiderStatus{
 }
 
 export enum PriorityDeliveryType{
-    EXPRESS_DELIVERY ="express_Delivery",
-    NEXT_DAY_DELIVERY ="next_day_delivery",
+    EXPRESS_DELIVERY ="Express_Delivery",
+    SAME_DAY_DELIVERY ="same_day_delivery",
     SCHEDULED_DELIVERY ="scheduled_delivery"
 }
 
