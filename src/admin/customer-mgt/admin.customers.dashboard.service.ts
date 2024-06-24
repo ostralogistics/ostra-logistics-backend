@@ -1156,11 +1156,11 @@ export class AdminCustomerDashBoardService {
   //get cart
   async getAdminCart(admin: AdminEntity) {
     try {
-      const cart = await this.orderCartRepo.findOne({
+      const cart = await this.orderCartRepo.findAndCount({
         where: { admin: { id: admin.id }, checkedOut: false },
         relations: ['items','items.vehicleType']
       });
-      if (!cart) throw new NotFoundException('cart not found');
+      if (cart[1] == 0 ) throw new NotFoundException('cart not found');
       return cart;
     } catch (error) {
       if (error instanceof NotFoundException)
