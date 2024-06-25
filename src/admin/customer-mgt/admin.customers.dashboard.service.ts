@@ -338,7 +338,7 @@ export class AdminCustomerDashBoardService {
 
       const orders = await this.orderRepo.findAndCount({
        
-        relations: ['bid', 'Rider', 'customer', 'items', 'admin'], // Assuming relations are correctly defined
+        relations: ['bid', 'Rider', 'customer', 'items','items.vehicleType', 'admin'], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -371,7 +371,7 @@ export class AdminCustomerDashBoardService {
         where: {
           order_display_status:OrderDisplayStatus.COMPLETED
         },
-        relations: ['bid', 'Rider', 'customer', 'items', 'admin'], // Assuming relations are correctly defined
+        relations: ['bid', 'Rider', 'customer', 'items','items.vehicleType', 'admin'], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -404,7 +404,7 @@ export class AdminCustomerDashBoardService {
         where: {
           order_display_status:OrderDisplayStatus.PENDING,
         },
-        relations: ['bid', 'Rider', 'customer', 'items', 'admin'],
+        relations: ['bid', 'Rider', 'customer', 'items', 'items.vehicleType','admin'],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -437,7 +437,7 @@ export class AdminCustomerDashBoardService {
         where: {
           order_display_status:OrderDisplayStatus.DECLINED,
         },
-        relations: ['bid', 'Rider', 'customer', 'items', 'admin'],
+        relations: ['bid', 'Rider', 'customer', 'items','items.vehicleType', 'admin'],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -470,7 +470,7 @@ export class AdminCustomerDashBoardService {
         where: {
           order_display_status:OrderDisplayStatus.ORDER_PLACED,
         },
-        relations: ['bid', 'Rider', 'customer', 'items', 'admin'],
+        relations: ['bid', 'Rider', 'customer', 'items', 'items.vehicleType', 'admin'],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,

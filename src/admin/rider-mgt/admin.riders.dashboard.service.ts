@@ -728,6 +728,7 @@ export class AdminRiderDashboardService {
       } else if (error instanceof NotAcceptableException)
         throw new NotAcceptableException(error.message);
       else {
+        console.log(error)
         throw new InternalServerErrorException(
           'Something went wrong when trying to assign a task to a rider. Please try again later.',
           error.message,
