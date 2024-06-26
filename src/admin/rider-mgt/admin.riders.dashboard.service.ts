@@ -688,7 +688,7 @@ export class AdminRiderDashboardService {
 
       //save task to the task table
       const task = new TaskEntity();
-      (task.rider = order.Rider), (task.task = dto.task);
+      (task.rider = order.Rider), (task.Task = dto.task);
       (task.assigned_order = order), (task.assignedAT = new Date());
 
       await this.taskRepo.save(task);

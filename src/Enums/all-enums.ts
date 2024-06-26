@@ -31,6 +31,12 @@ export enum RiderTask{
     PICKUP_AND_DROPOFF ="pickup and dropoff"
 }
 
+export enum RiderTask2{
+    PICKUP ="pickup",
+    DROPOFF ="dropoff",
+    PICKUP_AND_DROPOFF ="pickup_and_dropoff"
+}
+
 
 export enum RiderMileStones{
     ENROUTE_TO_PICKUP_LOCATION= "enroute_to_pickup_location",
