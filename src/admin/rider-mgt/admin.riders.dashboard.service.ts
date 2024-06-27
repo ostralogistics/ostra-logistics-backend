@@ -27,7 +27,6 @@ import { customAlphabet } from 'nanoid';
 import { IChangeRiderPassword, IRider } from 'src/Riders/riders';
 import {
   AssignTaskDto,
-  AssignTaskDto2,
   BankDetailsDto,
   EditBankDetailsDto,
   LogtransactionDto,
@@ -660,7 +659,7 @@ export class AdminRiderDashboardService {
   async AssignOrderToRider(
     riderID: string,
     orderID: number,
-    dto: AssignTaskDto2,
+    dto: AssignTaskDto,
   ) {
     try {
       const rider = await this.riderripo.findOne({
@@ -689,7 +688,7 @@ export class AdminRiderDashboardService {
 
       //save task to the task table
       const task = new TaskEntity();
-      (task.rider = order.Rider), (task.Task = dto.task);
+      (task.rider = order.Rider), (task.task= dto.task);
       (task.assigned_order = order), (task.assignedAT = new Date());
 
       await this.taskRepo.save(task);

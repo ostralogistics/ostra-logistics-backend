@@ -1,14 +1,13 @@
 // where the tasks can be stored for the rider to see and follwo up with 
 
-import { RiderMileStones, RiderTask, RiderTask2, TaskStatus } from "src/Enums/all-enums";
+import { RiderMileStones,  TaskStatus } from "src/Enums/all-enums";
 import { OrderEntity } from "./orders.entity";
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { RiderEntity } from "./riders.entity";
 
 export interface IRiderTask{
     id:number,
-    task:RiderTask,
-    Task: RiderTask2;
+    task:string,
     rider:RiderEntity
     acceptedAt:Date
     declinedAT:Date,
@@ -23,12 +22,10 @@ export class TaskEntity implements IRiderTask{
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({nullable:true, type:'enum', enum:RiderTask})
-    task: RiderTask;
+    @Column({nullable:true})
+    task: string;
 
-    @Column({nullable:true, type:'enum', enum:RiderTask2})
-    Task: RiderTask2;
-
+   
     @ManyToOne(()=>RiderEntity,rider=>rider.tasks,{onDelete:'CASCADE'})
     rider: RiderEntity;
 

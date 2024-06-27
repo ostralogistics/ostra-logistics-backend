@@ -15,7 +15,6 @@ import {
 import { AdminRiderDashboardService } from './admin.riders.dashboard.service';
 import {
   AssignTaskDto,
-  AssignTaskDto2,
   BankDetailsDto,
   EditBankDetailsDto,
   LogtransactionDto,
@@ -205,7 +204,7 @@ export class AdminRiderDashBoardController {
   async AssignOrderToRide(
     @Param('orderID') orderID: number,
     @Param('riderID') riderID: string,
-    @Body() dto: AssignTaskDto2,
+    @Body() dto: AssignTaskDto,
   ) {
     return await this.adminriderservice.AssignOrderToRider(
       riderID,

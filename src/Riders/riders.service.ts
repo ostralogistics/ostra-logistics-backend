@@ -34,8 +34,6 @@ import {
   RequestType,
   RiderMileStones,
   RiderStatus,
-  RiderTask,
-  RiderTask2,
   TaskStatus,
 } from 'src/Enums/all-enums';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
@@ -427,7 +425,7 @@ export class RiderService {
       await this.taskRepo.save(task);
 
       //update rider 
-      if (task.Task === RiderTask2.PICKUP){
+      if (task.task === "pickup"){
         Rider.status = RiderStatus.AVAILABLE
         await this.riderRepo.save(Rider)
       }

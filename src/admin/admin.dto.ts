@@ -1,5 +1,5 @@
 import { IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, IsStrongPassword, Matches, matches } from "class-validator";
-import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, ReturnedVehicle, RiderTask, RiderTask2, StateOFOrigin, VehicleAssignedStatus, VehicleState, VehicleType, channelforconversation, complainResolutionStatus } from "src/Enums/all-enums";
+import { AdminAccessLevels, AdminType, DeliveryPriority, Gender, MaritalStatus, ReturnedVehicle,  StateOFOrigin, VehicleAssignedStatus, VehicleState, VehicleType, channelforconversation, complainResolutionStatus } from "src/Enums/all-enums";
 
 
 export class ReplyDto{
@@ -55,16 +55,13 @@ export class EditBankDetailsDto{
 }
 
 export class AssignTaskDto{
-    @IsEnum(RiderTask)
-    task:RiderTask
+    @IsString()
+    @IsNotEmpty()
+    task:string
 
 }
 
-export class AssignTaskDto2{
-    @IsEnum(RiderTask2)
-    task:RiderTask2
 
-}
 
 export class RegisterAdminDto{
     @IsEmail()
