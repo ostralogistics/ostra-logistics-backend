@@ -55,6 +55,12 @@ export class EditBankDetailsDto{
 }
 
 export class AssignTaskDto{
+    @IsEnum(RiderTask)
+    task:RiderTask
+
+}
+
+export class AssignTaskDto2{
     @IsEnum(RiderTask2)
     task:RiderTask2
 

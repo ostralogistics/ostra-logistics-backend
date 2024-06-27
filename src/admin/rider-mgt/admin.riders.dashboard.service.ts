@@ -27,6 +27,7 @@ import { customAlphabet } from 'nanoid';
 import { IChangeRiderPassword, IRider } from 'src/Riders/riders';
 import {
   AssignTaskDto,
+  AssignTaskDto2,
   BankDetailsDto,
   EditBankDetailsDto,
   LogtransactionDto,
@@ -659,7 +660,7 @@ export class AdminRiderDashboardService {
   async AssignOrderToRider(
     riderID: string,
     orderID: number,
-    dto: AssignTaskDto,
+    dto: AssignTaskDto2,
   ) {
     try {
       const rider = await this.riderripo.findOne({
