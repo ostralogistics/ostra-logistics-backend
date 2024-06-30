@@ -264,13 +264,17 @@ export class CustomerService {
   //get cart
   async getCart(Customer: CustomerEntity) {
     try {
-      const cart = await this.orderCartRepo.findAndCount({
+      const cart = await this.orderCartRepo.findOne({
         where: { customer: {id:Customer.id}, checkedOut: false },
         relations: ['customer', 'items','items.vehicleType'],
       });
-      if (cart[1]==0) throw new NotFoundException('cart not found');
+      if (!cart) throw new NotFoundException('cart not found');
       // Convert cart entity to plain object to avoid circular reference issues
-      return cart
+
+      const itemcount = cart.items.length;
+
+      return {...cart, itemcount}
+
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
