@@ -776,6 +776,64 @@ export class CustomerService {
     }
   }
 
+   //fetching all orders intransit
+   async fetchallProcessignOrders(customer: CustomerEntity) {
+    try {
+      const findorder = await this.orderRepo.findAndCount({
+        where: {
+          customer: { id: customer.id },
+          order_status:OrderStatus.ORDER_PLACED
+        },
+        relations: ['customer', 'bid','items','items.vehicleType'],
+        comment: 'fetching orders that are just placed ',
+      });
+
+      if (findorder[1] === 0)
+        throw new NotFoundException(' you have no order in transit ');
+
+      return findorder;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching all  orders that were just placed , please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
+  async fetchallOneProcessignOrder(customer: CustomerEntity, orderID:number) {
+    try {
+      const findorder = await this.orderRepo.findAndCount({
+        where: { id:orderID,
+          customer: { id: customer.id },
+          order_status:OrderStatus.ORDER_PLACED
+        },
+        relations: ['customer', 'bid','items','items.vehicleType'],
+        comment: 'fetching orders that are just placed ',
+      });
+
+      if (findorder[1] === 0)
+        throw new NotFoundException(' you have no order placed yet ');
+
+      return findorder;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching all  orders that were just placed , please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
+
 
   //fetching all orders intransit
   async fetchalldroppedoff(customer: CustomerEntity) {

@@ -74,6 +74,16 @@ export class CustomerController{
       return await this.customerservice.fetchallOngoingOrders(req.user)
      }
 
+     @Get('just-placed-orders')
+     async GetallOrdersJustPlaced(@Req()req){
+      return await this.customerservice.fetchallProcessignOrders(req.user)
+     }
+
+     @Get('one-just-placed-order/:orderID')
+     async GetOneOrderJustPlaced(@Req()req, @Param('orderID')orderID:number){
+      return await this.customerservice.fetchallOneProcessignOrder(req.user,orderID)
+     }
+
      
      @Get('droppedOff-orders')
      async GetallOrdersdroppedOff(@Req()req){
