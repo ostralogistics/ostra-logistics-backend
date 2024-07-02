@@ -50,6 +50,7 @@ import {
   BidRepository,
   DiscountUsageRepository,
   NotificationRepository,
+  ReceiptRespository,
 } from 'src/common/common.repositories';
 import axios from 'axios';
 import * as nanoid from 'nanoid';
@@ -80,6 +81,7 @@ import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { plainToInstance } from 'class-transformer';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
+import { ReceiptEntity } from 'src/Entity/receipt.entity';
 
 
 @Injectable()
@@ -112,6 +114,8 @@ export class CustomerService {
     private readonly discountusageRepo: DiscountUsageRepository,
     @InjectRepository(VehicleTypeEntity)
     private readonly vehicletypeRepo: VehicleTypeRepository,
+    @InjectRepository(ReceiptEntity)
+    private readonly receiptrepo: ReceiptRespository,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private genratorservice: GeneatorService,
@@ -859,6 +863,59 @@ export class CustomerService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while fetching all droppedoff orders, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
+
+  async GetOneOrder(orderID:number,customer:CustomerEntity) {
+    try {
+      const order = await this.orderRepo.findAndCount({
+        where:{id:orderID,customer:{id:customer.id}},
+        relations: ['bid', 'Rider', 'customer', 'items','items.vehicleType',], // Assuming relations are correctly defined
+      });
+
+      if (!order)
+        throw new NotFoundException(
+          'order not found',
+        );
+
+      return order;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching dropped off orders, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
+
+  async GetOrderReceipt(orderID: number,) {
+    try {
+      const receipt = await this.receiptrepo.findOne({
+        where: { order:{id:orderID},  },
+        relations: ['order','order.items'],
+      });
+      if (!receipt)
+        throw new NotFoundException(
+          'the order with the passed ID does not exist',
+        );
+
+      return receipt;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching receipt assocated with order, please try again later',
           error.message,
         );
       }

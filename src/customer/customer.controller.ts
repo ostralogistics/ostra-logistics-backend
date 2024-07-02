@@ -82,13 +82,29 @@ export class CustomerController{
      @Get('one-just-placed-order/:orderID')
      async GetOneOrderJustPlaced(@Req()req, @Param('orderID')orderID:number){
       return await this.customerservice.fetchallOneProcessignOrder(req.user,orderID)
-     }
+     }4
 
      
      @Get('droppedOff-orders')
      async GetallOrdersdroppedOff(@Req()req){
       return await this.customerservice.fetchalldroppedoff(req.user)
      }
+
+
+
+  @Get('one-order/:orderID')
+  async GetOneOrders(
+    @Param('orderID') orderID: number,@Req()req
+  ) {
+    return await this.customerservice.GetOneOrder(orderID,req.user);
+  }
+
+  @Get('receipt/:orderID')
+  async GetReceipt(
+    @Param('orderID') orderID: number,
+  ) {
+    return await this.customerservice.GetOrderReceipt(orderID);
+  }
 
      //debit card 
 

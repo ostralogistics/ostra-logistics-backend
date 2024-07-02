@@ -72,14 +72,14 @@ export class PaystackWebhookService {
 
       await this.sendOrderAcceptedEmail(order);
 
-      await this.createTransaction(order, eventData);
+      //await this.createTransaction(order, eventData);
 
-      const receipt = await this.createReceipt(order);
+      await this.createReceipt(order);
 
       return {
         trackingID: order.trackingID,
         dropoffCode: order.dropoffCode,
-        receipt: receipt,
+        //receipt: receipt,
       };
     } catch (error) {
       console.error('Error handling charge success event:', error);
@@ -143,7 +143,7 @@ export class PaystackWebhookService {
 
     const receipt = new ReceiptEntity();
     receipt.ReceiptID = `#${this.genservice.generatereceiptID()}`;
-    receipt.dueAt = new Date();
+    //receipt.dueAt = new Date();
     receipt.issuedAt = new Date();
     receipt.order = order;
     receipt.subtotal = totalBeforeVAT;

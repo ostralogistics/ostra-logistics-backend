@@ -46,6 +46,23 @@ export class AdminCustomerDashBoardController {
   }
 
 
+
+  @Get('one-order/:orderID')
+  async GetOneOrders(
+    @Param('orderID') orderID: number,
+  ) {
+    return await this.admincustomerservice.GetOneOrder(orderID);
+  }
+
+  @Get('receipt/:orderID')
+  async GetReceipt(
+    @Param('orderID') orderID: number,
+  ) {
+    return await this.admincustomerservice.GetOrderReceipt(orderID);
+  }
+
+
+
   @Get('pending-orders')
   async GetAllPendingOrders(
     @Query('page') page: number,

@@ -37,6 +37,7 @@ import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
+import { ReceiptEntity } from 'src/Entity/receipt.entity';
 //import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 // import { FirebaseService } from 'src/firebase/firebase.service';
 // import { FirebaseModule } from 'src/firebase/firebase.module';
@@ -68,6 +69,7 @@ import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
       CartItemEntity,
       OrderCartEntity,
       OrderItemEntity,
+      ReceiptEntity,
       VehicleTypeEntity
     ]),
   ],

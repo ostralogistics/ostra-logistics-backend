@@ -12,6 +12,7 @@ import {
   BidRepository,
   DiscountUsageRepository,
   NotificationRepository,
+  ReceiptRespository,
 } from 'src/common/common.repositories';
 import { BidEntity, IBids, IInitialBidsResponse } from 'src/Entity/bids.entity';
 import { IOrder } from 'src/order/order';
@@ -63,6 +64,7 @@ import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
+import { ReceiptEntity } from 'src/Entity/receipt.entity';
 // import { FirebaseService } from 'src/firebase/firebase.service';
 // import * as admin from 'firebase-admin';
 
@@ -88,6 +90,8 @@ export class AdminCustomerDashBoardService {
     private genratorservice: GeneatorService,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
+    @InjectRepository(ReceiptEntity)
+    private readonly receiptrepo: ReceiptRespository,
     //private firebaseservice: FirebaseService,
   ) {}
 
@@ -298,6 +302,31 @@ export class AdminCustomerDashBoardService {
     }
   }
 
+  async GetOrderReceipt(orderID: number) {
+    try {
+      const receipt = await this.receiptrepo.findOne({
+        where: { order:{id:orderID} },
+        relations: ['order','order.items'],
+      });
+      if (!receipt)
+        throw new NotFoundException(
+          'the order with the passed ID does not exist',
+        );
+
+      return receipt;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching receipt assocated with order, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
   //get orders that are delivered
   async GetOrdersThatAreInTransit(page: number = 1, limit: number = 30) {
     try {
@@ -350,6 +379,33 @@ export class AdminCustomerDashBoardService {
         );
 
       return orders;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching dropped off orders, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
+
+  async GetOneOrder(orderID:number) {
+    try {
+      const order = await this.orderRepo.findAndCount({
+        where:{id:orderID},
+        relations: ['bid', 'Rider', 'customer', 'items','items.vehicleType', 'admin'], // Assuming relations are correctly defined
+      });
+
+      if (!order)
+        throw new NotFoundException(
+          'order not found',
+        );
+
+      return order;
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
