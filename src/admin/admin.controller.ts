@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { AdminService } from "./admin.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
-import { ChannelDto, DiscountDto, PriceListDto, RegisterVehicleDto, ReplyDto, ReturnedVehicleDto, UpdateDiscountDto, UpdatePriceListDto, UpdateVehicleDto, VehicleTypeDto, updateResolutionStatusDto } from "./admin.dto";
+import { ChannelDto, DiscountDto, PriceListDto, RegisterVehicleDto, ReplyDto, ReturnedVehicleDto, UpdateAdminDto, UpdateDiscountDto, UpdatePriceListDto, UpdateVehicleDto, VehicleTypeDto, updateResolutionStatusDto } from "./admin.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "src/auth/guard/role.guard";
 import { Roles } from "src/auth/decorator/role.decorator";
@@ -21,6 +21,21 @@ import { ApplypromoCodeDto } from "src/common/common.dto";
 @Controller('admin')
 export class Admincontroller{
     constructor(private readonly adminservice:AdminService){}
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @Patch('update-profile')    
+    async UpdateProfile(@Body()dto:UpdateAdminDto, @Req()req){
+        return await this.adminservice.EditAdminProfile(dto,req.user)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @Patch('upload-profile-pics')
+    @UseInterceptors(FileInterceptor('image')) 
+    async UpdateProfilePics(@Body()dto:UpdateAdminDto, @Req()req, @UploadedFile()file:Express.Multer.File){
+        return await this.adminservice.UploadAdminProfilePics(file,req.user)
+    }
+
+
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Post('add-vehicleType')

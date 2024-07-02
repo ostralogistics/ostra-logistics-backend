@@ -653,7 +653,7 @@ export class CustomerService {
         {
           amount: totalAmountWithVAT * 100, // Convert to kobo (Paystack currency)
           email: order.customer.email, // Customer email for reference
-          reference: order.id.toString(), // Order ID as payment reference
+          reference: await this.genratorservice.generateUUID(),// Order ID as payment reference
           currency: 'NGN',
         },
         {
@@ -675,14 +675,14 @@ export class CustomerService {
       }
       //save the notification
       const notification = new Notifications();
-      notification.account = order.customer.id;
+      notification.account = "customer";
       notification.subject = 'Payment Order initiated!';
-      notification.message = `the customer with id ${order.customer.id} have initiated payment `;
+      notification.message = `the customer  have initiated payment `;
       await this.notificationripo.save(notification);
 
       return response.data;
     } catch (error) {
-      console.error(error);
+      console.log(error);
       let errorMessage = 'Payment processing failed. Please try again later';
 
       // Handle specific Paystack errors (optional)

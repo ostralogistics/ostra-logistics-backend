@@ -26,6 +26,7 @@ import {
   RegisterVehicleDto,
   ReplyDto,
   ReturnedVehicleDto,
+  UpdateAdminDto,
   UpdateDiscountDto,
   UpdatePriceListDto,
   UpdateVehicleDto,
@@ -37,6 +38,7 @@ import { UploadService } from 'src/common/helpers/upload.service';
 import { RiderEntity } from 'src/Entity/riders.entity';
 import { RidersRepository } from 'src/Riders/riders.repository';
 import {
+  AdminType,
   BidStatus,
   ReturnedVehicle,
   RiderStatus,
@@ -58,7 +60,10 @@ import {
   complaintRepository,
 } from 'src/customer/customer.repository';
 import { RepliesEntity } from 'src/Entity/replies.entity';
-import { ComplaintDto, markNotificationAsReadDto } from 'src/customer/customer.dto';
+import {
+  ComplaintDto,
+  markNotificationAsReadDto,
+} from 'src/customer/customer.dto';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
@@ -99,6 +104,84 @@ export class AdminService {
     private cloudinaryservice: CloudinaryService,
   ) {}
 
+  async EditAdminProfile(dto: UpdateAdminDto, Admin:AdminEntity) {
+    try {
+      const admin = await this.adminRepo.findOne({
+        where: { id:Admin.id, admintype: AdminType.CEO },
+      });
+      if (!admin) throw new NotFoundException('ceo not found');
+
+      admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
+      admin.email = dto.email;
+      admin.firstname = dto.firstname;
+      admin.lastname = dto.lastname;
+      admin.UpdatedAt = new Date();
+      admin.home_address = dto.home_address;
+      admin.gender = dto.gender;
+
+      await this.adminRepo.save(admin);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = 'super admin';
+      notification.subject = 'ceo updated Record!';
+      notification.message = `ceo with with id ${admin.id} have updated their record  on ostra ogistics  `;
+      await this.notificationripo.save(notification);
+
+      return { message: 'ceo profile updated successfully', admin };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to update the record of a super admin',error.message
+        );
+      }
+    }
+  }
+
+
+  async UploadAdminProfilePics(
+    mediafile: Express.Multer.File,
+     Admin:AdminEntity,
+  ): Promise<{ message: string }> {
+    try {
+
+      const admin = await this.adminRepo.findOne({
+        where: { id: Admin.id, admintype: AdminType.CEO },
+      });
+      if (!admin) throw new NotFoundException('ceo not found');
+
+      const display_pics = await this.cloudinaryservice.uploadFile(mediafile);
+      const mediaurl = display_pics.secure_url;
+
+      //update the image url
+
+      admin.profile_picture = mediaurl;
+
+      await this.adminRepo.save(admin);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = admin.id;
+      notification.subject = 'CEO Uploaded Profile Pics!';
+      notification.message = `CEO with id ${admin.id} have uploaded a profile picture in the admin app of ostra logistics `;
+      await this.notificationripo.save(notification);
+
+      return { message: 'your profile picture has been uploaded successully ' };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to upload profile picture ',error.message
+        );
+      }
+    }
+  }
+
   async AddVehicleType(dto: VehicleTypeDto) {
     try {
       const vehicletype = new VehicleTypeEntity();
@@ -136,14 +219,15 @@ export class AdminService {
 
       return vehicletype;
     } catch (error) {
-      if (error instanceof NotFoundException) throw new NotFoundException(error.message)
-      else{
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while fetching all vehicletype, please try again later',
           error.message,
         );
-    }
+      }
     }
   }
 
@@ -158,22 +242,21 @@ export class AdminService {
           `you have no vehicleType with the ID ${vehicletype}`,
         );
 
-      return vehicletype;   
+      return vehicletype;
     } catch (error) {
-      
-      if (error instanceof NotFoundException) throw new NotFoundException(error.message)
-      else{
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while fetching one vehicletype, please try again later',
           error.message,
         );
-    }
-     
+      }
     }
   }
 
-//delete vehicletype
+  //delete vehicletype
   async DeleteOneVehicleType(vehicletypeID: number) {
     try {
       const vehicletype = await this.vehicletyperepo.findOne({
@@ -184,17 +267,20 @@ export class AdminService {
           `you have no vehicleType with the ID ${vehicletypeID}`,
         );
 
-      await this.vehicletyperepo.remove(vehicletype)
-      return {message: `vehicleType with ID ${vehicletypeID} have been deleted`}  
+      await this.vehicletyperepo.remove(vehicletype);
+      return {
+        message: `vehicleType with ID ${vehicletypeID} have been deleted`,
+      };
     } catch (error) {
-      if (error instanceof NotFoundException) throw new NotFoundException(error.message)
-      else{
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while deleting one vehicletype, please try again later',
           error.message,
         );
-    }
+      }
     }
   }
 
@@ -398,14 +484,13 @@ export class AdminService {
 
       //assingn vehicle
       vehicle.assigned_Rider = rider;
-      vehicle.status = VehicleAssignedStatus.ASSIGNED
+      vehicle.status = VehicleAssignedStatus.ASSIGNED;
       vehicle.assignedAT = new Date();
       await this.vehiclerepo.save(vehicle);
 
       //update rider entity
-      rider.status = RiderStatus.AVAILABLE
-      await this.riderrepo.save(rider)
-
+      rider.status = RiderStatus.AVAILABLE;
+      await this.riderrepo.save(rider);
 
       //save the notification
       const notification = new Notifications();
@@ -462,7 +547,7 @@ export class AdminService {
       if (dto && dto.returned === ReturnedVehicle.YES) {
         //report
         vehicle.returned_vehicle = dto.returned;
-        vehicle.status = VehicleAssignedStatus.UNASSIGNED
+        vehicle.status = VehicleAssignedStatus.UNASSIGNED;
         vehicle.assigned_Rider = null;
         vehicle.retrnedAt = new Date();
         await this.vehiclerepo.save(vehicle);
@@ -476,7 +561,7 @@ export class AdminService {
 
         //update the rider db too
         rider.vehicle_for_the_day = null;
-        rider.status = RiderStatus.OFFLINE
+        rider.status = RiderStatus.OFFLINE;
         await this.riderrepo.save(rider);
       }
 
@@ -1097,90 +1182,84 @@ export class AdminService {
     }
   }
 
-    //get all notifications related to the customer
+  //get all notifications related to the customer
 
-    async AllNotifications(page:number =1, limit:number=30) {
-      try {
-        const skip = (page - 1) * limit;
-        const notification = await this.notificationripo.findAndCount({
-          take:page,
-          skip:skip,
-        });
-        if (notification[1] === 0)
-          throw new NotFoundException(
-            'oops! you have no notifications at this time',
-          );
-  
-        return notification;
-      } catch (error) {
-        if (error instanceof NotFoundException)
-          throw new NotFoundException(error.message);
-        else {
-          console.log(error);
-          throw new InternalServerErrorException(
-            'something went wrong while trying to fetch notifications',
-            error.message,
-          );
-        }
+  async AllNotifications(page: number = 1, limit: number = 30) {
+    try {
+      const skip = (page - 1) * limit;
+      const notification = await this.notificationripo.findAndCount({
+        take: page,
+        skip: skip,
+      });
+      if (notification[1] === 0)
+        throw new NotFoundException(
+          'oops! you have no notifications at this time',
+        );
+
+      return notification;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch notifications',
+          error.message,
+        );
       }
     }
-  
-    //get one notification and mark it as read
-    async OpenOneNotification(notificationId:number,dto:markNotificationAsReadDto) {
-      try {
-        const notification = await this.notificationripo.findOne({
-          where: { id:notificationId},
-        });
-        if (!notification)
-          throw new NotFoundException(
-            'notification not found',
-          );
-  
-          if (dto){
-            notification.isRead = dto.isRead
-            await this.notificationripo.save(notification)
-          }
-  
-        return notification;
-      } catch (error) {
-        if (error instanceof NotFoundException)
-          throw new NotFoundException(error.message);
-        else {
-          console.log(error);
-          throw new InternalServerErrorException(
-            'something went wrong while trying to fetch a notifications',
-            error.message,
-          );
-        }
+  }
+
+  //get one notification and mark it as read
+  async OpenOneNotification(
+    notificationId: number,
+    dto: markNotificationAsReadDto,
+  ) {
+    try {
+      const notification = await this.notificationripo.findOne({
+        where: { id: notificationId },
+      });
+      if (!notification) throw new NotFoundException('notification not found');
+
+      if (dto) {
+        notification.isRead = dto.isRead;
+        await this.notificationripo.save(notification);
+      }
+
+      return notification;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch a notifications',
+          error.message,
+        );
       }
     }
-  
-  
-    //get one notification and mark it as read
-    async DeleteOneNotification(notificationId:number) {
-      try {
-        const notification = await this.notificationripo.findOne({
-          where: { id:notificationId },
-        });
-        if (!notification)
-          throw new NotFoundException(
-            'notification not found',
-          );
-  
-         await this.notificationripo.remove(notification)
-        return notification;
-  
-        
-      } catch (error) {
-        if (error instanceof NotFoundException)
-          throw new NotFoundException(error.message);
-        else {
-          console.log(error);
-          throw new InternalServerErrorException(
-            'something went wrong while trying to delete a notification',
-            error.message,
-          );
-        }
+  }
+
+  //get one notification and mark it as read
+  async DeleteOneNotification(notificationId: number) {
+    try {
+      const notification = await this.notificationripo.findOne({
+        where: { id: notificationId },
+      });
+      if (!notification) throw new NotFoundException('notification not found');
+
+      await this.notificationripo.remove(notification);
+      return notification;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to delete a notification',
+          error.message,
+        );
       }
     }
+  }
 }
