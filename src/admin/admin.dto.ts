@@ -118,6 +118,7 @@ export class UpdateAdminDto{
     profile_picture: string 
 
     @IsEnum(Gender)
+    @IsOptional()
     gender:Gender
 
 }
