@@ -61,6 +61,7 @@ import {
 } from 'src/customer/customer.repository';
 import { RepliesEntity } from 'src/Entity/replies.entity';
 import {
+  ChangePasswordDto,
   ComplaintDto,
   markNotificationAsReadDto,
 } from 'src/customer/customer.dto';
@@ -181,6 +182,50 @@ export class AdminService {
       }
     }
   }
+
+    // change password
+    async changeCustomerPassword(
+      dto: ChangePasswordDto,
+      customer: AdminEntity,
+    ): Promise<{ message: string }> {
+      try {
+        const { oldPassword, password, confirmPassword } = dto;
+  
+        const comparepass = await this.genratorservice.comaprePassword(
+          dto.oldPassword,
+          customer.password,
+        );
+        if (!comparepass)
+          throw new NotAcceptableException(
+            'the old password provided does not match the existing passworod',
+          );
+  
+        const hashpass = await this.genratorservice.hashpassword(dto.password);
+  
+        customer.password = hashpass;
+  
+        await this.adminRepo.save(customer);
+  
+        //save the notification
+        const notification = new Notifications();
+        notification.account = customer.id;
+        notification.subject = 'CEO Changed Password!';
+        notification.message = `the ceo with id ${customer.id} have made changes to his existing record in the admin dashboard of ostra logistics `;
+        await this.notificationripo.save(notification);
+  
+        return { message: 'password changed successfully' };
+      } catch (error) {
+        if (error instanceof NotAcceptableException) {
+          throw new NotAcceptableException(error.message);
+        } else {
+          console.error(error);
+          throw new InternalServerErrorException(
+            'Something went wrong while trying to change password. Please try again later.',
+            error.message,
+          );
+        }
+      }
+    }
 
   async AddVehicleType(dto: VehicleTypeDto) {
     try {

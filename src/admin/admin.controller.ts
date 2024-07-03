@@ -10,7 +10,7 @@ import { AdminTypeGuard } from "src/auth/guard/admintype.guard";
 import { AdminTypes } from "src/auth/decorator/admintype.decorator";
 import { AdminAcessLevelGuard } from "src/auth/guard/accesslevel.guard";
 import { AdminAccessLevel } from "src/auth/decorator/accesslevel.decorator";
-import { ComplaintDto, markNotificationAsReadDto } from "src/customer/customer.dto";
+import { ChangePasswordDto, ComplaintDto, markNotificationAsReadDto } from "src/customer/customer.dto";
 import { ApplypromoCodeDto } from "src/common/common.dto";
 
 @UseGuards(JwtGuard,RoleGuard,AdminTypeGuard,AdminAcessLevelGuard)
@@ -34,6 +34,12 @@ export class Admincontroller{
     async UpdateProfilePics(@Body()dto:UpdateAdminDto, @Req()req, @UploadedFile()file:Express.Multer.File){
         return await this.adminservice.UploadAdminProfilePics(file,req.user)
     }
+
+    @Patch('change-password')
+    async ChangePassword(@Body()dto:ChangePasswordDto,@Req()req){
+     return await this.adminservice.changeCustomerPassword(dto,req.user)
+    }
+
 
 
 
