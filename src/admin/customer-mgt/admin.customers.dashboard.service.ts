@@ -95,8 +95,6 @@ export class AdminCustomerDashBoardService {
     //private firebaseservice: FirebaseService,
   ) {}
 
-  
-
   //make openning bid based on influenced matrix cost calculations
   async MakeOpenningBid(
     orderID: number,
@@ -119,11 +117,11 @@ export class AdminCustomerDashBoardService {
       bid.bid_value = dto.bid;
       bid.initialBidPlacedAt = new Date();
       bid.bidStatus = BidStatus.BID_PLACED;
-      bid.madeby = admin
+      bid.madeby = admin;
       await this.bidRepo.save(bid);
 
-      order.processingOrderAT = new Date()
-      await this.orderRepo.save(order)
+      order.processingOrderAT = new Date();
+      await this.orderRepo.save(order);
 
       // Assume 'order' and 'bid' are already defined
 
@@ -201,7 +199,7 @@ export class AdminCustomerDashBoardService {
       bid.counter_bid_offer = dto.counter_bid;
       bid.bidStatus = BidStatus.COUNTERED;
       bid.counteredAt = new Date();
-      
+
       await this.bidRepo.save(bid);
 
       // // // Send push notification to the admin
@@ -305,8 +303,8 @@ export class AdminCustomerDashBoardService {
   async GetOrderReceipt(orderID: number) {
     try {
       const receipt = await this.receiptrepo.findOne({
-        where: { order:{id:orderID} },
-        relations: ['order','order.items'],
+        where: { order: { id: orderID } },
+        relations: ['order', 'order.items'],
       });
       if (!receipt)
         throw new NotFoundException(
@@ -334,7 +332,7 @@ export class AdminCustomerDashBoardService {
 
       const orders = await this.orderRepo.findAndCount({
         where: {
-          order_display_status:OrderDisplayStatus.IN_TRANSIT,
+          order_display_status: OrderDisplayStatus.IN_TRANSIT,
         },
         relations: ['bid', 'Rider', 'customer', 'items'], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
@@ -366,8 +364,14 @@ export class AdminCustomerDashBoardService {
       const skip = (page - 1) * limit;
 
       const orders = await this.orderRepo.findAndCount({
-       
-        relations: ['bid', 'Rider', 'customer', 'items','items.vehicleType', 'admin'], // Assuming relations are correctly defined
+        relations: [
+          'bid',
+          'Rider',
+          'customer',
+          'items',
+          'items.vehicleType',
+          'admin',
+        ], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -392,18 +396,21 @@ export class AdminCustomerDashBoardService {
     }
   }
 
-
-  async GetOneOrder(orderID:number) {
+  async GetOneOrder(orderID: number) {
     try {
       const order = await this.orderRepo.findAndCount({
-        where:{id:orderID},
-        relations: ['bid', 'Rider', 'customer', 'items','items.vehicleType', 'admin'], // Assuming relations are correctly defined
+        where: { id: orderID },
+        relations: [
+          'bid',
+          'Rider',
+          'customer',
+          'items',
+          'items.vehicleType',
+          'admin',
+        ], // Assuming relations are correctly defined
       });
 
-      if (!order)
-        throw new NotFoundException(
-          'order not found',
-        );
+      if (!order) throw new NotFoundException('order not found');
 
       return order;
     } catch (error) {
@@ -425,9 +432,16 @@ export class AdminCustomerDashBoardService {
 
       const orders = await this.orderRepo.findAndCount({
         where: {
-          order_display_status:OrderDisplayStatus.COMPLETED
+          order_display_status: OrderDisplayStatus.COMPLETED,
         },
-        relations: ['bid', 'Rider', 'customer', 'items','items.vehicleType', 'admin'], // Assuming relations are correctly defined
+        relations: [
+          'bid',
+          'Rider',
+          'customer',
+          'items',
+          'items.vehicleType',
+          'admin',
+        ], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -458,9 +472,16 @@ export class AdminCustomerDashBoardService {
 
       const orders = await this.orderRepo.findAndCount({
         where: {
-          order_display_status:OrderDisplayStatus.PENDING,
+          order_display_status: OrderDisplayStatus.PENDING,
         },
-        relations: ['bid', 'Rider', 'customer', 'items', 'items.vehicleType','admin'],
+        relations: [
+          'bid',
+          'Rider',
+          'customer',
+          'items',
+          'items.vehicleType',
+          'admin',
+        ],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -491,9 +512,16 @@ export class AdminCustomerDashBoardService {
 
       const orders = await this.orderRepo.findAndCount({
         where: {
-          order_display_status:OrderDisplayStatus.DECLINED,
+          order_display_status: OrderDisplayStatus.DECLINED,
         },
-        relations: ['bid', 'Rider', 'customer', 'items','items.vehicleType', 'admin'],
+        relations: [
+          'bid',
+          'Rider',
+          'customer',
+          'items',
+          'items.vehicleType',
+          'admin',
+        ],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -524,9 +552,16 @@ export class AdminCustomerDashBoardService {
 
       const orders = await this.orderRepo.findAndCount({
         where: {
-          order_display_status:OrderDisplayStatus.ORDER_PLACED,
+          order_display_status: OrderDisplayStatus.ORDER_PLACED,
         },
-        relations: ['bid', 'Rider', 'customer', 'items', 'items.vehicleType', 'admin'],
+        relations: [
+          'bid',
+          'Rider',
+          'customer',
+          'items',
+          'items.vehicleType',
+          'admin',
+        ],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -701,7 +736,7 @@ export class AdminCustomerDashBoardService {
   //all active orders count
   async getAllActiveOrdersCount(): Promise<number> {
     const activeOrder = await this.orderRepo.count({
-      where: { order_display_status:OrderDisplayStatus.IN_TRANSIT },
+      where: { order_display_status: OrderDisplayStatus.IN_TRANSIT },
     });
     return activeOrder;
   }
@@ -725,7 +760,7 @@ export class AdminCustomerDashBoardService {
   //counts of pending
   async getAllPendingOrderCount(): Promise<number> {
     const activeOrder = await this.orderRepo.count({
-      where: { order_display_status:OrderDisplayStatus.PENDING },
+      where: { order_display_status: OrderDisplayStatus.PENDING },
     });
     return activeOrder;
   }
@@ -799,7 +834,7 @@ export class AdminCustomerDashBoardService {
 
       const completedOrderCount = await this.orderRepo.count({
         where: {
-          order_display_status:OrderDisplayStatus.PENDING,
+          order_display_status: OrderDisplayStatus.PENDING,
           orderPlacedAt: Between(startDate, endDate),
         },
       });
@@ -840,7 +875,7 @@ export class AdminCustomerDashBoardService {
 
       const completedOrderCount = await this.orderRepo.count({
         where: {
-          order_display_status:OrderDisplayStatus.IN_TRANSIT,
+          order_display_status: OrderDisplayStatus.IN_TRANSIT,
           RiderRecieveParcelAT: Between(startDate, endDate),
         },
       });
@@ -996,7 +1031,7 @@ export class AdminCustomerDashBoardService {
         {
           amount: totalAmountWithVAT * 100, // Convert to kobo (Paystack currency)
           email: email, // Customer email for reference
-          reference: await this.genratorservice.generateUUID(), // Order ID as payment reference
+          reference: order.orderID, // Order ID as payment reference
           currency: 'NGN',
         },
         {
@@ -1016,7 +1051,7 @@ export class AdminCustomerDashBoardService {
       }
       //save the notification
       const notification = new Notifications();
-      notification.account = "order";
+      notification.account = 'order';
       notification.subject = 'Payment Order initiated!';
       notification.message = `the customer have initiated payment `;
       await this.notificationripo.save(notification);
@@ -1032,6 +1067,59 @@ export class AdminCustomerDashBoardService {
       }
 
       throw new InternalServerErrorException(errorMessage);
+    }
+  }
+
+  //generate receipt and
+  async createReceipt(OrderID: number): Promise<ReceiptEntity> {
+    try {
+      const order = await this.orderRepo.findOne({
+        where: { id: OrderID, payment_status: PaymentStatus.SUCCESSFUL },
+        relations: ['customer', 'admin', 'items'],
+      });
+      if (!order)
+        throw new NotFoundException(
+          'order payment status is not successful yet, so you cant generate a receipt',
+        );
+      const vatPercentage = 0.07;
+      const vatAmount = +(
+        order.accepted_cost_of_delivery * vatPercentage
+      ).toFixed(2);
+
+      let discountAmount = 0;
+      if (order.discount && order.IsDiscountApplied) {
+        const discountPercentage = order.discount;
+        discountAmount = +(
+          (order.accepted_cost_of_delivery * discountPercentage) /
+          100
+        ).toFixed(2);
+      }
+
+      const totalBeforeVAT = order.accepted_cost_of_delivery - discountAmount;
+      const total = Number(totalBeforeVAT) + Number(vatAmount);
+
+      const receipt = new ReceiptEntity();
+      receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
+      //receipt.dueAt = new Date();
+      receipt.issuedAt = new Date();
+      receipt.order = order;
+      receipt.subtotal = totalBeforeVAT;
+      receipt.VAT = vatAmount;
+      receipt.total = total;
+      receipt.discount = discountAmount;
+      await this.receiptrepo.save(receipt);
+
+      return receipt;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while generating a receipt for the order',
+          error.message,
+        );
+      }
     }
   }
 
@@ -1214,9 +1302,9 @@ export class AdminCustomerDashBoardService {
     try {
       const cart = await this.orderCartRepo.findAndCount({
         where: { admin: { id: admin.id }, checkedOut: false },
-        relations: ['items','items.vehicleType']
+        relations: ['items', 'items.vehicleType'],
       });
-      if (cart[1] == 0 ) throw new NotFoundException('cart not found');
+      if (cart[1] == 0) throw new NotFoundException('cart not found');
       return cart;
     } catch (error) {
       if (error instanceof NotFoundException)
@@ -1283,7 +1371,7 @@ export class AdminCustomerDashBoardService {
 
       order.orderPlacedAt = new Date();
       order.order_status = OrderStatus.ORDER_PLACED;
-      order.order_display_status = OrderDisplayStatus.ORDER_PLACED
+      order.order_display_status = OrderDisplayStatus.ORDER_PLACED;
 
       // Add items to the order
       order.items = cart.items.map((cartItem) => {
@@ -1365,13 +1453,15 @@ export class AdminCustomerDashBoardService {
   async getTotalOrdersCountByCustomer(customerID: string): Promise<number> {
     try {
       const totalOrders = await this.orderRepo.count({
-        where: { customer:{id:customerID} },relations:['customer']
+        where: { customer: { id: customerID } },
+        relations: ['customer'],
       });
 
       if (!totalOrders) {
-        throw new NotFoundException(`order count associated with Customer with ID ${customerID} not found`);
+        throw new NotFoundException(
+          `order count associated with Customer with ID ${customerID} not found`,
+        );
       }
-
 
       return totalOrders;
     } catch (error) {
@@ -1386,18 +1476,18 @@ export class AdminCustomerDashBoardService {
     customerID: string,
   ): Promise<number> {
     try {
-      
-
       const totalOrders = await this.orderRepo.count({
         where: {
-          customer: {id:customerID},
-          order_display_status:OrderDisplayStatus.PENDING,
+          customer: { id: customerID },
+          order_display_status: OrderDisplayStatus.PENDING,
         },
-        relations:['customer']
+        relations: ['customer'],
       });
 
       if (!totalOrders) {
-        throw new NotFoundException(`pending order count associated with Customer with ID ${customerID} not found`);
+        throw new NotFoundException(
+          `pending order count associated with Customer with ID ${customerID} not found`,
+        );
       }
 
       return totalOrders;
@@ -1413,13 +1503,18 @@ export class AdminCustomerDashBoardService {
     customerID: string,
   ): Promise<number> {
     try {
-     
       const totalOrders = await this.orderRepo.count({
-        where: { customer: {id:customerID}, order_status: OrderStatus.DELIVERED },relations:['customer']
+        where: {
+          customer: { id: customerID },
+          order_status: OrderStatus.DELIVERED,
+        },
+        relations: ['customer'],
       });
 
       if (!totalOrders) {
-        throw new NotFoundException(`delivered order count associated with Customer with ID ${customerID} not found`);
+        throw new NotFoundException(
+          `delivered order count associated with Customer with ID ${customerID} not found`,
+        );
       }
 
       return totalOrders;

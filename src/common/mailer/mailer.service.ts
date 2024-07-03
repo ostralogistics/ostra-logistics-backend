@@ -282,10 +282,10 @@ export class Mailer {
       </body>
     </html>
     `;
-  
+
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
-  
+
   async WelcomeMailAdmin(email: string, name: string): Promise<void> {
     const subject = 'Welcome To Ostra Logistics';
     const content = `<!DOCTYPE html>
@@ -359,16 +359,16 @@ export class Mailer {
       </body>
     </html>
     `;
-  
+
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
-  
 
   async OrderAcceptedMail(
     email: string,
     name: string,
     trackingID: string,
     dropoffcode: string,
+    ORDER_ID: string,
   ): Promise<void> {
     const subject = 'Order Details From Ostra Logistics';
     const content = `<!DOCTYPE html>
@@ -441,7 +441,7 @@ export class Mailer {
         <p class="message"><span class="username">HI ${name}</span>,</p>
         
         <div class="instructions">
-        <p>We are excited to inform you that your bid has been accepted and payment has been successfully made for order ID: {ORDER_ID}.</p>
+        <p>We are excited to inform you that your bid has been accepted and payment has been successfully made for order ID: ${ORDER_ID}.</p>
 <p>A tracking ID has been generated for your order, and a drop-off code has also been provided. Please use the following details:</p>
 <p>Tracking ID: ${trackingID}</p>
 <p>Drop-off Code: ${dropoffcode}</p>
@@ -459,12 +459,10 @@ export class Mailer {
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
 
-
   async ParcelDroppedOfMail(
     email: string,
     name: string,
     trackingID: string,
-    
   ): Promise<void> {
     const subject = 'Parcel DropOff Confirmation By Ostra Logistics';
     const content = `<!DOCTYPE html>
@@ -550,19 +548,15 @@ export class Mailer {
     </body>
   </html>
   `;
+  }
 
-   
-}
-
-
-async NewPasswordMail(
-  email: string,
-  name: string,
-  password: string,
-  
-): Promise<void> {
-  const subject = 'New Password';
-  const content = `<!DOCTYPE html>
+  async NewPasswordMail(
+    email: string,
+    name: string,
+    password: string,
+  ): Promise<void> {
+    const subject = 'New Password';
+    const content = `<!DOCTYPE html>
 <html>
   <head>
     <title>new password for rider and staff</title>
@@ -649,10 +643,5 @@ async NewPasswordMail(
   </body>
 </html>
 `;
-
- 
-}
-
-
-
+  }
 }

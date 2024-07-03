@@ -653,7 +653,7 @@ export class CustomerService {
         {
           amount: totalAmountWithVAT * 100, // Convert to kobo (Paystack currency)
           email: order.customer.email, // Customer email for reference
-          reference: await this.genratorservice.generateUUID(),// Order ID as payment reference
+          reference: order.orderID,// Order ID as payment reference
           currency: 'NGN',
         },
         {

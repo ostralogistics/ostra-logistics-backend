@@ -40,6 +40,7 @@ export class ReceiptEntity implements IReceipt{
     total: number
 
     @OneToOne(()=>OrderEntity)
+    @JoinColumn()
     order: OrderEntity
 
 

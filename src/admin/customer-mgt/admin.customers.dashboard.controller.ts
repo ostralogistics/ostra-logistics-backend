@@ -232,6 +232,11 @@ export class AdminCustomerDashBoardController {
      return await this.admincustomerservice.processPayment(orderID)
   }
 
+  @Post('generate-order-receipt/:orderID')
+  async GenerateReceipt(@Param('orderID')orderID:number){
+    return await this.admincustomerservice.createReceipt(orderID)
+  }
+
 
   //generate air waybill
   @Get('generate-airwaybill/:trackingID')

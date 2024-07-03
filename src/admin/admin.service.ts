@@ -1034,7 +1034,7 @@ export class AdminService {
     try {
       const skip = (page - 1) * limit;
       const pricelist = await this.pricelistripo.findAndCount({
-        take: page,
+        take: limit,
         skip: skip,
       });
       if (pricelist[1] === 0)
@@ -1160,7 +1160,7 @@ export class AdminService {
     try {
       const skip = (page - 1) * limit;
       const subscribers = await this.newsletterripo.findAndCount({
-        take: page,
+        take: limit,
         skip: skip,
       });
 
@@ -1188,7 +1188,7 @@ export class AdminService {
     try {
       const skip = (page - 1) * limit;
       const notification = await this.notificationripo.findAndCount({
-        take: page,
+        take: limit,
         skip: skip,
       });
       if (notification[1] === 0)
