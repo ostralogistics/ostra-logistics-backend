@@ -41,6 +41,7 @@ export class AdminEntity implements IAdmin{
     @Column({nullable:true})
     LGA_of_origin: string;
 
+
     @Column({nullable:true})
     password: string;
 

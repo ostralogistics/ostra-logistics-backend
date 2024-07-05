@@ -11,7 +11,7 @@ import { Notifications } from 'src/Entity/notifications.entity';
 import { RiderEntity } from 'src/Entity/riders.entity';
 import { NotificationRepository } from 'src/common/common.repositories';
 import { UploadService } from 'src/common/helpers/upload.service';
-import { AdminRepository } from '../admin.repository';
+import { AdminRepository, PassCodeRepository } from '../admin.repository';
 import { RidersRepository } from 'src/Riders/riders.repository';
 import { IAdmin, ICreateAdmins } from '../admin';
 import { AdminRiderDashboardService } from '../rider-mgt/admin.riders.dashboard.service';
@@ -31,16 +31,86 @@ import { ILike } from 'typeorm';
 import { AdminService } from '../admin.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
+import { PasscodeEntity } from 'src/Entity/passcode.entity';
+import { Mailer } from 'src/common/mailer/mailer.service';
 
 @Injectable()
 export class AdminStaffDasboardService {
   constructor(
     @InjectRepository(RiderEntity) private readonly riderripo: RidersRepository,
     @InjectRepository(AdminEntity) private readonly adminripo: AdminRepository,
+    @InjectRepository(PasscodeEntity)
+    private readonly passcodeRipo: PassCodeRepository,
     @InjectRepository(Notifications)
     private readonly notificationripo: NotificationRepository,
     private generatorservice: GeneatorService,
+    private mailer:Mailer
   ) {}
+
+  async GeneratePasscode() {
+    try {
+      const code = await this.generatorservice.generatePassCode();
+      //const hashcode = await this.generatorservice.hashpassword(code);
+
+      const newcode = new PasscodeEntity();
+      newcode.passcode = code;
+      newcode.updatedAT = new Date();
+      await this.passcodeRipo.save(newcode);
+
+      return { message: 'new pass code generated', code };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong when creating the passcode',
+        error.message,
+      );
+    }
+  }
+
+  async UpdatePasscode(admin: AdminEntity, id: number) {
+    try {
+      const findadmin = await this.adminripo.findOne({
+        where: {
+          id: admin.id,
+          adminAccessLevels: AdminAccessLevels.LEVEL3,
+          admintype: AdminType.CEO,
+        },
+      });
+      if (!findadmin)
+        throw new NotFoundException('this super admin is not found');
+
+      const findpasscode = await this.passcodeRipo.findOne({
+        where: { id: id },
+      });
+      if (!findpasscode)
+        throw new NotFoundException(
+          `passcode associated to id ${id} is not found`,
+        );
+
+      const code = await this.generatorservice.generatePassCode();
+      //const hashcode = await this.generatorservice.hashpassword(code);
+
+      findpasscode.passcode = code;
+      findpasscode.updatedAT = new Date();
+      await this.passcodeRipo.save(findpasscode);
+
+      //forward passcode to mail
+      await this.mailer.updatePasscodeMail(admin.email,admin.fullname,code)
+
+
+      return { message: 'pass code updated by the superadmin, please check your email for the new passcode' };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while updating passcode, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
 
   //admin register rider
   async RegisterStaff(dto: RegisterOtherAdminByAdminDto) {
@@ -313,31 +383,45 @@ export class AdminStaffDasboardService {
   }
 
   //admin search for an admin
-  async SearchForStaff(keyword: any | string) {
+  async SearchForOtherAdmin(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: AdminEntity[]; total: number }> {
     try {
-      const rider = await this.adminripo.findAndCount({
-        where: [
-          { firstname: ILike(`%${keyword}%`) },
-          { lastname: ILike(`%${keyword}%`) },
-          { email: ILike(`%${keyword}%`) },
-        ],
-        relations:['my_orders','replies','carts','bids_sent'],
-        cache: false,
-        comment:
-          'searching for a staff with either of the keywords , lastname or firstname or email',
-      });
+      const qb = this.adminripo.createQueryBuilder('admin')
 
-      if (rider[1] === 0)
+      qb.where('admin.firstname ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.orWhere('admin.lastname ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.cache(false)
+
+
+      if (sort) {
+        const [sortField] = sort.split(',');
+        qb.orderBy(`admin.${sortField}`, 'DESC');
+      }
+
+      if (page && perPage) {
+        qb.skip((page - 1) * perPage).take(perPage);
+      }
+
+      const [admin, total] = await qb.getManyAndCount();
+
+      if (!admin.length) {
         throw new NotFoundException(
-          `no search result found for ${keyword} on the staff database `,
+          `No staff found matching your search criteria for "${keyword}".`,
         );
+      }
+  
+      return { data: admin, total };
 
-      return { message: 'staff found', searchedRider: rider };
+      
     } catch (error) {
-      throw new InternalServerErrorException(
-        'An error occured while searching for staff',
-        error.message,
-      );
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while tryig to search for an admin, please try again later',
+          error.message,
+        );
+      }
     }
   }
 

@@ -61,6 +61,12 @@ export class AssignTaskDto{
 
 }
 
+export class PasscodeDto{
+    @IsString()
+    @IsNotEmpty()
+    passcode:string
+}
+
 
 
 export class RegisterAdminDto{
@@ -88,6 +94,10 @@ export class RegisterAdminDto{
     @IsNotEmpty()
     //@Matches(/^NGR\+234\d{13}$/,{message:"mobile number must be a valid Nigerian service operator's cell number"})
     mobile:string
+
+    @IsString()
+    @IsNotEmpty()
+    passcode:string
 }
 
 export class UpdateAdminDto{
@@ -99,27 +109,35 @@ export class UpdateAdminDto{
 
     @IsString()
     @IsOptional()
-    home_address:string
+    fullname:string
 
     @IsString()
     @IsOptional()
-    firstname:string
+    Nationality:string
+
+    @IsEnum(StateOFOrigin)
+    @IsOptional()
+    StateOfOrigin:StateOFOrigin
 
     @IsString()
     @IsOptional()
-    lastname:string
+    DOB:string
 
     @IsString()
     @IsOptional()
-    LGA_of_Home_Address: string
+    Address: string
 
     @IsString()
     @IsOptional()
-    profile_picture: string 
+    LGA: string 
 
     @IsEnum(Gender)
     @IsOptional()
     gender:Gender
+
+    @IsString()
+    @IsOptional()
+    mobile:string
 
 }
 

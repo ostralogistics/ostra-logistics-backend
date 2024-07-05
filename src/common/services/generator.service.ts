@@ -28,6 +28,11 @@ export class GeneatorService{
         const gen = customAlphabet('12345678990abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 12);
         return gen();
       }
+
+      public generatePassCode(): string {
+        const dropoffcode = nanoid.customAlphabet('1234567890', 8);
+        return dropoffcode();
+      }
     
       //access token
       public async signToken(id: string, email: string, role: string) {

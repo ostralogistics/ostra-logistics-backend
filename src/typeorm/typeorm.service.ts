@@ -22,6 +22,7 @@ import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import * as fs from 'fs';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
+import { PasscodeEntity } from 'src/Entity/passcode.entity';
 
 @Injectable()
 export class TypeOrmService {
@@ -62,7 +63,8 @@ export class TypeOrmService {
         OrderCartEntity,
         OrderItemEntity,
         CartItemEntity,
-        VehicleTypeEntity
+        VehicleTypeEntity,
+        PasscodeEntity,
       ],
       migrations: [],
       subscribers: [],

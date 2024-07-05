@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { AdminStaffDasboardService } from "./admin.staff.dashboard.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { AdminchangestaffAccessLevelDto, RegisterOtherAdminByAdminDto, UpdateOtherAdminInfoByAdminDto } from "../admin.dto";
@@ -56,15 +56,32 @@ export class AdminStaffDashBoardController{
         return await this.adminstaffservice.GetOneStaffByID(staffID)
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3, AdminAccessLevels.LEVEL2)
     @Get('/search-staff')
-    async SearchStaff(@Query('keyword')keyword:string|any){
-        return await this.adminstaffservice.SearchForStaff(keyword)
+    async SearchStaff(
+      @Query('keyword') keyword: string,
+      @Query('page') page?: number,
+      @Query('perPage') perPage?: number,
+      @Query('sort') sort?: string,) {
+      return await this.adminstaffservice.SearchForOtherAdmin(keyword,page,perPage,sort);
     }
 
     @Patch('/change-staff-accesslevel/:staffID')
     async ChangestaffAccessLevel(@Param('staffID')staffID:string, @Body()dto:AdminchangestaffAccessLevelDto){
         return await this.adminstaffservice.ChangeStaffAccessLevel(staffID,dto)
 
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @Post('generate-passcode')
+    async GeneratePasscode() {
+      return await this.adminstaffservice.GeneratePasscode();
+    }
+  
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @Patch('update-passcode/:passcodeID')
+    async UpdatePasscode(@Param('passcodeID') passcodeID: number, @Req() req) {
+      return await this.adminstaffservice.UpdatePasscode(req.user, passcodeID);
     }
 
 }

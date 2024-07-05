@@ -112,13 +112,20 @@ export class AdminService {
       });
       if (!admin) throw new NotFoundException('ceo not found');
 
-      admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
+      const dob = new Date(dto.DOB);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+
+      admin.LGA_of_origin = dto.LGA;
       admin.email = dto.email;
-      admin.firstname = dto.firstname;
-      admin.lastname = dto.lastname;
+      admin.fullname = dto.fullname;
+      admin.DOB = dto.DOB
+      admin.age = age
+      admin.state_of_origin = dto.StateOfOrigin ;
       admin.UpdatedAt = new Date();
-      admin.home_address = dto.home_address;
+      admin.home_address = dto.Address;
       admin.gender = dto.gender;
+      admin.mobile = dto.mobile
 
       await this.adminRepo.save(admin);
 

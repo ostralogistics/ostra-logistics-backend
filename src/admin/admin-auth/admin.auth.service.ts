@@ -36,14 +36,15 @@ import {
 } from 'src/common/common.dto';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { AdminEntity } from 'src/Entity/admins.entity';
-import { AdminRepository } from '../admin.repository';
-import { RegisterAdminDto } from '../admin.dto';
+import { AdminRepository, PassCodeRepository } from '../admin.repository';
+import { PasscodeDto, RegisterAdminDto } from '../admin.dto';
 import { IAdmin } from '../admin';
 import { addPasswordDto } from 'src/customer/customer.dto';
 import { CustomerService } from 'src/customer/customer.service';
 import { AdminService } from '../admin.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { Notifications } from 'src/Entity/notifications.entity';
+import { PasscodeEntity } from 'src/Entity/passcode.entity';
 
 @Injectable()
 export class AdminAuthService {
@@ -52,12 +53,41 @@ export class AdminAuthService {
     @InjectRepository(UserOtp) private readonly otprepo: OtpRepository,
     @InjectRepository(Notifications)
     private readonly notificationrepo: NotificationRepository,
+    @InjectRepository(PasscodeEntity)
+    private readonly passcodeRipo: PassCodeRepository,
     private configservice: ConfigService,
     private genratorservice: GeneatorService,
     private jwt: JwtService,
     private mailerservice: Mailer,
     private adminservice: AdminService,
   ) {}
+
+    //verify the passcode
+    async VerifyPasscodeBeforeSignup(dto: PasscodeDto) {
+      try {
+        const passcode = await this.passcodeRipo.findOne({
+          where: { passcode: dto.passcode },
+        });
+        if (!passcode)
+          throw new NotFoundException(
+            'passcode incorrect, please provide a valid passcode. Thank you',
+          );
+  
+        return {
+          message: 'passcode correct, please proceed to sign up as a CEO or Co-CEO',passcode
+        };
+      } catch (error) {
+        if (error instanceof NotFoundException)
+          throw new NotFoundException(error.message);
+        else {
+          console.log(error);
+          throw new InternalServerErrorException(
+            'something went wrong, please try again later',
+            error.message,
+          );
+        }
+      }
+    }
 
   // get customer profile
   async getProfile(admin: AdminEntity): Promise<IAdmin> {
@@ -85,14 +115,11 @@ export class AdminAuthService {
     dto: RegisterAdminDto,
   ): Promise<{ message: string }> {
     try {
-      // Check if a CEO already exists
-      // const existingCEO = await this.adminrepo.findOne({
-      //   where: { admintype: AdminType.CEO },
-      // });
-
-      // if (existingCEO) {
-      //   throw new ConflictException('oops! A CEO already exists in ostra logitics and only one CEO can exist.');
-      // }
+      const passcode = await this.passcodeRipo.findOne({
+        where: { passcode: dto.passcode },
+      });
+      if (!passcode) throw new NotFoundException('passcode incorrect');
+    
       const checkemail = await this.adminrepo.findOne({
         where: { email: dto.email },
       });

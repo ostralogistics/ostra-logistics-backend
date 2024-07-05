@@ -1,6 +1,7 @@
 
 import { AdminEntity } from "src/Entity/admins.entity";
 import { DiscountEntity } from "src/Entity/discount.entity";
+import { PasscodeEntity } from "src/Entity/passcode.entity";
 import { PriceListEntity } from "src/Entity/pricelist.entity";
 import { RepliesEntity } from "src/Entity/replies.entity";
 import { VehicleEntity } from "src/Entity/vehicle.entity";
@@ -24,4 +25,7 @@ export class DiscountRepository extends Repository<DiscountEntity>{}
 
 @EntityRepository(PriceListEntity)
 export class PriceListRepository extends Repository<PriceListEntity>{}
+
+@EntityRepository(PasscodeEntity)
+export class PassCodeRepository extends Repository<PasscodeEntity>{}
 

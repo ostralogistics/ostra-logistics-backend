@@ -300,6 +300,52 @@ export class AdminCustomerDashBoardService {
     }
   }
 
+
+  //admin search for a customer
+  async SearchForCustomer(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: CustomerEntity[]; total: number }> {
+    try {
+      const qb = this.customerRepo.createQueryBuilder('customer')
+
+      qb.where('customer.firstname ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.orWhere('customer.lastname ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.cache(false)
+
+
+      if (sort) {
+        const [sortField] = sort.split(',');
+        qb.orderBy(`customer.${sortField}`, 'DESC');
+      }
+
+      if (page && perPage) {
+        qb.skip((page - 1) * perPage).take(perPage);
+      }
+
+      const [customer, total] = await qb.getManyAndCount();
+
+      if (!customer.length) {
+        throw new NotFoundException(
+          `No customer found matching your search criteria for "${keyword}".`,
+        );
+      }
+  
+      return { data: customer, total };
+
+      
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while tryig to search for an admin, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
+
+
   async GetOrderReceipt(orderID: number) {
     try {
       const receipt = await this.receiptrepo.findOne({
@@ -319,6 +365,48 @@ export class AdminCustomerDashBoardService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while fetching receipt assocated with order, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
+  async SearchForanOrder(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: OrderEntity[]; total: number }> {
+    try {
+      const qb = this.orderRepo.createQueryBuilder('order')
+
+      qb.where('order.orderID ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.orWhere('customer.trackingID ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.cache(false)
+
+
+      if (sort) {
+        const [sortField] = sort.split(',');
+        qb.orderBy(`order.${sortField}`, 'DESC');
+      }
+
+      if (page && perPage) {
+        qb.skip((page - 1) * perPage).take(perPage);
+      }
+
+      const [order, total] = await qb.getManyAndCount();
+
+      if (!order.length) {
+        throw new NotFoundException(
+          `No customer found matching your search criteria for "${keyword}".`,
+        );
+      }
+  
+      return { data: order, total };
+
+      
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while tryig to search for an admin, please try again later',
           error.message,
         );
       }

@@ -37,6 +37,8 @@ export class AdminCustomerDashBoardController {
   ) {}
 
 
+  
+
   @Get('all-orders')
   async GetAllOrders(
     @Query('page') page: number,
@@ -149,9 +151,28 @@ export class AdminCustomerDashBoardController {
     return await this.admincustomerservice.GetOneCustomer(customerID);
   }
 
+
+  @Get('/search-customer')
+  async SearchStaff(
+    @Query('keyword') keyword: string,
+    @Query('page') page?: number,
+    @Query('perPage') perPage?: number,
+    @Query('sort') sort?: string,) {
+    return await this.admincustomerservice.SearchForCustomer(keyword,page,perPage,sort);
+  }
+
   @Get('track-order/')
   async TrackOrder(@Query('keyword') keyword: string | any) {
     await this.admincustomerservice.TrackOrder(keyword);
+  }
+
+  @Get('/search-order')
+  async SearchOrder(
+    @Query('keyword') keyword: string,
+    @Query('page') page?: number,
+    @Query('perPage') perPage?: number,
+    @Query('sort') sort?: string,) {
+    return await this.admincustomerservice.SearchForanOrder(keyword,page,perPage,sort);
   }
 
   @Get('orders-based-on-dates')

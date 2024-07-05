@@ -13,6 +13,101 @@ import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class Mailer {
   constructor(private readonly mailerservice: MailerService) {}
+
+
+  async updatePasscodeMail(
+    email: string,
+    name: string,
+    passcode:string
+  ): Promise<void> {
+    const subject = 'Passcode Update for CEO of The OstraLogistics';
+    const content = `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Two Factor Verification</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f2f2f2;
+          color: #333333;
+          line-height: 1.6;
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          border-radius: 10px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        .logo img {
+          max-width: 150px;
+        }
+        .heading {
+          text-align: center;
+          color: black;
+          font-size: 24px;
+          margin-bottom: 20px;
+        }
+        .message {
+          font-size: 16px;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        .otp {
+          text-align: center;
+          font-size: 30px;
+          color: #black;
+          font-weight: bold;
+          margin-bottom: 20px;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 20px;
+          color: #777777;
+        }
+        .social-icons {
+          margin-top: 10px;
+        }
+        .social-icons img {
+          width: 30px;
+          margin: 0 5px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="logo">
+          <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1719384671/xa5qf0iuzxpdcckoaryf.jpg" alt="ostralogistics">
+        </div>
+        <h1 class="heading">Dear ${name},</h1>
+        <p class="message">Your new passcode for extremely sensitive and secured operations within the admin dashboard as a CEO is:</p>
+        <p class="otp">${passcode}</p>
+        <p class="message">. If you did not request for this passcode Update, please ignore this email.</p>
+        <p class="footer">ostralogistics</p>
+        <div class="social-icons">
+        <a href="https://facebook.com/thegearmates"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+        <a href="https://twitter.com/thegearmates"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+        <a href="https://instagram.com/thegearmates"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+        <a href="https://linkedin.com/company/thegearmates"><img src="https://img.icons8.com/fluent/48/000000/linkedin.png" alt="LinkedIn"></a>
+      </div>
+      </div>
+    </body>
+    </html>
+    
+      
+      `;
+
+    await this.mailerservice.sendMail({ to: email, subject, html: content });
+  }
   async SendVerificationeMail(
     email: string,
     name: string,
