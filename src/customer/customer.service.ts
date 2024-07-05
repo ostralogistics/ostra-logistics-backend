@@ -1402,4 +1402,26 @@ export class CustomerService {
     }
   }
 
+    //get discount
+    async GetDiscount() {
+      try {
+        const discounts = await this.discountripo.findAndCount();
+        if (discounts[1] === 0)
+          throw new NotFoundException(
+            'oops! no discount has been set at the moment',
+          );
+        return discounts;
+      } catch (error) {
+        if (error instanceof NotFoundException)
+          throw new NotFoundException(error.message);
+        else {
+          console.log(error);
+          throw new InternalServerErrorException(
+            'something went wrong while trying to fetch promocode ',
+            error.message,
+          );
+        }
+      }
+    }
+
 }

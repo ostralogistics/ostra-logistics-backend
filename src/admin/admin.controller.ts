@@ -165,6 +165,12 @@ export class Admincontroller{
     }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Get('fetch-discount')
+    async GetDiscount(){
+        return await this.adminservice.GetDiscount()
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Patch('update-discount/:discountID')
     async UpdateDiscount(@Body()dto:UpdateDiscountDto, @Param('discountID')discountID:number){
         return await this.adminservice.Updatediscount(dto,discountID)

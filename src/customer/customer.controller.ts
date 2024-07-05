@@ -18,7 +18,10 @@ import { Role } from "src/Enums/all-enums";
 export class CustomerController{
     constructor(private readonly customerservice:CustomerService){}
     
-   
+    @Get('fetch-discout-code')
+    async GetDiscount(){
+        return await this.customerservice.GetDiscount()
+    }
     
     @Post('cart-items')
     async MakeOrder(@Req()req, @Body()dto:OrderDto){

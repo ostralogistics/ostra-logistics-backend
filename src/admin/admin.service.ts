@@ -105,10 +105,10 @@ export class AdminService {
     private cloudinaryservice: CloudinaryService,
   ) {}
 
-  async EditAdminProfile(dto: UpdateAdminDto, Admin:AdminEntity) {
+  async EditAdminProfile(dto: UpdateAdminDto, Admin: AdminEntity) {
     try {
       const admin = await this.adminRepo.findOne({
-        where: { id:Admin.id, admintype: AdminType.CEO },
+        where: { id: Admin.id, admintype: AdminType.CEO },
       });
       if (!admin) throw new NotFoundException('ceo not found');
 
@@ -136,19 +136,18 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update the record of a super admin',error.message
+          'something went wrong while trying to update the record of a super admin',
+          error.message,
         );
       }
     }
   }
 
-
   async UploadAdminProfilePics(
     mediafile: Express.Multer.File,
-     Admin:AdminEntity,
+    Admin: AdminEntity,
   ): Promise<{ message: string }> {
     try {
-
       const admin = await this.adminRepo.findOne({
         where: { id: Admin.id, admintype: AdminType.CEO },
       });
@@ -177,55 +176,56 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to upload profile picture ',error.message
+          'something went wrong while trying to upload profile picture ',
+          error.message,
         );
       }
     }
   }
 
-    // change password
-    async changeCustomerPassword(
-      dto: ChangePasswordDto,
-      customer: AdminEntity,
-    ): Promise<{ message: string }> {
-      try {
-        const { oldPassword, password, confirmPassword } = dto;
-  
-        const comparepass = await this.genratorservice.comaprePassword(
-          dto.oldPassword,
-          customer.password,
+  // change password
+  async changeCustomerPassword(
+    dto: ChangePasswordDto,
+    customer: AdminEntity,
+  ): Promise<{ message: string }> {
+    try {
+      const { oldPassword, password, confirmPassword } = dto;
+
+      const comparepass = await this.genratorservice.comaprePassword(
+        dto.oldPassword,
+        customer.password,
+      );
+      if (!comparepass)
+        throw new NotAcceptableException(
+          'the old password provided does not match the existing passworod',
         );
-        if (!comparepass)
-          throw new NotAcceptableException(
-            'the old password provided does not match the existing passworod',
-          );
-  
-        const hashpass = await this.genratorservice.hashpassword(dto.password);
-  
-        customer.password = hashpass;
-  
-        await this.adminRepo.save(customer);
-  
-        //save the notification
-        const notification = new Notifications();
-        notification.account = customer.id;
-        notification.subject = 'CEO Changed Password!';
-        notification.message = `the ceo with id ${customer.id} have made changes to his existing record in the admin dashboard of ostra logistics `;
-        await this.notificationripo.save(notification);
-  
-        return { message: 'password changed successfully' };
-      } catch (error) {
-        if (error instanceof NotAcceptableException) {
-          throw new NotAcceptableException(error.message);
-        } else {
-          console.error(error);
-          throw new InternalServerErrorException(
-            'Something went wrong while trying to change password. Please try again later.',
-            error.message,
-          );
-        }
+
+      const hashpass = await this.genratorservice.hashpassword(dto.password);
+
+      customer.password = hashpass;
+
+      await this.adminRepo.save(customer);
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = customer.id;
+      notification.subject = 'CEO Changed Password!';
+      notification.message = `the ceo with id ${customer.id} have made changes to his existing record in the admin dashboard of ostra logistics `;
+      await this.notificationripo.save(notification);
+
+      return { message: 'password changed successfully' };
+    } catch (error) {
+      if (error instanceof NotAcceptableException) {
+        throw new NotAcceptableException(error.message);
+      } else {
+        console.error(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while trying to change password. Please try again later.',
+          error.message,
+        );
       }
     }
+  }
 
   async AddVehicleType(dto: VehicleTypeDto) {
     try {
@@ -960,6 +960,28 @@ export class AdminService {
         'something went wrong while trying to set a promo discount',
         error.message,
       );
+    }
+  }
+
+  //get discount
+  async GetDiscount() {
+    try {
+      const discounts = await this.discountripo.findAndCount();
+      if (discounts[1] === 0)
+        throw new NotFoundException(
+          'oops! no discount has been set at the moment',
+        );
+      return discounts;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying to fetch promocode ',
+          error.message,
+        );
+      }
     }
   }
 
