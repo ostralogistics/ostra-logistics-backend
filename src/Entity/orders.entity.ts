@@ -42,6 +42,7 @@ export class OrderEntity implements IOrder {
   @Column({ nullable: true,type:'timestamp' })
   orderPlacedAt: Date;
 
+
   @Column({ nullable: true,type:'timestamp' })
   payment_verifiedAT: Date;
 
@@ -185,8 +186,8 @@ export class OrderItemEntity {
   @Column({ nullable: false })
   parcelWorth: string;
 
-  @Column('numeric', { nullable: true })
-  weight_of_parcel: number;
+  @Column({ nullable: true })
+  weight_of_parcel: string;
 
   @Column({ nullable: true })
   describe_weight_of_parcel: string;

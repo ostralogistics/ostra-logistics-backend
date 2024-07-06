@@ -129,7 +129,10 @@ export class AdminRiderDashBoardController {
     @Query('page') page: number,
     @Query('limit') limit: number,
   ) {
-    return await this.adminriderservice.GetAllRidersWithStatusOffline(page, limit);
+    return await this.adminriderservice.GetAllRidersWithStatusOffline(
+      page,
+      limit,
+    );
   }
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
@@ -143,7 +146,10 @@ export class AdminRiderDashBoardController {
     @Query('page') page: number,
     @Query('limit') limit: number,
   ) {
-    return await this.adminriderservice.GetAllRidersWithStatusIntransit(page, limit);
+    return await this.adminriderservice.GetAllRidersWithStatusIntransit(
+      page,
+      limit,
+    );
   }
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
@@ -157,9 +163,11 @@ export class AdminRiderDashBoardController {
     @Query('page') page: number,
     @Query('limit') limit: number,
   ) {
-    return await this.adminriderservice.GetAllRidersWithStatusIntransit(page, limit);
+    return await this.adminriderservice.GetAllRidersWithStatusIntransit(
+      page,
+      limit,
+    );
   }
-
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(
@@ -179,8 +187,14 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL1,
   )
   @Get('/search-riders')
-  async SearchRider(@Query('keyword') keyword: string | any) {
-    return await this.adminriderservice.SearchForRider(keyword);
+  async SearchRider(
+    @Query('keyword') keyword:string,
+    @Query('page') page:number,
+    @Query('perPage') perPage:number,
+    @Query('sort') sort:string,
+    
+  ) {
+    return await this.adminriderservice.SearchForRider(keyword,page,perPage,sort);
   }
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
@@ -231,7 +245,11 @@ export class AdminRiderDashBoardController {
     @Param('bankdetailsID') bankdetailsID: number,
     @Body() dto: EditBankDetailsDto,
   ) {
-    return await this.adminriderservice.EditRiderBankDetails(dto,bankdetailsID,riderID);
+    return await this.adminriderservice.EditRiderBankDetails(
+      dto,
+      bankdetailsID,
+      riderID,
+    );
   }
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
@@ -240,9 +258,11 @@ export class AdminRiderDashBoardController {
   async DeleteRiderBankDetails(
     @Param('riderID') riderID: string,
     @Param('bankdetailsID') bankdetailsID: number,
-
   ) {
-    return await this.adminriderservice.DeleteRiderBankDetails(bankdetailsID,riderID);
+    return await this.adminriderservice.DeleteRiderBankDetails(
+      bankdetailsID,
+      riderID,
+    );
   }
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
@@ -268,9 +288,10 @@ export class AdminRiderDashBoardController {
   )
   @Get('/one-rider-paymet-transaction-history/:riderID')
   async GetRiderTransaction(@Param('riderID') riderID: string) {
-    return await this.adminriderservice.fetchRiderPaymentTransactionHistory(riderID);
+    return await this.adminriderservice.fetchRiderPaymentTransactionHistory(
+      riderID,
+    );
   }
-
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(
@@ -290,7 +311,7 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL1,
   )
   @Get('one-rider-tasks/:riderID')
-  async GetOneriderTasks(@Param('riderID')riderID:string) {
+  async GetOneriderTasks(@Param('riderID') riderID: string) {
     return await this.adminriderservice.getOneriderTask(riderID);
   }
 
@@ -301,11 +322,9 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL1,
   )
   @Get('one-rider-tasks-count/:riderID')
-  async GetOneriderTasksCount(@Param('riderID')riderID:string) {
+  async GetOneriderTasksCount(@Param('riderID') riderID: string) {
     return await this.adminriderservice.getOneriderTaskCount(riderID);
   }
-
-
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(
@@ -318,7 +337,6 @@ export class AdminRiderDashBoardController {
     return await this.adminriderservice.getAllriderwithOngoingTaskTask();
   }
 
-
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(
     AdminAccessLevels.LEVEL3,
@@ -326,10 +344,9 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL1,
   )
   @Get('one-rider-ongoing-tasks/:riderID')
-  async GetaOneRiderOngoingTaskTasks(@Param('riderID')riderID:string) {
+  async GetaOneRiderOngoingTaskTasks(@Param('riderID') riderID: string) {
     return await this.adminriderservice.getOneriderOngoingTaskTask(riderID);
   }
-
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(
@@ -338,11 +355,9 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL1,
   )
   @Get('one-rider-ongoing-tasks-count/:riderID')
-  async GetaOneRiderOngoingTaskCount(@Param('riderID')riderID:string) {
+  async GetaOneRiderOngoingTaskCount(@Param('riderID') riderID: string) {
     return await this.adminriderservice.getOneriderOngoingTaskCount(riderID);
   }
-
-
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
   @AdminAccessLevel(
@@ -362,7 +377,7 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL1,
   )
   @Get('one-rider-concluded-tasks/:riderID')
-  async GetOneRiderConcludedTaskTasks(@Param('riderID')riderID:string) {
+  async GetOneRiderConcludedTaskTasks(@Param('riderID') riderID: string) {
     return await this.adminriderservice.getOneriderwithConcludedTask(riderID);
   }
 
@@ -373,7 +388,7 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL1,
   )
   @Get('one-rider-concluded-tasks-count/:riderID')
-  async GetOneRiderConcludedTaskCount(@Param('riderID')riderID:string) {
+  async GetOneRiderConcludedTaskCount(@Param('riderID') riderID: string) {
     return await this.adminriderservice.getOneriderCompletedTaskCount(riderID);
   }
 }

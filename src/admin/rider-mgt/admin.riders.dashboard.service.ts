@@ -612,38 +612,43 @@ export class AdminRiderDashboardService {
   }
 
   //admin search for a rider
-  async SearchForRider(keyword: any | string) {
+  async SearchForRider(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: RiderEntity[]; total: number }> {
     try {
-      const rider = await this.riderripo.findAndCount({
-        where: [
-          { firstname: ILike(`%${keyword}%`) },
-          { lastname: ILike(`%${keyword}%`) },
-          { email: ILike(`%${keyword}%`) },
-        ],
-        relations: [
-          'vehicle_for_the_day',
-          'tasks',
-          'my_requests',
-          'bank_details',
-        ],
-        cache: false,
-        comment:
-          'searching for a rider with either of the keywords , lastname or firstname or email',
-      });
+      const qb = this.riderripo.createQueryBuilder('rider')
 
-      if (rider[1] === 0)
+      qb.where('rider.firstname ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.orWhere('rider.lastname ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.orWhere('rider.email ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.cache(false)
+
+
+      if (sort) {
+        const [sortField] = sort.split(',');
+        qb.orderBy(`rider.${sortField}`, 'DESC');
+      }
+
+      if (page && perPage) {
+        qb.skip((page - 1) * perPage).take(perPage);
+      }
+
+      const [rider, total] = await qb.getManyAndCount();
+
+      if (!rider.length) {
         throw new NotFoundException(
-          `no search result found for ${keyword} on the rider database `,
+          `No staff found matching your search criteria for "${keyword}".`,
         );
+      }
+  
+      return { data: rider, total };
 
-      return { message: 'rider found', searchedRider: rider };
+      
     } catch (error) {
-      console.log(error);
-      if (error instanceof NotFoundException) {
+      if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
-      } else {
+      else {
+        console.log(error);
         throw new InternalServerErrorException(
-          'Something went wrong when trying to fetch all your cards. Please try again later.',
+          'something went wrong while tryig to search for an admin, please try again later',
           error.message,
         );
       }

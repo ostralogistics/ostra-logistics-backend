@@ -164,7 +164,7 @@ export class Admincontroller{
         return await this.adminservice.SetDiscountAndDuration(dto)
     }
 
-    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
     @Get('fetch-discount')
     async GetDiscount(){
         return await this.adminservice.GetDiscount()
