@@ -111,44 +111,68 @@ export class AdminService {
         where: { id: Admin.id, admintype: AdminType.CEO },
       });
       if (!admin) throw new NotFoundException('ceo not found');
-
-      const dob = new Date(dto.DOB);
-      const today = new Date();
-      const age = today.getFullYear() - dob.getFullYear();
-
-      admin.LGA_of_origin = dto.LGA;
-      admin.email = dto.email;
-      admin.fullname = dto.fullname;
-      admin.DOB = dto.DOB
-      admin.age = age
-      admin.state_of_origin = dto.StateOfOrigin ;
+  
+      // Validate and update DOB if provided
+      if (dto.DOB) {
+        const dob = new Date(dto.DOB);
+        if (isNaN(dob.getTime())) {
+          throw new BadRequestException('Invalid date of birth');
+        }
+  
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const monthDifference = today.getMonth() - dob.getMonth();
+        const dayDifference = today.getDate() - dob.getDate();
+  
+        // Adjust age if the birthday hasn't occurred yet this year
+        if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) {
+          age--;
+        }
+  
+        admin.DOB = dto.DOB;
+        admin.age = age;
+      }
+  
+      // Update other fields if provided
+      if (dto.LGA !== undefined) admin.LGA_of_origin = dto.LGA;
+      if (dto.email !== undefined) admin.email = dto.email;
+      if (dto.fullname !== undefined) admin.fullname = dto.fullname;
+      if (dto.state_of_origin !== undefined) admin.state_of_origin = dto.state_of_origin;
+      if (dto.Address !== undefined) admin.home_address = dto.Address;
+      if (dto.gender !== undefined) admin.gender = dto.gender;
+      if (dto.mobile !== undefined) admin.mobile = dto.mobile;
+      if (dto.Nationality !== undefined) admin.Nationality = dto.Nationality;
+  
       admin.UpdatedAt = new Date();
-      admin.home_address = dto.Address;
-      admin.gender = dto.gender;
-      admin.mobile = dto.mobile
-
+  
       await this.adminRepo.save(admin);
-
-      //save the notification
+  
+      // Save the notification
       const notification = new Notifications();
       notification.account = 'super admin';
       notification.subject = 'ceo updated Record!';
-      notification.message = `ceo with with id ${admin.id} have updated their record  on ostra ogistics  `;
+      notification.message = `ceo with id ${admin.id} has updated their record on Ostra Logistics.`;
       await this.notificationripo.save(notification);
-
-      return { message: 'ceo profile updated successfully', admin };
+  
+      return {
+        message:'Ceo profile updated successfully',
+        admin }
+      
     } catch (error) {
-      if (error instanceof NotFoundException)
+      if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
-      else {
-        console.log(error);
+      } else if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      } else {
+        console.error(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update the record of a super admin',
+          'Something went wrong while trying to update the record of a super admin',
           error.message,
         );
       }
     }
   }
+  
 
   async UploadAdminProfilePics(
     mediafile: Express.Multer.File,

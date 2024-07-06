@@ -117,7 +117,7 @@ export class UpdateAdminDto{
 
     @IsEnum(StateOFOrigin)
     @IsOptional()
-    StateOfOrigin:StateOFOrigin
+    state_of_origin:StateOFOrigin
 
     @IsString()
     @IsOptional()

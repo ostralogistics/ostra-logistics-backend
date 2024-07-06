@@ -126,7 +126,7 @@ export class PaystackWebhookService {
 
     if (!email) {
       console.error('No email found for order:', orderReference);
-      return;
+      
     }
 
     // Send the email
