@@ -102,6 +102,9 @@ export class PaystackWebhookService {
       receipt.discount = discountAmount;
       await this.receiptrepo.save(receipt);
 
+      //transaction 
+      await this.createTransaction(order)
+
 
       //send mail 
 
@@ -165,15 +168,16 @@ export class PaystackWebhookService {
     await this.orderRepo.save(order);
   }
 
-  // private async createTransaction(order: OrderEntity, eventData: any): Promise<void> {
-  //   const transaction = new TransactionEntity();
-  //   transaction.transactedAT = new Date();
-  //   transaction.amount = order.accepted_cost_of_delivery;
-  //   transaction.transactionID = `#osl-${this.genservice.generateTransactionCode()}`;
-  //   transaction.transactionType = TransactionType.ORDER_PAYMENT;
-  //   transaction.customer = order.customer;
-  //   transaction.paymentMethod = eventData.channel;
-  //   transaction.paymentStatus = eventData.status;
-  //   await this.transactionRepo.save(transaction);
-  // }
+  private async createTransaction(order: OrderEntity): Promise<void> {
+    const transaction = new TransactionEntity();
+    transaction.transactedAT = new Date();
+    transaction.amount = order.accepted_cost_of_delivery;
+    transaction.transactionID = `#osl-${this.genservice.generateTransactionCode()}`;
+    transaction.transactionType = TransactionType.ORDER_PAYMENT;
+    transaction.customer = order.customer;
+    transaction.paymentMethod = "paystack";
+    transaction.orderID = order.orderID
+    transaction.paymentStatus = order.payment_status;
+    await this.transactionRepo.save(transaction);
+  }
 }

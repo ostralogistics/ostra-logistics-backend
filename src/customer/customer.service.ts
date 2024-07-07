@@ -51,6 +51,7 @@ import {
   DiscountUsageRepository,
   NotificationRepository,
   ReceiptRespository,
+  TransactionRespository,
 } from 'src/common/common.repositories';
 import axios from 'axios';
 import * as nanoid from 'nanoid';
@@ -82,6 +83,7 @@ import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { plainToInstance } from 'class-transformer';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
+import { TransactionEntity } from 'src/Entity/transactions.entity';
 
 
 @Injectable()
@@ -116,6 +118,8 @@ export class CustomerService {
     private readonly vehicletypeRepo: VehicleTypeRepository,
     @InjectRepository(ReceiptEntity)
     private readonly receiptrepo: ReceiptRespository,
+    @InjectRepository(TransactionEntity)
+    private readonly transactionRepo: TransactionRespository,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private genratorservice: GeneatorService,
@@ -1423,5 +1427,29 @@ export class CustomerService {
         }
       }
     }
+
+    async getPaymenthistoryOfOneCustomer(Customer:CustomerEntity) {
+      try {
+        const transaction = await this.transactionRepo.findAndCount({
+          where: { customer:Customer },
+          relations: ['customer'],
+        });
+        if (!transaction)
+          throw new NotFoundException(
+            'transaction related to this customer not found',
+          );
+        return transaction;
+      } catch (error) {
+        if (error instanceof NotFoundException) throw Error(error.message);
+        else {
+          console.log(error);
+          throw new InternalServerErrorException(
+            'something went wrong',
+            error.message,
+          );
+        }
+      }
+    }
+
 
 }

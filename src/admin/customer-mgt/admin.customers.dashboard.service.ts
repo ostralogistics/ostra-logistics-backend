@@ -13,6 +13,7 @@ import {
   DiscountUsageRepository,
   NotificationRepository,
   ReceiptRespository,
+  TransactionRespository,
 } from 'src/common/common.repositories';
 import { BidEntity, IBids, IInitialBidsResponse } from 'src/Entity/bids.entity';
 import { IOrder } from 'src/order/order';
@@ -65,6 +66,10 @@ import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { DiscountEntity } from 'src/Entity/discount.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
+import {
+  ITransactions,
+  TransactionEntity,
+} from 'src/Entity/transactions.entity';
 // import { FirebaseService } from 'src/firebase/firebase.service';
 // import * as admin from 'firebase-admin';
 
@@ -87,6 +92,9 @@ export class AdminCustomerDashBoardService {
     private readonly vehicleRepo: VehicleTypeRepository,
     @InjectRepository(DiscountEntity)
     private readonly discountRepo: DiscountRepository,
+    @InjectRepository(TransactionEntity)
+    private readonly transactionRepo: TransactionRespository,
+
     private genratorservice: GeneatorService,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
@@ -300,16 +308,23 @@ export class AdminCustomerDashBoardService {
     }
   }
 
-
   //admin search for a customer
-  async SearchForCustomer(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: CustomerEntity[]; total: number }> {
+  async SearchForCustomer(
+    keyword: string,
+    page?: number,
+    perPage?: number,
+    sort?: string,
+  ): Promise<{ data: CustomerEntity[]; total: number }> {
     try {
-      const qb = this.customerRepo.createQueryBuilder('customer')
+      const qb = this.customerRepo.createQueryBuilder('customer');
 
-      qb.where('customer.firstname ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.orWhere('customer.lastname ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.cache(false)
-
+      qb.where('customer.firstname ILIKE :keyword', {
+        keyword: `%${keyword}%`,
+      });
+      qb.orWhere('customer.lastname ILIKE :keyword', {
+        keyword: `%${keyword}%`,
+      });
+      qb.cache(false);
 
       if (sort) {
         const [sortField] = sort.split(',');
@@ -327,10 +342,8 @@ export class AdminCustomerDashBoardService {
           `No customer found matching your search criteria for "${keyword}".`,
         );
       }
-  
-      return { data: customer, total };
 
-      
+      return { data: customer, total };
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -343,8 +356,6 @@ export class AdminCustomerDashBoardService {
       }
     }
   }
-
-
 
   async GetOrderReceipt(orderID: number) {
     try {
@@ -371,14 +382,20 @@ export class AdminCustomerDashBoardService {
     }
   }
 
-  async SearchForanOrder(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: OrderEntity[]; total: number }> {
+  async SearchForanOrder(
+    keyword: string,
+    page?: number,
+    perPage?: number,
+    sort?: string,
+  ): Promise<{ data: OrderEntity[]; total: number }> {
     try {
-      const qb = this.orderRepo.createQueryBuilder('order')
+      const qb = this.orderRepo.createQueryBuilder('order');
 
-      qb.where('order.orderID ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.orWhere('customer.trackingID ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.cache(false)
-
+      qb.where('order.orderID ILIKE :keyword', { keyword: `%${keyword}%` });
+      qb.orWhere('customer.trackingID ILIKE :keyword', {
+        keyword: `%${keyword}%`,
+      });
+      qb.cache(false);
 
       if (sort) {
         const [sortField] = sort.split(',');
@@ -396,10 +413,8 @@ export class AdminCustomerDashBoardService {
           `No customer found matching your search criteria for "${keyword}".`,
         );
       }
-  
-      return { data: order, total };
 
-      
+      return { data: order, total };
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -1649,6 +1664,29 @@ export class AdminCustomerDashBoardService {
       throw new InternalServerErrorException(
         'An error occurred while fetching the total revenue by the customer',
       );
+    }
+  }
+
+  async getPaymenthistoryOfOneCustomer(customerID: string) {
+    try {
+      const transaction = await this.transactionRepo.findAndCount({
+        where: { customer: { id: customerID } },
+        relations: ['customer'],
+      });
+      if (!transaction)
+        throw new NotFoundException(
+          'transaction related to this customer not found',
+        );
+      return transaction;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw Error(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong',
+          error.message,
+        );
+      }
     }
   }
 }

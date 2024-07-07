@@ -177,7 +177,7 @@ export class CustomerController{
      @Get('all-my-transactions')
      async GetAllMytransctions(@Req()req){
       console.log(req.user)
-      return await this.customerservice.AllNotificationsRelatedTocustomer(req.user)
+      return await this.customerservice.getPaymenthistoryOfOneCustomer(req.user)
      }
 
 

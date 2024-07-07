@@ -308,5 +308,10 @@ export class AdminCustomerDashBoardController {
       return await this.admincustomerservice.getTotalRevenueByCustomer(customerID)
   }
 
+  @Get('customer-payment-transactions/:customerID')
+  async CustomerPaymentHistory(@Param('customerID')customerID:string){
+      return await this.admincustomerservice.getPaymenthistoryOfOneCustomer(customerID)
+  }
+
 
 }
