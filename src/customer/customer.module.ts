@@ -26,6 +26,7 @@ import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
+import { TransactionEntity } from 'src/Entity/transactions.entity';
 //import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 //import { FirebaseService } from 'src/firebase/firebase.service';
 
@@ -46,7 +47,8 @@ import { ReceiptEntity } from 'src/Entity/receipt.entity';
       OrderCartEntity,
       OrderItemEntity,
       VehicleTypeEntity,
-      ReceiptEntity
+      ReceiptEntity,
+      TransactionEntity
     ]),
   ],
   providers: [
