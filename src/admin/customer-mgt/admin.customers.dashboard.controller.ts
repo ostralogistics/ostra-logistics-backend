@@ -303,7 +303,7 @@ export class AdminCustomerDashBoardController {
       return await this.admincustomerservice.getTotalPendingOrdersCountByCustomer(customerID)
   }
 
-  @Get('total-revenue-one-cutomer/:customerID')
+  @Get('total-revenue-one-customer/:customerID')
   async getTotalRevenueOneCustomer(@Param('customerID')customerID:string){
       return await this.admincustomerservice.getTotalRevenueByCustomer(customerID)
   }

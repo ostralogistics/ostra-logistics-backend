@@ -1557,23 +1557,17 @@ export class AdminCustomerDashBoardService {
     try {
       const totalOrders = await this.orderRepo.count({
         where: { customer: { id: customerID } },
-        relations: ['customer'],
       });
-
-      if (!totalOrders) {
-        throw new NotFoundException(
-          `order count associated with Customer with ID ${customerID} not found`,
-        );
-      }
-
+  
       return totalOrders;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An error occurred while fetching the total number of orders by the customer',
+        'An error occurred while fetching the total number of orders by the customer',error.message
       );
     }
   }
+  
 
   async getTotalPendingOrdersCountByCustomer(
     customerID: string,
@@ -1586,12 +1580,6 @@ export class AdminCustomerDashBoardService {
         },
         relations: ['customer'],
       });
-
-      if (!totalOrders) {
-        throw new NotFoundException(
-          `pending order count associated with Customer with ID ${customerID} not found`,
-        );
-      }
 
       return totalOrders;
     } catch (error) {
@@ -1613,12 +1601,6 @@ export class AdminCustomerDashBoardService {
         },
         relations: ['customer'],
       });
-
-      if (!totalOrders) {
-        throw new NotFoundException(
-          `delivered order count associated with Customer with ID ${customerID} not found`,
-        );
-      }
 
       return totalOrders;
     } catch (error) {
