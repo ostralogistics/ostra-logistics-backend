@@ -972,7 +972,7 @@ export class AdminRiderDashboardService {
   async getAllriderTask() {
     try {
       const alltasks = await this.taskRepo.findAndCount({
-        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
+        relations: ['rider','rider.vehicle_for_the_day', 'assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException('there are no Rider tasks at the moment');
@@ -996,7 +996,7 @@ export class AdminRiderDashboardService {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { rider: { id: riderID } },
-        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
+        relations: ['rider','rider.vehicle_for_the_day', 'assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -1040,7 +1040,7 @@ export class AdminRiderDashboardService {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { status: TaskStatus.ONGOING },
-        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
+        relations: ['rider', 'rider.vehicle_for_the_day', 'assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -1065,7 +1065,7 @@ export class AdminRiderDashboardService {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { rider: { id: riderId }, status: TaskStatus.ONGOING },
-        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
+        relations: ['rider', 'rider.vehicle_for_the_day','assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -1109,7 +1109,7 @@ export class AdminRiderDashboardService {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { status: TaskStatus.CONCLUDED },
-        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
+        relations: ['rider', 'rider.vehicle_for_the_day','assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
@@ -1135,7 +1135,7 @@ export class AdminRiderDashboardService {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { rider: { id: riderID }, status: TaskStatus.CONCLUDED },
-        relations: ['rider', 'assigned_order', 'assigned_order.customer'],
+        relations: ['rider', 'rider.vehicle_for_the_day','assigned_order', 'assigned_order.customer'],
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(

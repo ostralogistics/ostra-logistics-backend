@@ -181,5 +181,13 @@ export class CardDetailsDto {
     @IsString()
     @IsNotEmpty()
     complaint:string
+
+    @IsEmail()
+    @IsOptional()
+    email:string
+
+    @IsString()
+    @IsOptional()
+    title:string
   }
 

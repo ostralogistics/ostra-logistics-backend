@@ -921,6 +921,8 @@ export class AdminService {
       //file complaint
       const newcomplaint = new ComplaintEntity();
       newcomplaint.complaints = dto.complaint;
+      newcomplaint.email = dto.email;
+      newcomplaint.title = dto.title;
       newcomplaint.createdAt = new Date();
       newcomplaint.ticket = ticket;
       newcomplaint.channel = channelforconversation.OPEN;
@@ -931,7 +933,7 @@ export class AdminService {
       //notifiction
       const notification = new Notifications();
       notification.account = findadmin.id;
-      notification.subject = 'complaint filed!';
+      notification.subject = 'complaint filed and ticket created!';
       notification.message = `the admin with id ${admin.id} have filed a complaint on behalf of a customer on ostra logistics `;
       await this.notificationripo.save(notification);
 

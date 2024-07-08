@@ -10,6 +10,8 @@ export interface IComplaints{
     complaints:string
     status:complainResolutionStatus
     channel:channelforconversation
+    email:string
+    title:string
     createdAt:Date
     customer:CustomerEntity
     closedAT:Date
@@ -27,6 +29,12 @@ export class ComplaintEntity implements IComplaints{
 
     @Column({nullable:true})
     ticket: string
+
+    @Column({nullable:true})
+    email: string
+
+    @Column({nullable:true})
+    title: string
 
     @Column({nullable:true})
     complaints: string
