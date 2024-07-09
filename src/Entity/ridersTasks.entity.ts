@@ -42,6 +42,35 @@ export class TaskEntity implements IRiderTask{
     @Column({nullable:true, type:'enum', enum:RiderMileStones})
     milestone: RiderMileStones;
 
+    @Column("jsonb", { nullable: false, default: '{}' })
+    checkpointStatus: { [key in RiderMileStones]: boolean };
+
+
+    @Column({ nullable: true,type:'timestamp' })
+    enroute_to_pickup_locationAT:Date
+
+    @Column({ nullable: true,type:'timestamp' })
+    at_pickup_locationAT:Date
+
+    @Column({ nullable: true,type:'timestamp' })
+    picked_up_parcelAT:Date
+
+    @Column({ nullable: true,type:'timestamp' })
+    enroute_to_office_for_rebrandingAT:Date
+
+    @Column({ nullable: true,type:'timestamp' })
+    at_the_office_for_rebrandingAT:Date
+
+    @Column({ nullable: true,type:'timestamp' })
+    enroute_to_dropoff_locationAT:Date
+
+    @Column({ nullable: true,type:'timestamp' })
+    at_dropoff_locationAT:Date
+
+    @Column({ nullable: true,type:'timestamp' })
+    dropped_off_parcelAT:Date
+
+
     @ManyToOne(()=>OrderEntity,order =>order.assigned_task)
     assigned_order: OrderEntity;
 

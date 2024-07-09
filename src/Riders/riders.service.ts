@@ -206,6 +206,8 @@ export class RiderService {
 
       //updtae pickup milestone
       task.milestone = RiderMileStones.ENROUTE_TO_PICKUP_LOCATION;
+      task.enroute_to_pickup_locationAT = new Date()
+      task.checkpointStatus = { ...task.checkpointStatus, enroute_to_pickup_location: true };
       await this.taskRepo.save(task);
 
       //update order table 
@@ -260,6 +262,8 @@ export class RiderService {
 
       //updtae pickup milestone
       task.milestone = RiderMileStones.AT_PICKUP_LOCATION;
+      task.at_pickup_locationAT = new Date()
+      task.checkpointStatus = { ...task.checkpointStatus, at_pickup_location: true };
       await this.taskRepo.save(task);
 
       //update order table 
@@ -307,6 +311,13 @@ export class RiderService {
         throw new NotFoundException(
           `task with the id: ${taskID} is not assigned to this rider`,
         );
+
+         //updtae at the office milestone
+      task.milestone = RiderMileStones.PICKED_UP_PARCEL;
+      task.picked_up_parcelAT = new Date()
+      task.checkpointStatus = { ...task.checkpointStatus, picked_up_parcel: true };
+      task.status = TaskStatus.ONGOING;
+      await this.taskRepo.save(task);
 
      //update order table 
      task.assigned_order.order_status = OrderStatus.RIDER_RECEIVE_PARCEL
@@ -360,12 +371,11 @@ export class RiderService {
 
       //updtae at the office milestone
       task.milestone = RiderMileStones.ENROUTE_TO_THE_OFFICE_FOR_REBRANDING;
+      task.enroute_to_office_for_rebrandingAT = new Date()
+      task.checkpointStatus = { ...task.checkpointStatus, enroute_to_office_for_rebranding: true };
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
-       //update order table 
-       task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE
-       await this.orderRepo.save(task.assigned_order)
 
        //update order table 
       task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE
@@ -421,6 +431,8 @@ export class RiderService {
 
       //updtae at the office milestone
       task.milestone = RiderMileStones.AT_THE_OFFICE_FOR_REBRANDING;
+      task.at_the_office_for_rebrandingAT = new Date()
+      task.checkpointStatus = { ...task.checkpointStatus, at_the_office_for_rebranding: true };
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
@@ -483,6 +495,8 @@ export class RiderService {
 
       //updtae at dropoff location milestone
       task.milestone = RiderMileStones.ENROUTE_TO_DROPOFF_LOCATION;
+      task.enroute_to_dropoff_locationAT = new Date()
+      task.checkpointStatus = { ...task.checkpointStatus, enroute_to_dropoff_location: true };
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
@@ -536,6 +550,8 @@ export class RiderService {
 
       //updtae at dropoff location milestone
       task.milestone = RiderMileStones.AT_DROPOFF_LOCATION;
+      task.at_dropoff_locationAT = new Date()
+      task.checkpointStatus = { ...task.checkpointStatus, at_dropoff_location: true };
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
@@ -607,9 +623,13 @@ export class RiderService {
 
       //updtae pickup milestone
       task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
+      task.dropped_off_parcelAT = new Date()
+      task.checkpointStatus = { ...task.checkpointStatus, "dropped_off-parcel": true };
       task.status = TaskStatus.CONCLUDED;
       await this.taskRepo.save(task);
-
+       //update order table 
+       task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE
+       await this.orderRepo.save(task.assigned_order)
       //update the order table
       isOrder.order_status = OrderStatus.DELIVERED;
       isOrder.order_display_status = OrderDisplayStatus.COMPLETED;

@@ -37,8 +37,8 @@ export enum RiderMileStones{
     ENROUTE_TO_DROPOFF_LOCATION= "enroute_to_dropoff_location",
     AT_DROPOFF_LOCATION ="at_dropoff_location",
     DROPPED_OFF_PARCEL ="dropped_off-parcel",
-
 }
+
 
 export enum complainResolutionStatus{
     RESOLVED="resolved",
