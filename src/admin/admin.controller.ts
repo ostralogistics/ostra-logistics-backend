@@ -236,8 +236,43 @@ export class Admincontroller{
      return await this.adminservice.DeleteOneNotification(notificationId)
     }
 
+    @Get('active-order-count')
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    async ActiveOrderCount(){
+        return await this.adminservice.activeorderCount()
+    }
+
+    @Get('pending-order-count')
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    async pendingOrderCount(){
+        return await this.adminservice.activependingCount()
+    }
+
+    @Get('completed-order-count')
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    async CompletedOrderCount(){
+        return await this.adminservice.activecompletedCount()
+    }
+
+    @Get('all-order-count')
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    async AllOrderCount(){
+        return await this.adminservice.AllorderCount()
+    }
+
+    @Get('delivery-payment-count')
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    async SuccessfullyPaid(){
+        return await this.adminservice.DeliveryPaymentCount()
+    }
 
 
+
+    //graph data 
+    @Get('delivery-volume-hourly')
+    async getHourlyRevenue() {
+      return this.adminservice.calculateHourlyRevenue();
+    }
 
 
     

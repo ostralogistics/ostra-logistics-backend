@@ -40,6 +40,9 @@ import { RidersRepository } from 'src/Riders/riders.repository';
 import {
   AdminType,
   BidStatus,
+  OrderDisplayStatus,
+  OrderStatus,
+  PaymentStatus,
   ReturnedVehicle,
   RiderStatus,
   VehicleAssignedStatus,
@@ -1362,4 +1365,71 @@ export class AdminService {
       }
     }
   }
+
+  //dashboard counts and mapping 
+  async activeorderCount():Promise<number>{
+    const count = await this.orderRepo.count({where:{order_display_status:OrderDisplayStatus.IN_TRANSIT}})
+    return count
+  }
+
+  async activecompletedCount():Promise<number>{
+    const count = await this.orderRepo.count({where:{order_display_status:OrderDisplayStatus.COMPLETED}})
+    return count
+  }
+
+  async activependingCount():Promise<number>{
+    const count = await this.orderRepo.count({where:{order_display_status:OrderDisplayStatus.PENDING}})
+    return count
+  }
+
+  async AllorderCount():Promise<number>{
+    const count = await this.orderRepo.count()
+    return count
+  }
+
+  async DeliveryPaymentCount():Promise<number>{
+    const count = await this.orderRepo.count({where:{payment_status:PaymentStatus.SUCCESSFUL}})
+    return count
+  }
+
+
+  async calculateHourlyRevenue() {
+
+    const orders = await this.orderRepo.find({
+      where: {
+        payment_status: PaymentStatus.SUCCESSFUL,
+      },
+      relations: ['items'],
+    });
+
+    const hourlyRevenue = [
+      { name: '9am', income: 0, previous: 0 },
+      { name: '10am', income: 0, previous: 0 },
+      { name: '11am', income: 0, previous: 0 },
+      { name: '12pm', income: 0, previous: 0 },
+      { name: '1pm', income: 0, previous: 0 },
+      { name: '2pm', income: 0, previous: 0 },
+      { name: '3pm', income: 0, previous: 0 },
+      { name: '4pm', income: 0, previous: 0 },
+      { name: '5pm', income: 0, previous: 0 },
+    ];
+
+    orders.forEach(order => {
+      const hour = order.orderPlacedAt.getHours();
+      const hourSlot = hourlyRevenue.find(slot => {
+        const hourLabel = parseInt(slot.name);
+        return hour === hourLabel || (hour === 12 && slot.name === '12pm');
+      });
+
+      if (hourSlot) {
+        hourSlot.income += order.accepted_cost_of_delivery;
+      }
+    });
+
+    // Optionally, populate the `previous` values with historical data if available.
+    return hourlyRevenue;
+  }
+
+
 }
+
