@@ -86,7 +86,7 @@ export class Mailer {
     <body>
       <div class="container">
         <div class="logo">
-          <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1719384671/xa5qf0iuzxpdcckoaryf.jpg" alt="ostralogistics">
+          <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1720577913/oppc1paydigfmzkgdgc8.png" alt="ostralogistics">
         </div>
         <h1 class="heading">Dear ${name},</h1>
         <p class="message">Your new passcode for extremely sensitive and secured operations within the admin dashboard as a CEO is:</p>
@@ -94,16 +94,14 @@ export class Mailer {
         <p class="message">. If you did not request for this passcode Update, please ignore this email.</p>
         <p class="footer">ostralogistics</p>
         <div class="social-icons">
-        <a href="https://facebook.com/thegearmates"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
-        <a href="https://twitter.com/thegearmates"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
-        <a href="https://instagram.com/thegearmates"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
-        <a href="https://linkedin.com/company/thegearmates"><img src="https://img.icons8.com/fluent/48/000000/linkedin.png" alt="LinkedIn"></a>
+        <a href="https://facebook.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+        <a href="https://twitter.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+        <a href="https://instagram.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+        <a href="https://tiktok.com/@ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/tiktok.png" alt="TikTok"></a>
       </div>
       </div>
     </body>
     </html>
-    
-      
       `;
 
     await this.mailerservice.sendMail({ to: email, subject, html: content });
@@ -144,7 +142,7 @@ export class Mailer {
           }
           .verification-heading {
             text-align: center;
-            color: #0293D2;
+            color: #53B1FD;
             font-size: 24px;
             margin-bottom: 10px;
           }
@@ -156,7 +154,7 @@ export class Mailer {
           .otp {
             text-align: center;
             font-size: 30px;
-            color: #0293D2;
+            color: #53B1FD;
             font-weight: bold;
             margin-bottom: 20px;
           }
@@ -165,45 +163,44 @@ export class Mailer {
             line-height: 1.4;
             margin-bottom: 20px;
           }
-          .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #0293D2;
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 5px;
-          }
           .footer {
             text-align: center;
             margin-top: 20px;
             color: #777777;
+          }
+          .social-icons {
+            margin-top: 10px;
+          }
+          .social-icons img {
+            width: 30px;
+            margin: 0 5px;
           }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="logo">
-          <h1> OSTRA LOGISTICS </h1>
+            <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1720577913/oppc1paydigfmzkgdgc8.png" alt="Ostra Logistics">
           </div>
-          <h1 class="verification-heading">Dear, ${name}!</h1>
-          <p class="message">TWO STEP VERIFICATION:</p>
-          
-  
-          <div class="instructions">
-          <p>Your one-time password (OTP) for verification is: <strong>${otpCode}</strong>.</p>
-          <p>This OTP is valid for a single use and expires in ${expires} minutes.</p>
-          <p>If you did not request this OTP, please ignore this email.</p>
-            
+          <h1 class="verification-heading">Dear ${name},</h1>
+          <p class="message">Your one-time password (OTP) for verification is:</p>
+          <p class="otp">${otpCode}</p>
+          <p class="message">This OTP is valid for a single use and expires in ${expires} minutes. If you did not request this OTP, please ignore this email.</p>
+          <div class="footer">
+            <p>Ostra Logistics</p>
+            <div class="social-icons">
+              <a href="https://facebook.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+              <a href="https://twitter.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+              <a href="https://instagram.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+              <a href="https://tiktok.com/@ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/tiktok.png" alt="TikTok"></a>
+            </div>
           </div>
-          <p class="footer">ostra logistics</p>
         </div>
       </body>
-      </html>
-      
-      `;
-
+    </html>`;
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
+  
 
   async SendPasswordResetLinkMail(
     email: string,
@@ -236,7 +233,7 @@ export class Mailer {
             }
             .verification-heading {
               text-align: center;
-              color: #0293D2;
+              color: #53B1FD;
               font-size: 20px;
               margin-bottom: 10px;
             }
@@ -248,7 +245,7 @@ export class Mailer {
             .otp {
               text-align: center;
               font-size: 30px;
-              color: #0293D2;
+              color: #53B1FD;
               font-weight: bold;
               margin-bottom: 20px;
             }
@@ -256,207 +253,212 @@ export class Mailer {
               font-size: 16px;
               line-height: 1.4;
             }
-            .button {
-              display: inline-block;
-              padding: 10px 20px;
-              background-color: #0293D2;
-              color: #ffffff;
-              text-decoration: none;
-              border-radius: 5px;
-            }
             .footer {
               text-align: center;
               margin-top: 20px;
               color: #777777;
+            }
+            .social-icons {
+              margin-top: 10px;
+            }
+            .social-icons img {
+              width: 30px;
+              margin: 0 5px;
             }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="logo">
-            <h1> OSTRA LOGISTICS </h1>
+              <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1720577913/oppc1paydigfmzkgdgc8.png" alt="Ostra Logistics">
             </div>
-              
-            <h1 class="verification-heading">Password Reset Token</h1>
-            <p class="message"><span class="username">HI ${name}</span>,</p>
-            <p class="otp">Your Password Reset Token : <span class="otp-code">${resettoken}</span></p>
+            <h1 class="verification-heading">Password Reset Request</h1>
+            <p class="message">Hi ${name},</p>
             <div class="instructions">
-              <p>
-                We are sorry you couldn't get access into Ostra Logistics Mobile Application for Customers.  Please use the Reset Token  provided above to enter a new password.
-              </p>
-              <p>
-                The password reset token is valid for a limited time, and it should be used to complete the password reset process.
-              </p>
-              <p>
-                If you did not request this reset link, please ignore this email. Your account will remain secure.
-              </p>
-              <p >
-              For any questions or assistance, contact our support team at <a class="button" href="mailto:nedunestjs@gmail.com">support@ostralogistics.com</a>
-              </p>
+              <p>It seems like you requested a password reset. Please click on the link below to reset your password:</p>
+              <p style="text-align: center;"><a href="${resettoken}" style="background-color: #53B1FD; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
+              <p>If you did not request a password reset, please ignore this email. This link will expire in 30 minutes.</p>
             </div>
-            <p class="footer">ostra logistics</p>
+            <div class="footer">
+              <p>Ostra Logistics</p>
+              <div class="social-icons">
+                <a href="https://facebook.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+                <a href="https://twitter.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+                <a href="https://instagram.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+                <a href="https://tiktok.com/@ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/tiktok.png" alt="TikTok"></a>
+              </div>
+            </div>
           </div>
         </body>
-      </html>
-      `;
-
+      </html>`;
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
+  
 
   async WelcomeMail(email: string, name: string): Promise<void> {
     const subject = 'Welcome To Ostra Logistics';
     const content = `<!DOCTYPE html>
-    <html>
-      <head>
-        <title>Welcome to Ostra Logistics</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            color: #333333;
-            line-height: 1.6;
-          }
-          .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          }
-          .logo {
-            text-align: center;
-            margin-bottom: 10px;
-          }
-          .verification-heading {
-            text-align: center;
-            color: #0293D2;
-            font-size: 20px;
-            margin-bottom: 10px;
-          }
-          .message {
-            text-align: center;
-            font-size: 16px;
-            margin-bottom: 20px;
-          }
-          .instructions {
-            font-size: 16px;
-            line-height: 1.4;
-          }
-          .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #0293D2;
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 5px;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #777777;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="logo">
-            <h1>OSTRA LOGISTICS</h1>
+      <html>
+        <head>
+          <title>Welcome to Ostra Logistics</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f2f2f2;
+              color: #333333;
+              line-height: 1.6;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+              background-color: #ffffff;
+              border-radius: 10px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            .logo {
+              text-align: center;
+              margin-bottom: 10px;
+            }
+            .verification-heading {
+              text-align: center;
+              color: #53B1FD;
+              font-size: 20px;
+              margin-bottom: 10px;
+            }
+            .message {
+              text-align: center;
+              font-size: 16px;
+              margin-bottom: 20px;
+            }
+            .instructions {
+              font-size: 16px;
+              line-height: 1.4;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              color: #777777;
+            }
+            .social-icons {
+              margin-top: 10px;
+            }
+            .social-icons img {
+              width: 30px;
+              margin: 0 5px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="logo">
+              <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1720577913/oppc1paydigfmzkgdgc8.png" alt="Ostra Logistics">
+            </div>
+            <h1 class="verification-heading">Welcome OnBoard!</h1>
+            <p class="message">Hi ${name},</p>
+            <div class="instructions">
+              <p>We are thrilled to have you join our platform. With Ostra Logistics, you can easily manage your deliveries, track orders in real-time, and more.</p>
+              <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
+              <p>Happy delivering!</p>
+              <p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
+            </div>
+            <div class="footer">
+              <p>Ostra Logistics</p>
+              <div class="social-icons">
+                <a href="https://facebook.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+                <a href="https://twitter.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+                <a href="https://instagram.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+                <a href="https://tiktok.com/@ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/tiktok.png" alt="TikTok"></a>
+              </div>
+            </div>
           </div>
-          <h1 class="verification-heading">Welcome OnBoard!</h1>
-          <p class="message"><span class="username">HI ${name},</span></p>
-          <div class="instructions">
-            <p>We are thrilled to have you join our platform. With Ostra Logistics, you can easily manage your deliveries, track orders in real-time, and more.</p>
-            <p>This promo code is valid for multiple orders and offers a 25% discount on delivery fees. Make sure to use it when placing multiple orders within the next 3 months to enjoy the discount.</p>
-            <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
-            <p>Happy delivering!</p>
-            <p>For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
-          </div>
-          <p class="footer">Ostra Logistics</p>
-        </div>
-      </body>
-    </html>
-    `;
-
+        </body>
+      </html>`;
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
-
+  
   async WelcomeMailAdmin(email: string, name: string): Promise<void> {
     const subject = 'Welcome To Ostra Logistics';
     const content = `<!DOCTYPE html>
-    <html>
-      <head>
-        <title>Welcome to Ostra Logistics</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            color: #333333;
-            line-height: 1.6;
-          }
-          .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          }
-          .logo {
-            text-align: center;
-            margin-bottom: 10px;
-          }
-          .verification-heading {
-            text-align: center;
-            color: #0293D2;
-            font-size: 20px;
-            margin-bottom: 10px;
-          }
-          .message {
-            text-align: center;
-            font-size: 16px;
-            margin-bottom: 20px;
-          }
-          .instructions {
-            font-size: 16px;
-            line-height: 1.4;
-          }
-          .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #0293D2;
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 5px;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #777777;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="logo">
-            <h1>OSTRA LOGISTICS</h1>
+      <html>
+        <head>
+          <title>Welcome to Ostra Logistics</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f2f2f2;
+              color: #333333;
+              line-height: 1.6;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+              background-color: #ffffff;
+              border-radius: 10px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            .logo {
+              text-align: center;
+              margin-bottom: 10px;
+            }
+            .verification-heading {
+              text-align: center;
+              color: #53B1FD;
+              font-size: 20px;
+              margin-bottom: 10px;
+            }
+            .message {
+              text-align: center;
+              font-size: 16px;
+              margin-bottom: 20px;
+            }
+            .instructions {
+              font-size: 16px;
+              line-height: 1.4;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              color: #777777;
+            }
+            .social-icons {
+              margin-top: 10px;
+            }
+            .social-icons img {
+              width: 30px;
+              margin: 0 5px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="logo">
+              <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1720577913/oppc1paydigfmzkgdgc8.png" alt="Ostra Logistics">
+            </div>
+            <h1 class="verification-heading">Welcome OnBoard!</h1>
+            <p class="message">Hi ${name},</p>
+            <div class="instructions">
+              <p>We are thrilled to have you join our platform. With Ostra Logistics, you can easily manage your deliveries, track orders in real-time, and more.</p>
+              <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
+              <p>Happy delivering!</p>
+              <p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
+            </div>
+            <div class="footer">
+              <p>Ostra Logistics</p>
+              <div class="social-icons">
+                <a href="https://facebook.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+                <a href="https://twitter.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+                <a href="https://instagram.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+                <a href="https://tiktok.com/@ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/tiktok.png" alt="TikTok"></a>
+              </div>
+            </div>
           </div>
-          <h1 class="verification-heading">Welcome OnBoard!</h1>
-          <p class="message"><span class="username">HI ${name},</span></p>
-          <div class="instructions">
-            <p>We are thrilled to have you join our platform. With Ostra Logistics, you can easily manage your deliveries, track orders in real-time, and more.</p>
-            <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
-            <p>Happy delivering!</p>
-            <p>For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
-          </div>
-          <p class="footer">Ostra Logistics</p>
-        </div>
-      </body>
-    </html>
-    `;
-
+        </body>
+      </html>`;
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
+  
 
   async OrderAcceptedMail(
     email: string,
@@ -524,12 +526,19 @@ export class Mailer {
           margin-top: 20px;
           color: #777777;
         }
+        .social-icons {
+          margin-top: 10px;
+        }
+        .social-icons img {
+          width: 30px;
+          margin: 0 5px;
+        }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="logo">
-        <h1> OSTRA LOGISTICS </h1>
+        <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1720577913/oppc1paydigfmzkgdgc8.png" alt="Ostra Logistics">
         </div>
           
         <h1 class="verification-heading">Order Details!</h1>
@@ -540,12 +549,19 @@ export class Mailer {
 <p>A tracking ID has been generated for your order, and a drop-off code has also been provided. Please use the following details:</p>
 <p>Tracking ID: ${trackingID}</p>
 <p>Drop-off Code: ${dropoffcode}</p>
-<p>Thank you for choosing Ostra Logistics. Happy delivering!</p></p>
-          <p >
-          For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a>
-          </p>
+<p>Thank you for choosing Ostra Logistics. Happy delivering!</p>
+          
+          <p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
+          
         </div>
-        <p class="footer">ostra logistics</p>
+        <div class="footer">
+        <p>Ostra Logistics</p>
+        <div class="social-icons">
+          <a href="https://facebook.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+          <a href="https://twitter.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+          <a href="https://instagram.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+          <a href="https://tiktok.com/@ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/tiktok.png" alt="TikTok"></a>
+        </div>
       </div>
     </body>
   </html>
@@ -618,12 +634,19 @@ export class Mailer {
           margin-top: 20px;
           color: #777777;
         }
+        .social-icons {
+          margin-top: 10px;
+        }
+        .social-icons img {
+          width: 30px;
+          margin: 0 5px;
+        }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="logo">
-        <h1> OSTRA LOGISTICS </h1>
+        <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1720577913/oppc1paydigfmzkgdgc8.png" alt="Ostra Logistics">
         </div>
           
         <h1 class="verification-heading">The Trip has Successfully Ended!</h1>
@@ -634,11 +657,16 @@ export class Mailer {
 <p>If you have any feedback or concerns regarding your delivery experience, please don't hesitate to reach out to us.</p>
 <p>Thank you for choosing Ostra Logistics.</p>
 
-          <p >
-          For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a>
-          </p>
+<p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
         </div>
-        <p class="footer">ostra logistics</p>
+        <div class="footer">
+        <p>Ostra Logistics</p>
+        <div class="social-icons">
+          <a href="https://facebook.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+          <a href="https://twitter.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+          <a href="https://instagram.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+          <a href="https://tiktok.com/@ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/tiktok.png" alt="TikTok"></a>
+        </div>
       </div>
     </body>
   </html>
@@ -676,7 +704,7 @@ export class Mailer {
       }
       .verification-heading {
         text-align: center;
-        color: #0293D2;
+        color: #53B1FD;
         font-size: 20px;
         margin-bottom: 10px;
       }
@@ -709,6 +737,13 @@ export class Mailer {
         margin-top: 20px;
         color: #777777;
       }
+      .social-icons {
+        margin-top: 10px;
+      }
+      .social-icons img {
+        width: 30px;
+        margin: 0 5px;
+      }
     </style>
   </head>
   <body>
@@ -729,11 +764,16 @@ export class Mailer {
       <p>Thank you for choosing Ostra Logistics. We appreciate your continued partnership.</p>
       <p>Best regards,<br>>
 
-        <p >
-        For any questions or assistance, contact our support team at <a class="button" href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a>
-        </p>
+      <p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
       </div>
-      <p class="footer">ostra logistics</p>
+      <div class="footer">
+      <p>Ostra Logistics</p>
+      <div class="social-icons">
+        <a href="https://facebook.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+        <a href="https://twitter.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+        <a href="https://instagram.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+        <a href="https://tiktok.com/@ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/tiktok.png" alt="TikTok"></a>
+      </div>
     </div>
   </body>
 </html>
