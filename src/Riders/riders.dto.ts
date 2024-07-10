@@ -10,6 +10,9 @@ export class DropOffCodeDto{
     @IsString()
     @IsNotEmpty()
     dropOff_code:string
+
+    @IsNumber()
+    itemsDroppedOff:number
 }
 
 export class AcceptOrDeclineTaskDto{

@@ -19,7 +19,7 @@ export class Notifications implements INotification{
     @Column({nullable:false})
     subject:string
 
-    @Column({nullable:true, type:'boolean',})
+    @Column({nullable:true, type:'boolean',default:false})
     isRead: boolean;
     
 }

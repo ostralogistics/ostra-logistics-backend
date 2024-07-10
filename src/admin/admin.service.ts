@@ -910,6 +910,49 @@ export class AdminService {
     }
   }
 
+    //admin search for an admin
+    async SearchForComplaints(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: ComplaintEntity[]; total: number }> {
+      try {
+        const qb = this.complaintripo.createQueryBuilder('ticket')
+  
+        qb.where('ticket.ticket ILIKE :keyword',{keyword:`%${keyword}%`})
+        qb.orWhere('ticket.title ILIKE :keyword',{keyword:`%${keyword}%`})
+        qb.cache(false)
+  
+  
+        if (sort) {
+          const [sortField] = sort.split(',');
+          qb.orderBy(`ticket.${sortField}`, 'DESC');
+        }
+  
+        if (page && perPage) {
+          qb.skip((page - 1) * perPage).take(perPage);
+        }
+  
+        const [ticket, total] = await qb.getManyAndCount();
+  
+        if (!ticket.length) {
+          throw new NotFoundException(
+            `No complaints found matching your search criteria for "${keyword}".`,
+          );
+        }
+    
+        return { data: ticket, total };
+  
+        
+      } catch (error) {
+        if (error instanceof NotFoundException)
+          throw new NotFoundException(error.message);
+        else {
+          console.log(error);
+          throw new InternalServerErrorException(
+            'something went wrong while tryig to search for an admin, please try again later',
+            error.message,
+          );
+        }
+      }
+    }
+
   // create compliant conflict manually from the admin desk
 
   //file a complaint and get a ticket

@@ -150,6 +150,16 @@ export class Admincontroller{
         return await this.adminservice.changeresolutionStatus(dto,compliantID)
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('/search-complaint')
+    async SearchStaff(
+      @Query('keyword') keyword: string,
+      @Query('page') page?: number,
+      @Query('perPage') perPage?: number,
+      @Query('sort') sort?: string,) {
+      return await this.adminservice.SearchForComplaints(keyword,page,perPage,sort);
+    }
+
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
     @Post('file-complaint')
@@ -273,6 +283,8 @@ export class Admincontroller{
     async getHourlyRevenue() {
       return this.adminservice.calculateHourlyRevenue();
     }
+
+
 
 
     

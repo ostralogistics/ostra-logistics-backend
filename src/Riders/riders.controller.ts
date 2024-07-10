@@ -67,7 +67,7 @@ export class RiderController{
 
     @Patch('checkin-dropoff-parcel/:taskID/:orderID')
     async RiderChecksWhenHeDropsOffParcel (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req, @Body()dto:DropOffCodeDto){
-        return await this.riderservice.RiderCheckInWhenHeDropsOff(taskID,orderID,req.user,dto)
+        return await this.riderservice.RiderCheckInWhenHeDropsOffnew(taskID,orderID,req.user,dto)
     }
 
     @Get('all-asigned-task')

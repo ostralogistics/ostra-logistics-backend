@@ -138,14 +138,13 @@ export class RiderService {
         await this.taskRepo.save(task);
 
         //update order status
-        task.assigned_order.order_status =OrderStatus.RIDER_ASSIGNED
-        task.assigned_order.RiderAssignedAT = new Date()
-        await this.orderRepo.save(task.assigned_order)
+        task.assigned_order.order_status = OrderStatus.RIDER_ASSIGNED;
+        task.assigned_order.RiderAssignedAT = new Date();
+        await this.orderRepo.save(task.assigned_order);
 
-        //update rider info 
-        Rider.status = RiderStatus.IN_TRANSIT
-        await this.riderRepo.save(Rider)
-
+        //update rider info
+        Rider.status = RiderStatus.IN_TRANSIT;
+        await this.riderRepo.save(Rider);
 
         //save notification
         const notification = new Notifications();
@@ -182,7 +181,6 @@ export class RiderService {
     }
   }
 
-
   //check-in when rider gets to pick up location
   async RiderCheckswhenEnrouteToPickupLocation(
     taskID: number,
@@ -206,15 +204,18 @@ export class RiderService {
 
       //updtae pickup milestone
       task.milestone = RiderMileStones.ENROUTE_TO_PICKUP_LOCATION;
-      task.enroute_to_pickup_locationAT = new Date()
-      task.checkpointStatus = { ...task.checkpointStatus, enroute_to_pickup_location: true };
+      task.enroute_to_pickup_locationAT = new Date();
+      task.checkpointStatus = {
+        ...task.checkpointStatus,
+        enroute_to_pickup_location: true,
+      };
       await this.taskRepo.save(task);
 
-      //update order table 
-      task.assigned_order.order_status = OrderStatus.ENROUTE_TO_PICKUP
-      task.assigned_order.EnrouteToPickupAT = new Date()
-      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
-      await this.orderRepo.save(task.assigned_order)
+      //update order table
+      task.assigned_order.order_status = OrderStatus.ENROUTE_TO_PICKUP;
+      task.assigned_order.EnrouteToPickupAT = new Date();
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+      await this.orderRepo.save(task.assigned_order);
 
       //save notification
       const notification = new Notifications();
@@ -235,9 +236,6 @@ export class RiderService {
       }
     }
   }
-
-
-
 
   //check-in when rider gets to pick up location
   async RiderChecksToPickupLocInWhenHeGetation(
@@ -262,15 +260,18 @@ export class RiderService {
 
       //updtae pickup milestone
       task.milestone = RiderMileStones.AT_PICKUP_LOCATION;
-      task.at_pickup_locationAT = new Date()
-      task.checkpointStatus = { ...task.checkpointStatus, at_pickup_location: true };
+      task.at_pickup_locationAT = new Date();
+      task.checkpointStatus = {
+        ...task.checkpointStatus,
+        at_pickup_location: true,
+      };
       await this.taskRepo.save(task);
 
-      //update order table 
-      task.assigned_order.order_status = OrderStatus.AT_PICKUP_LOCATION
-      task.assigned_order.AtThePickUpLocationAT = new Date()
-      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
-      await this.orderRepo.save(task.assigned_order)
+      //update order table
+      task.assigned_order.order_status = OrderStatus.AT_PICKUP_LOCATION;
+      task.assigned_order.AtThePickUpLocationAT = new Date();
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+      await this.orderRepo.save(task.assigned_order);
 
       //save notification
       const notification = new Notifications();
@@ -312,18 +313,21 @@ export class RiderService {
           `task with the id: ${taskID} is not assigned to this rider`,
         );
 
-         //updtae at the office milestone
+      //updtae at the office milestone
       task.milestone = RiderMileStones.PICKED_UP_PARCEL;
-      task.picked_up_parcelAT = new Date()
-      task.checkpointStatus = { ...task.checkpointStatus, picked_up_parcel: true };
+      task.picked_up_parcelAT = new Date();
+      task.checkpointStatus = {
+        ...task.checkpointStatus,
+        picked_up_parcel: true,
+      };
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
-     //update order table 
-     task.assigned_order.order_status = OrderStatus.RIDER_RECEIVE_PARCEL
-     task.assigned_order.RiderRecieveParcelAT = new Date()
-     task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
-     await this.orderRepo.save(task.assigned_order)
+      //update order table
+      task.assigned_order.order_status = OrderStatus.RIDER_RECEIVE_PARCEL;
+      task.assigned_order.RiderRecieveParcelAT = new Date();
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+      await this.orderRepo.save(task.assigned_order);
 
       //save notification
       const notification = new Notifications();
@@ -347,8 +351,6 @@ export class RiderService {
     }
   }
 
-
-
   async RiderCheckInWhenRiderEnrouteTotheOfficeForRebranding(
     taskID: number,
     orderID: number,
@@ -371,18 +373,19 @@ export class RiderService {
 
       //updtae at the office milestone
       task.milestone = RiderMileStones.ENROUTE_TO_THE_OFFICE_FOR_REBRANDING;
-      task.enroute_to_office_for_rebrandingAT = new Date()
-      task.checkpointStatus = { ...task.checkpointStatus, enroute_to_office_for_rebranding: true };
+      task.enroute_to_office_for_rebrandingAT = new Date();
+      task.checkpointStatus = {
+        ...task.checkpointStatus,
+        enroute_to_office_for_rebranding: true,
+      };
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
-
-       //update order table 
-      task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE
-      task.assigned_order.EnrouteToOfficeAT = new Date()
-      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
-      await this.orderRepo.save(task.assigned_order)
- 
+      //update order table
+      task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE;
+      task.assigned_order.EnrouteToOfficeAT = new Date();
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+      await this.orderRepo.save(task.assigned_order);
 
       //save notification
       const notification = new Notifications();
@@ -403,9 +406,6 @@ export class RiderService {
       }
     }
   }
-
-
-
 
   //check in when he gets to the office
 
@@ -431,25 +431,25 @@ export class RiderService {
 
       //updtae at the office milestone
       task.milestone = RiderMileStones.AT_THE_OFFICE_FOR_REBRANDING;
-      task.at_the_office_for_rebrandingAT = new Date()
-      task.checkpointStatus = { ...task.checkpointStatus, at_the_office_for_rebranding: true };
+      task.at_the_office_for_rebrandingAT = new Date();
+      task.checkpointStatus = {
+        ...task.checkpointStatus,
+        at_the_office_for_rebranding: true,
+      };
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
-      //update rider 
-      if (task.task === "pickup"){
-        Rider.status = RiderStatus.AVAILABLE
-        await this.riderRepo.save(Rider)
+      //update rider
+      if (task.task === 'pickup') {
+        Rider.status = RiderStatus.AVAILABLE;
+        await this.riderRepo.save(Rider);
       }
 
-       //update order table 
-       task.assigned_order.order_status = OrderStatus.ARRIVES_AT_THE_OFFICE
-       task.assigned_order.ArrivesAtTheOfficeAT = new Date()
-       task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
-       await this.orderRepo.save(task.assigned_order)
- 
-
-
+      //update order table
+      task.assigned_order.order_status = OrderStatus.ARRIVES_AT_THE_OFFICE;
+      task.assigned_order.ArrivesAtTheOfficeAT = new Date();
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+      await this.orderRepo.save(task.assigned_order);
 
       //save notification
       const notification = new Notifications();
@@ -470,7 +470,6 @@ export class RiderService {
       }
     }
   }
-
 
   //when rider is on his way to the dropoff location
   async RiderCheckInWhenHeISEnrouteToDropoffLocation(
@@ -495,17 +494,19 @@ export class RiderService {
 
       //updtae at dropoff location milestone
       task.milestone = RiderMileStones.ENROUTE_TO_DROPOFF_LOCATION;
-      task.enroute_to_dropoff_locationAT = new Date()
-      task.checkpointStatus = { ...task.checkpointStatus, enroute_to_dropoff_location: true };
+      task.enroute_to_dropoff_locationAT = new Date();
+      task.checkpointStatus = {
+        ...task.checkpointStatus,
+        enroute_to_dropoff_location: true,
+      };
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
-       //update order table 
-       task.assigned_order.order_status = OrderStatus.ENROUTE_TO_DROPOFF
-       task.assigned_order.EnrouteToDropOffAT = new Date()
-       task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
-       await this.orderRepo.save(task.assigned_order)
- 
+      //update order table
+      task.assigned_order.order_status = OrderStatus.ENROUTE_TO_DROPOFF;
+      task.assigned_order.EnrouteToDropOffAT = new Date();
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+      await this.orderRepo.save(task.assigned_order);
 
       //save notification
       const notification = new Notifications();
@@ -550,16 +551,19 @@ export class RiderService {
 
       //updtae at dropoff location milestone
       task.milestone = RiderMileStones.AT_DROPOFF_LOCATION;
-      task.at_dropoff_locationAT = new Date()
-      task.checkpointStatus = { ...task.checkpointStatus, at_dropoff_location: true };
+      task.at_dropoff_locationAT = new Date();
+      task.checkpointStatus = {
+        ...task.checkpointStatus,
+        at_dropoff_location: true,
+      };
       task.status = TaskStatus.ONGOING;
       await this.taskRepo.save(task);
 
-       //update order table 
-       task.assigned_order.order_status = OrderStatus.RIDER_AT_DROPOFF_LOCATION
-       task.assigned_order.RiderAtDropOffLocationAT = new Date()
-       task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT
-       await this.orderRepo.save(task.assigned_order)
+      //update order table
+      task.assigned_order.order_status = OrderStatus.RIDER_AT_DROPOFF_LOCATION;
+      task.assigned_order.RiderAtDropOffLocationAT = new Date();
+      task.assigned_order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+      await this.orderRepo.save(task.assigned_order);
 
       //save notification
       const notification = new Notifications();
@@ -623,13 +627,16 @@ export class RiderService {
 
       //updtae pickup milestone
       task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
-      task.dropped_off_parcelAT = new Date()
-      task.checkpointStatus = { ...task.checkpointStatus, "dropped_off-parcel": true };
+      task.dropped_off_parcelAT = new Date();
+      task.checkpointStatus = {
+        ...task.checkpointStatus,
+        'dropped_off-parcel': true,
+      };
       task.status = TaskStatus.CONCLUDED;
       await this.taskRepo.save(task);
-       //update order table 
-       task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE
-       await this.orderRepo.save(task.assigned_order)
+      //update order table
+      task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE;
+      await this.orderRepo.save(task.assigned_order);
       //update the order table
       isOrder.order_status = OrderStatus.DELIVERED;
       isOrder.order_display_status = OrderDisplayStatus.COMPLETED;
@@ -637,8 +644,8 @@ export class RiderService {
       await this.orderRepo.save(isOrder);
 
       //update the rider entity
-      Rider.status = RiderStatus.AVAILABLE
-      await this.riderRepo.save(Rider)
+      Rider.status = RiderStatus.AVAILABLE;
+      await this.riderRepo.save(Rider);
 
       //send mail
       await this.mailer.ParcelDroppedOfMail(
@@ -647,26 +654,26 @@ export class RiderService {
         isOrder.trackingID,
       );
 
-      //       //send push notification to the customer 
-    //       const payload: admin.messaging.MessagingPayload={
-    //         notification:{
-    //           title:'Order Successfully DroppedOff!',
-    //           body:`Order with ID:  ${isOrder.orderID} belonging to  ${isOrder.customer.firstname} has been droppedOff to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`
-    //         }
-    //       }
-    //       // Retrieve the most recent device token
-    //   const recentDeviceToken =
-    //   isOrder.customer.deviceToken[isOrder.customer.deviceToken.length - 1];
+      //       //send push notification to the customer
+      //       const payload: admin.messaging.MessagingPayload={
+      //         notification:{
+      //           title:'Order Successfully DroppedOff!',
+      //           body:`Order with ID:  ${isOrder.orderID} belonging to  ${isOrder.customer.firstname} has been droppedOff to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`
+      //         }
+      //       }
+      //       // Retrieve the most recent device token
+      //   const recentDeviceToken =
+      //   isOrder.customer.deviceToken[isOrder.customer.deviceToken.length - 1];
 
-    // if (recentDeviceToken) {
-    //   // Send the push notification to the most recent device token
-    //   await this.firebaseservice.sendNotification(
-    //     [recentDeviceToken],
-    //     payload,
-    //   );
-    // } else {
-    //   console.log('No device token available for the customer.');
-    // }
+      // if (recentDeviceToken) {
+      //   // Send the push notification to the most recent device token
+      //   await this.firebaseservice.sendNotification(
+      //     [recentDeviceToken],
+      //     payload,
+      //   );
+      // } else {
+      //   console.log('No device token available for the customer.');
+      // }
 
       //save notification
       const notification = new Notifications();
@@ -687,6 +694,138 @@ export class RiderService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to update the milestone status for dropping off parcel and concluding your trip, please try again later',
+        );
+      }
+    }
+  }
+
+  async RiderCheckInWhenHeDropsOffnew(
+    taskID: number,
+    orderID: number,
+    Rider: RiderEntity,
+    dto: DropOffCodeDto,
+  ) {
+    try {
+      const task = await this.taskRepo.findOne({
+        where: {
+          id: taskID,
+          rider: { id: Rider.id },
+        },
+        relations: ['rider', 'assigned_order'],
+      });
+
+      if (!task)
+        throw new NotFoundException(
+          `Task with the id: ${taskID} is not assigned to this rider`,
+        );
+
+      // Check the order
+      const isOrder = await this.orderRepo.findOne({
+        where: {
+          id: orderID,
+          assigned_task: { id: taskID, rider: { id: Rider.id } },
+        },
+        relations: ['rider', 'assigned_task', 'customer'],
+      });
+      if (!isOrder)
+        throw new NotAcceptableException(
+          'This order you are about to drop off was not assigned to you',
+        );
+
+      // Confirm dropoff code
+      if (dto && dto.dropOff_code !== isOrder.dropoffCode)
+        throw new ConflictException(
+          'The dropoff code does not match, please try again ',
+        );
+
+      // Get the number of items in the order
+      const itemsInOrder = isOrder.items.length;
+
+      if (dto.itemsDroppedOff > itemsInOrder || dto.itemsDroppedOff < 1) {
+        throw new NotAcceptableException(
+          `Invalid number of items dropped off. Please select a number between 1 and ${itemsInOrder}`,
+        );
+      }
+
+      // Update task milestone and status
+      task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
+      task.dropped_off_parcelAT = new Date();
+      task.checkpointStatus = {
+        ...task.checkpointStatus,
+        'dropped_off-parcel': true,
+      };
+
+      // Check if all items are dropped off
+      if (dto.itemsDroppedOff < itemsInOrder) {
+        task.status = TaskStatus.ONGOING;
+        isOrder.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+
+        // Save notification
+        const notification = new Notifications();
+        notification.account = Rider.id;
+        notification.subject = 'Rider Reached a MileStone!';
+        notification.message = `Rider with the id ${Rider.id} has dropped off one the parcel for a multiple order dropoff points and has finally completed the task.`;
+        await this.notificationripo.save(notification);
+        
+      } else {
+        task.status = TaskStatus.CONCLUDED;
+        isOrder.order_status = OrderStatus.DELIVERED;
+        isOrder.order_display_status = OrderDisplayStatus.COMPLETED;
+        isOrder.DeliveredAT = new Date();
+
+        // Update the rider entity status
+        Rider.status = RiderStatus.AVAILABLE;
+        await this.riderRepo.save(Rider);
+
+        // Save notification
+        const notification = new Notifications();
+        notification.account = Rider.id;
+        notification.subject = 'Rider Reached a MileStone!';
+        notification.message = `Rider with the id ${Rider.id} has dropped off the parcel and has finally completed the task.`;
+        await this.notificationripo.save(notification);
+      }
+
+      await this.taskRepo.save(task);
+      await this.orderRepo.save(isOrder);
+
+      // Send mail
+      await this.mailer.ParcelDroppedOfMail(
+        isOrder.customer.email,
+        isOrder.customer.firstname,
+        isOrder.trackingID,
+      );
+
+      // Send push notification to the customer
+      // const payload: admin.messaging.MessagingPayload={
+      //   notification:{
+      //     title:'Order Successfully DroppedOff!',
+      //     body:`Order with ID:  ${isOrder.orderID} belonging to  ${isOrder.customer.firstname} has been droppedOff to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`
+      //   }
+      // }
+      // const recentDeviceToken =
+      // isOrder.customer.deviceToken[isOrder.customer.deviceToken.length - 1];
+
+      // if (recentDeviceToken) {
+      //   await this.firebaseservice.sendNotification(
+      //     [recentDeviceToken],
+      //     payload,
+      //   );
+      // } else {
+      //   console.log('No device token available for the customer.');
+      // }
+
+      return task;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else if (error instanceof NotAcceptableException) {
+        throw new NotAcceptableException(error.message);
+      } else if (error instanceof ConflictException) {
+        throw new ConflictException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while trying to update the milestone status for dropping off the parcel and concluding your trip. Please try again later.',
         );
       }
     }
@@ -918,66 +1057,64 @@ export class RiderService {
     }
   }
 
+  //  track order
+  async TrackOrder(keyword: string | any): Promise<IOrder> {
+    try {
+      //find order
+      const trackorder = await this.orderRepo.findOne({
+        where: { trackingID: ILike(`%${keyword}`) },
+        relations: ['customer', 'bid', 'Rider'],
+        cache: false,
+        comment:
+          'tracking order with the trackingToken generated by the system',
+      });
+      if (!trackorder)
+        throw new NotFoundException(
+          `oops! this trackingID ${keyword} is not associated with any order in ostra logistics`,
+        );
 
-
-    //  track order 
-    async TrackOrder(keyword: string | any): Promise<IOrder> {
-      try {
-        //find order
-        const trackorder = await this.orderRepo.findOne({
-          where: { trackingID: ILike(`%${keyword}`) },
-          relations: ['customer', 'bid', 'Rider'],
-          cache: false,
-          comment:
-            'tracking order with the trackingToken generated by the system',
-        });
-        if (!trackorder)
-          throw new NotFoundException(
-            `oops! this trackingID ${keyword} is not associated with any order in ostra logistics`,
-          );
-  
-        return trackorder;
-      } catch (error) {
-        if (error instanceof NotFoundException)
-          throw new NotFoundException(error.message);
-        else {
-          console.log(error);
-          throw new InternalServerErrorException(
-            'something went wrong while tracking order, please try again later',
-          );
-        }
+      return trackorder;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while tracking order, please try again later',
+        );
       }
     }
-  
-    //scan barcode for an order 
-    async scanBarcode(barcode: string): Promise<IOrder> {
-      try {
-        const order = await this.orderRepo.findOne({
-          where: { barcodeDigits: barcode },
-          relations: ['customer', 'bid'],
-          comment: 'finding order with the trackingID scanned from the barcode',
-        });
-        if (!order)
-          throw new NotFoundException(
-            `Oops! Order associated with barcode ${barcode} is not found`,
-          );
-  
-        return order;
-      } catch (error) {
-        if (error instanceof NotFoundException)
-          throw new NotFoundException(error.message);
-        else {
-          console.log(error);
-          throw new InternalServerErrorException(
-            'something went wrong while scanning the barcode to get order status, please try again later',
-          );
-        }
+  }
+
+  //scan barcode for an order
+  async scanBarcode(barcode: string): Promise<IOrder> {
+    try {
+      const order = await this.orderRepo.findOne({
+        where: { barcodeDigits: barcode },
+        relations: ['customer', 'bid'],
+        comment: 'finding order with the trackingID scanned from the barcode',
+      });
+      if (!order)
+        throw new NotFoundException(
+          `Oops! Order associated with barcode ${barcode} is not found`,
+        );
+
+      return order;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while scanning the barcode to get order status, please try again later',
+        );
       }
     }
+  }
 
-    //get all notifications related to the customer
+  //get all notifications related to the customer
 
-  async AllNotificationsRelatedToRider(rider:RiderEntity,) {
+  async AllNotificationsRelatedToRider(rider: RiderEntity) {
     try {
       const notification = await this.notificationripo.findAndCount({
         where: { account: rider.id },
@@ -1002,20 +1139,21 @@ export class RiderService {
   }
 
   //get one notification and mark it as read
-  async OpenOneNotificationRelatedTocustomer(rider:RiderEntity,notificationId:number,dto:markNotificationAsReadDto) {
+  async OpenOneNotificationRelatedTocustomer(
+    rider: RiderEntity,
+    notificationId: number,
+    dto: markNotificationAsReadDto,
+  ) {
     try {
       const notification = await this.notificationripo.findOne({
-        where: { id:notificationId,account: rider.id },
+        where: { id: notificationId, account: rider.id },
       });
-      if (!notification)
-        throw new NotFoundException(
-          'notification not found',
-        );
+      if (!notification) throw new NotFoundException('notification not found');
 
-        if (dto){
-          notification.isRead = dto.isRead
-          await this.notificationripo.save(notification)
-        }
+      if (dto) {
+        notification.isRead = dto.isRead;
+        await this.notificationripo.save(notification);
+      }
 
       return notification;
     } catch (error) {
@@ -1031,22 +1169,19 @@ export class RiderService {
     }
   }
 
-
   //get one notification and mark it as read
-  async DeleteOneNotificationRelatedTocustomer(rider: RiderEntity,notificationId:number) {
+  async DeleteOneNotificationRelatedTocustomer(
+    rider: RiderEntity,
+    notificationId: number,
+  ) {
     try {
       const notification = await this.notificationripo.findOne({
-        where: { id:notificationId,account: rider.id },
+        where: { id: notificationId, account: rider.id },
       });
-      if (!notification)
-        throw new NotFoundException(
-          'notification not found',
-        );
+      if (!notification) throw new NotFoundException('notification not found');
 
-       await this.notificationripo.remove(notification)
+      await this.notificationripo.remove(notification);
       return notification;
-
-      
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -1059,5 +1194,4 @@ export class RiderService {
       }
     }
   }
-
 }
