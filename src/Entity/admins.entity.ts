@@ -4,6 +4,7 @@ import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, OneToOne
 import { RepliesEntity } from "./replies.entity";
 import { OrderCartEntity, OrderEntity } from "./orders.entity";
 import { BidEntity } from "./bids.entity";
+import { ComplaintEntity } from "./complaints.entity";
 
 
 @Entity({name:"Admin",})
@@ -118,6 +119,9 @@ export class AdminEntity implements IAdmin{
 
     @OneToMany(()=>BidEntity, bids =>bids.madeby,{nullable:true})
     bids_sent: BidEntity[]
+
+    @OneToMany(()=>ComplaintEntity,complain=>complain.admin,{nullable:true})
+    my_filed_complains: ComplaintEntity[];
 
  
     

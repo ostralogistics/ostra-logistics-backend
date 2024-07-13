@@ -672,7 +672,7 @@ export class AdminService {
   async FetchAllComplaint() {
     try {
       const complaint = await this.complaintripo.findAndCount({
-        relations: ['customer', 'replies'],
+        relations: ['customer', 'replies','admin'],
       });
 
       if (complaint[1] === 0)
@@ -695,7 +695,7 @@ export class AdminService {
     try {
       const complaint = await this.complaintripo.findOne({
         where: { id: complaintID },
-        relations: ['customer', 'replies'],
+        relations: ['customer', 'replies','admin'],
       });
 
       if (!complaint)
@@ -967,6 +967,7 @@ export class AdminService {
       //file complaint
       const newcomplaint = new ComplaintEntity();
       newcomplaint.complaints = dto.complaint;
+      newcomplaint.admin = findadmin
       newcomplaint.email = dto.email;
       newcomplaint.title = dto.title;
       newcomplaint.createdAt = new Date();

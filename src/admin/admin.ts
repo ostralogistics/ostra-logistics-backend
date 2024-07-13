@@ -1,4 +1,5 @@
 import { BidEntity } from "src/Entity/bids.entity"
+import { ComplaintEntity } from "src/Entity/complaints.entity"
 import { OrderCartEntity, OrderEntity } from "src/Entity/orders.entity"
 import { RepliesEntity } from "src/Entity/replies.entity"
 import { AdminAccessLevels, AdminType, Gender, MaritalStatus, Role, StateOFOrigin } from "src/Enums/all-enums"
@@ -34,6 +35,7 @@ export interface  IAdmin {
     replies:RepliesEntity[]
     carts: OrderCartEntity
     my_orders: OrderEntity[];
+    my_filed_complains: ComplaintEntity[];
     // bids_sent: BidEntity[]
 
 }

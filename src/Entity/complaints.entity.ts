@@ -3,6 +3,7 @@ import { CustomerEntity } from "./customers.entity"
 import { channelforconversation, complainResolutionStatus } from "src/Enums/all-enums"
 import { RepliesEntity } from "./replies.entity"
 import { RiderEntity } from "./riders.entity"
+import { AdminEntity } from "./admins.entity"
 
 export interface IComplaints{
     id:number
@@ -60,6 +61,9 @@ export class ComplaintEntity implements IComplaints{
 
     @ManyToOne(()=>CustomerEntity, customer=>customer.my_complains,{nullable:true,onDelete:'CASCADE'})
     customer: CustomerEntity
+
+    @ManyToOne(()=>AdminEntity, customer=>customer.my_filed_complains,{nullable:true,onDelete:'CASCADE'})
+    admin: AdminEntity
 
     @OneToMany(()=>RepliesEntity,replies=>replies.complaint,{nullable:true})
     replies: RepliesEntity[]
