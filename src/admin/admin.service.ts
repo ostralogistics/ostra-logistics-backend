@@ -405,6 +405,49 @@ export class AdminService {
     }
   }
 
+  async SearchVehicle(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: VehicleEntity[]; total: number }> {
+    try {
+      const qb = this.vehiclerepo.createQueryBuilder('vehicle')
+
+      qb.where('vehicle.name ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.orWhere('vehicle.vehicle_model ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.orWhere('vehicle.registration_number ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.cache(false)
+
+
+      if (sort) {
+        const [sortField] = sort.split(',');
+        qb.orderBy(`vehicle.${sortField}`, 'DESC');
+      }
+
+      if (page && perPage) {
+        qb.skip((page - 1) * perPage).take(perPage);
+      }
+
+      const [vehicle, total] = await qb.getManyAndCount();
+
+      if (!vehicle.length) {
+        throw new NotFoundException(
+          `No vehicle found matching your search criteria for "${keyword}".`,
+        );
+      }
+  
+      return { data: vehicle, total };
+
+      
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while tryig to search for an admin, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
   //register vehicle
   async updateVehicle(
     dto: UpdateVehicleDto,
@@ -672,7 +715,7 @@ export class AdminService {
   async FetchAllComplaint() {
     try {
       const complaint = await this.complaintripo.findAndCount({
-        relations: ['customer', 'replies','admin'],
+        relations: ['customer', 'replies','admin','assigned_staff'],
       });
 
       if (complaint[1] === 0)
@@ -695,7 +738,7 @@ export class AdminService {
     try {
       const complaint = await this.complaintripo.findOne({
         where: { id: complaintID },
-        relations: ['customer', 'replies','admin'],
+        relations: ['customer', 'replies','admin','assigned_staff'],
       });
 
       if (!complaint)
@@ -998,6 +1041,53 @@ export class AdminService {
     }
   }
 
+
+  async assignAcomplaintToAstaff(complaintID: number, staffID: string) {
+    try {
+      const complaint = await this.complaintripo.findOne({ where: { id: complaintID } });
+      if (!complaint)
+        throw new NotFoundException(
+          `complaint with id ${complaintID}is not found, so this complaint  cannot be assigned`,
+        );
+
+      const staff = await this.adminRepo.findOne({
+        where: { id: staffID , admintype:AdminType.STAFF},
+        
+      });
+      if (!staff)
+        throw new NotFoundException(
+          `the staff with id ${staffID} does not exist`,
+        );
+
+      //assingn complaint
+      complaint.updatedAT = new Date();
+      complaint.assigned_staff = staff
+      await this.complaintripo.save(complaint);
+
+     
+     
+
+      //save the notification
+      const notification = new Notifications();
+      notification.account = staff.id;
+      notification.subject = 'complaint Assigned to a staff !';
+      notification.message = ` ticket with id ${complaint.ticket} have been assigned to staff ${staff.adminID} on the admin portal of ostra ogistics by superadmin  `;
+      await this.notificationripo.save(notification);
+
+      return complaint;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong',
+          error.message,
+        );
+      }
+    }
+  }
+
   // set discount
   async SetDiscountAndDuration(dto: DiscountDto) {
     try {
@@ -1173,6 +1263,49 @@ export class AdminService {
         'something went wrong while adding a price list, please try again later',
         error.message,
       );
+    }
+  }
+
+
+  async SearchPricelist(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: PriceListEntity[]; total: number }> {
+    try {
+      const qb = this.pricelistripo.createQueryBuilder('price')
+
+      qb.where('price.location ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.orWhere('price.amount ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.cache(false)
+
+
+      if (sort) {
+        const [sortField] = sort.split(',');
+        qb.orderBy(`price.${sortField}`, 'DESC');
+      }
+
+      if (page && perPage) {
+        qb.skip((page - 1) * perPage).take(perPage);
+      }
+
+      const [price, total] = await qb.getManyAndCount();
+
+      if (!price.length) {
+        throw new NotFoundException(
+          `No pricelist found matching your search criteria for "${keyword}".`,
+        );
+      }
+  
+      return { data: price, total };
+
+      
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while tryig to search for an admin, please try again later',
+          error.message,
+        );
+      }
     }
   }
 

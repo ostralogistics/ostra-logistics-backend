@@ -36,6 +36,7 @@ export interface  IAdmin {
     carts: OrderCartEntity
     my_orders: OrderEntity[];
     my_filed_complains: ComplaintEntity[];
+    assigned_complaints : ComplaintEntity[]
     // bids_sent: BidEntity[]
 
 }

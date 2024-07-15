@@ -19,6 +19,7 @@ export interface IComplaints{
     openedAT:Date
     updatedAT:Date
     replies:RepliesEntity[]
+    assigned_staff:AdminEntity
 
 }
 
@@ -67,6 +68,9 @@ export class ComplaintEntity implements IComplaints{
 
     @OneToMany(()=>RepliesEntity,replies=>replies.complaint,{nullable:true})
     replies: RepliesEntity[]
+
+    @ManyToOne(()=>AdminEntity, admin=>admin.assigned_complaints)
+    assigned_staff: AdminEntity
 
 
 

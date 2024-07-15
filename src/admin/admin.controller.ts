@@ -97,6 +97,17 @@ export class Admincontroller{
     }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('/search-vehicle')
+    async SearchVehicle(
+      @Query('keyword') keyword: string,
+      @Query('page') page?: number,
+      @Query('perPage') perPage?: number,
+      @Query('sort') sort?: string,) {
+      return await this.adminservice.SearchVehicle(keyword,page,perPage,sort);
+    }
+
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
     @Get('one-vehicle/:vehicleID')
     async GetOneVehicle(@Param('vehicleID')vehicleID:number){
         return await this.adminservice.fetchOneVehicle(vehicleID)
@@ -148,6 +159,12 @@ export class Admincontroller{
     @Patch('change-resolution-status/:complaintID')
     async changeResolutionStatus(@Param('complaintID')compliantID:number, @Body()dto:updateResolutionStatusDto){
         return await this.adminservice.changeresolutionStatus(dto,compliantID)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Post('assign-complaint/:complaintID/:staffID')
+    async AssignComplaintToStaff(@Param('complaintID')complaintID:number,@Param('staffID')staffID:string){
+        return await this.adminservice.assignAcomplaintToAstaff(complaintID,staffID)
     }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
@@ -204,6 +221,17 @@ export class Admincontroller{
     async UpdatePriceist(@Body()dto:UpdatePriceListDto, @Param('pricelistID')pricelistId:number){
         return await this.adminservice.UpdatePriceList(dto,pricelistId)
     }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('/search-pricelist')
+    async SearchPricelist(
+      @Query('keyword') keyword: string,
+      @Query('page') page?: number,
+      @Query('perPage') perPage?: number,
+      @Query('sort') sort?: string,) {
+      return await this.adminservice.SearchPricelist(keyword,page,perPage,sort);
+    }
+
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Delete('delete-priceList/:pricelistID')

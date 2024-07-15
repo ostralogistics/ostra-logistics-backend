@@ -334,7 +334,7 @@ export class AdminStaffDasboardService {
       const staff = await this.adminripo.findAndCount({
         where: { admintype: AdminType.STAFF },
         order: { RegisteredAt: 'DESC' },
-        relations:['my_orders','replies','carts','bids_sent'],
+        relations:['my_orders','replies','carts','bids_sent','assigned_complaints','my_filed_complains'],
         take: limit,
         skip: skip,
       });
@@ -362,7 +362,7 @@ export class AdminStaffDasboardService {
     try {
       const staff = await this.adminripo.findOne({
         where: { id: staffID, admintype: AdminType.STAFF },
-        relations:['my_orders','replies','carts','bids_sent'],
+        relations:['my_orders','replies','carts','bids_sent','assigned_complaints','my_filed_complains'],
       });
       if (!staff)
         throw new NotFoundException(

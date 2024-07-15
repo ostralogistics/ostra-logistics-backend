@@ -123,6 +123,9 @@ export class AdminEntity implements IAdmin{
     @OneToMany(()=>ComplaintEntity,complain=>complain.admin,{nullable:true})
     my_filed_complains: ComplaintEntity[];
 
+    @OneToMany(()=>ComplaintEntity,complain=>complain.assigned_staff,{nullable:true})
+    assigned_complaints: ComplaintEntity[];
+
  
     
     
