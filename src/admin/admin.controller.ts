@@ -35,6 +35,7 @@ export class Admincontroller{
         return await this.adminservice.UploadAdminProfilePics(file,req.user)
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
     @Patch('change-password')
     async ChangePassword(@Body()dto:ChangePasswordDto,@Req()req){
      return await this.adminservice.changeCustomerPassword(dto,req.user)
@@ -61,7 +62,7 @@ export class Admincontroller{
         return await this.adminservice.GetOneVehicleType(vehicletypeID)
     }
 
-    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Delete('delete-vehicleType/:vehicletypeID')
     async DeleteVehicletype(@Param('vehicletypeID')vehicletypeID:number){
         return await this.adminservice.DeleteOneVehicleType(vehicletypeID)
@@ -84,7 +85,7 @@ export class Admincontroller{
         return await this.adminservice.updateVehicle(dto,file,vehicleID)
     }
 
-    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Delete('delete-vehicle/:vehicleID')
     async DeleteVehicle(@Param('vehicleID')vehicleID:number){
         return await this.adminservice.DeleteVehicle(vehicleID)

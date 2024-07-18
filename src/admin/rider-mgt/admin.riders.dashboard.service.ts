@@ -96,7 +96,7 @@ export class AdminRiderDashboardService {
 
       const genEmailsuffix =
         await this.genratorservice.generatEmailSuffixNumber();
-      const emailnow = `${dto.firstname}${genEmailsuffix}_rider@ostralogistics.com`;
+      const emailnow = `${dto.firstname}${genEmailsuffix}.rider@ostralogistics.com`;
 
       const dob = new Date(dto.DOB);
       const age = new Date().getFullYear() - dob.getFullYear();

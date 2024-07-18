@@ -14,7 +14,7 @@ import { AdminAccessLevel } from "src/auth/decorator/accesslevel.decorator";
 
 @UseGuards(JwtGuard,RoleGuard,AdminAcessLevelGuard)
 @Roles(Role.ADMIN)
-@AdminAccessLevel(AdminAccessLevels.LEVEL3)
+
 
 
 @Controller('admin-staff-dashboard')
@@ -23,6 +23,7 @@ export class AdminStaffDashBoardController{
 
 
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Post('/register')
     async AdminRegisterStaff(@Body()dto:RegisterOtherAdminByAdminDto,){
         return await this.adminstaffservice.RegisterStaff(dto)
@@ -30,27 +31,32 @@ export class AdminStaffDashBoardController{
         
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Patch('/update-staff-info/:staffId')
     async UpdateStaffInfo(@Param('staffId')staffId:string,@Body()dto:UpdateOtherAdminInfoByAdminDto){
         return await this.adminstaffservice.UpdateStaffInfoByAdmin(staffId,dto)
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
     @Delete('delete-staff/:staffID')
     async DeleteStaff(@Param('staffID') staffID:string) {
         return await this.adminstaffservice.AdminDeleteStaff(staffID)
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
     @Patch('/change-staff-password/:staffID')
     async ChangeStaffPassword( @Param('staffID')staffID:string) {
         return await this.adminstaffservice.AdminChangeStaffPassword(staffID)
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Get('/all-staffs')
     async GetAllStaffs(@Query('page')page:number, @Query('limit')limit:number){
         return await this.adminstaffservice.GetAllStaffs(page, limit);
         
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Get('/one-staff/:staffID')
     async GetOneStaff(@Param('staffID')staffID:string) {
         return await this.adminstaffservice.GetOneStaffByID(staffID)
@@ -66,6 +72,7 @@ export class AdminStaffDashBoardController{
       return await this.adminstaffservice.SearchForOtherAdmin(keyword,page,perPage,sort);
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
     @Patch('/change-staff-accesslevel/:staffID')
     async ChangestaffAccessLevel(@Param('staffID')staffID:string, @Body()dto:AdminchangestaffAccessLevelDto){
         return await this.adminstaffservice.ChangeStaffAccessLevel(staffID,dto)

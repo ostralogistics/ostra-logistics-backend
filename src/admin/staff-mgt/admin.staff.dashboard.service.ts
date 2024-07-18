@@ -122,7 +122,7 @@ export class AdminStaffDasboardService {
       const genEmailsuffix =
         await this.generatorservice.generatEmailSuffixNumber();
       const emailfromfirstname = dto.firstname;
-      const emaildomain = '_staff@ostralogistics.com';
+      const emaildomain = '.staff@ostralogistics.com';
       const emailnow = emailfromfirstname+genEmailsuffix+emaildomain;
 
       const dob = new Date(dto.DOB);

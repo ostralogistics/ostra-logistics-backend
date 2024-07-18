@@ -69,6 +69,7 @@ export class AdminRiderDashBoardController {
   }
 
   @AdminTypes(AdminType.CEO)
+  @AdminAccessLevel(AdminAccessLevels.LEVEL3)
   @Delete('delete-rider/:riderID')
   async DeleteRider(@Param('riderID') riderID: string) {
     return await this.adminriderservice.AdminDeleteRider(riderID);
@@ -110,6 +111,7 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL2,
     AdminAccessLevels.LEVEL1,
   )
+  
   @Get('/all-riders')
   async GetAllRiders(
     @Query('page') page: number,
@@ -253,7 +255,7 @@ export class AdminRiderDashBoardController {
   }
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
-  @AdminAccessLevel(AdminAccessLevels.LEVEL3, AdminAccessLevels.LEVEL2)
+  @AdminAccessLevel(AdminAccessLevels.LEVEL3)
   @Patch('delete-rider-bank-details/:bankdetailsID/:riderID')
   async DeleteRiderBankDetails(
     @Param('riderID') riderID: string,
@@ -266,7 +268,7 @@ export class AdminRiderDashBoardController {
   }
 
   @AdminTypes(AdminType.CEO, AdminType.STAFF)
-  @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+  @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
   @Post('log-payment/:paymentDetailsID/:riderID')
   async LogPaymentForAdmin(
     @Param('paymentDetailsID') paymentDetailsID: number,
