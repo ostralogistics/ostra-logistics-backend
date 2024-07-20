@@ -65,6 +65,7 @@ export class RiderService {
     try {
       const assigned_order = await this.orderRepo.findAndCount({
         where: { Rider: { id: Rider.id } },
+        relations: ['Rider', 'customer','items'],
       });
       if (assigned_order[1] === 0)
         throw new NotFoundException(
@@ -89,7 +90,7 @@ export class RiderService {
     try {
       const assigned_order = await this.orderRepo.findOne({
         where: { Rider: { id: Rider.id }, id: orderID },
-        relations: ['Rider', 'customer'],
+        relations: ['Rider', 'customer','items'],
       });
       if (!assigned_order)
         throw new NotFoundException(
@@ -122,7 +123,7 @@ export class RiderService {
           id: taskID,
           rider: { id: Rider.id },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin',],
+        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
       });
 
       if (!task)
@@ -194,7 +195,7 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin',],
+        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
       });
 
       if (!task)
@@ -250,7 +251,7 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin',],
+        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
       });
 
       if (!task)
@@ -305,7 +306,7 @@ export class RiderService {
           id: taskID,
           rider: { id: Rider.id },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin',],
+        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
       });
 
       if (!task)
@@ -363,7 +364,7 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin',],
+        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
       });
 
       if (!task)
@@ -421,7 +422,7 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin',],
+        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
       });
 
       if (!task)
@@ -484,7 +485,7 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin',],
+        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
       });
 
       if (!task)
@@ -541,7 +542,7 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin',],
+        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
       });
 
       if (!task)
@@ -598,7 +599,7 @@ export class RiderService {
           id: taskID,
           rider: { id: Rider.id },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin',],
+        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
       });
 
       if (!task)
@@ -859,7 +860,7 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findOne({
         where: { rider: { id: Rider.id }, id: taskID },
-        relations: ['assigned_order','assigned_order.items', ,'assigned_order.customer',,'assigned_order.admin','rider'],
+        relations: ['assigned_order','assigned_order.items', 'assigned_order.customer',,'assigned_order.admin','rider'],
       });
 
       if (!mytasks) throw new NotFoundException('the task does not exist');
@@ -881,7 +882,7 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findAndCount({
         where: { rider: { id: Rider.id }, status: TaskStatus.ONGOING },
-        relations: ['assigned_order','assigned_order.items', ,'assigned_order.customer',,'assigned_order.admin','rider'],
+        relations: ['assigned_order','assigned_order.items','assigned_order.customer',,'assigned_order.admin','rider'],
       });
 
       if (mytasks[1] === 0)
@@ -903,7 +904,7 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findAndCount({
         where: { rider: { id: Rider.id }, status: TaskStatus.CONCLUDED },
-        relations: ['assigned_order','assigned_order.items', ,'assigned_order.customer',,'assigned_order.admin','rider'],
+        relations: ['assigned_order','assigned_order.items' ,'assigned_order.customer',,'assigned_order.admin','rider'],
       });
 
       if (mytasks[1] === 0)
