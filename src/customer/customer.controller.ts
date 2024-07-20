@@ -54,6 +54,11 @@ export class CustomerController{
         return await  this.customerservice.CounterBid(dto,bidID)
      }
 
+     @Get('customer-bid/:orderID')
+     async CustomerBid(@Body()dto:counterBidDto,@Param('orderID')orderID:number,@Req()req){
+        return await  this.customerservice.FetchBidRelatedTocustomerOrder(orderID,req.user)
+     }
+
     
      @Post('process-payment/:orderID')
      async PayWithPaystackForTheOrder(@Param('orderID')orderID:number){
@@ -85,7 +90,7 @@ export class CustomerController{
      @Get('one-just-placed-order/:orderID')
      async GetOneOrderJustPlaced(@Req()req, @Param('orderID')orderID:number){
       return await this.customerservice.fetchallOneProcessignOrder(req.user,orderID)
-     }4
+     }
 
      
      @Get('droppedOff-orders')

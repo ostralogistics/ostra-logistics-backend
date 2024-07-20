@@ -1436,7 +1436,7 @@ export class AdminService {
     }
   }
 
-  async GetAllNewsLetterSubscribers(page: number = 1, limit: number = 30) {
+  async GetAllNewsLetterSubscribers(page: number = 1, limit: number) {
     try {
       const skip = (page - 1) * limit;
       const subscribers = await this.newsletterripo.findAndCount({
@@ -1464,12 +1464,12 @@ export class AdminService {
 
   //get all notifications related to the customer
 
-  async AllNotifications(page: number = 1, limit: number = 30) {
+  async AllNotifications() {
     try {
-      const skip = (page - 1) * limit;
+     
       const notification = await this.notificationripo.findAndCount({
-        take: limit,
-        skip: skip,
+        order:{}
+       
       });
       if (notification[1] === 0)
         throw new NotFoundException(

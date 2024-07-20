@@ -261,8 +261,8 @@ export class Admincontroller{
 
 
     @Get('all-notification')
-    async GetAllMyNotification(@Query('page')page:number,@Query('limit')limit:number){
-     return await this.adminservice.AllNotifications(page,limit)
+    async GetAllMyNotification(){
+     return await this.adminservice.AllNotifications()
     }
 
     @Patch('one-notification/:notificationId')
