@@ -726,7 +726,7 @@ export class RiderService {
           id: orderID,
           assigned_task: { id: taskID, rider: { id: Rider.id } },
         },
-        relations: ['rider', 'assigned_task', 'customer','items'],
+        relations: ['Rider', 'assigned_task', 'customer','items'],
       });
       if (!isOrder)
         throw new NotAcceptableException(
@@ -797,12 +797,28 @@ export class RiderService {
       await this.taskRepo.save(task);
       await this.orderRepo.save(isOrder);
 
-      // Send mail
-      await this.mailer.ParcelDroppedOfMail(
-        isOrder.customer.email,
-        isOrder.customer.firstname,
-        isOrder.trackingID,
-      );
+       // Determine the email recipient
+      // Determine the email recipient from the first item in the order
+      const email = isOrder.customer?.email || isOrder.items[0]?.email;
+      const firstName = isOrder.customer?.firstname || isOrder.items[0]?.name;
+
+      console.log(email,firstName)
+
+      if (email && firstName) {
+        // Send mail
+        try {
+          await this.mailer.ParcelDroppedOfMail(
+            email,
+            firstName,
+            isOrder.trackingID,
+          );
+          console.log(`Email sent successfully to ${email}`);
+        } catch (mailError) {
+          console.error(`Failed to send email to ${email}`, mailError);
+        }
+      } else {
+        console.warn('Email or first name not found for sending mail');
+      }
 
       // Send push notification to the customer
       // const payload: admin.messaging.MessagingPayload={

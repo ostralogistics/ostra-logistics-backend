@@ -1031,6 +1031,7 @@ export class AdminService {
         message:
           'you have succefully filed a complaint, here is your ticket, please query this over time to track the compliant status of your issue.',
         ticket,
+        newcomplaint
       };
     } catch (error) {
       console.log(error);
