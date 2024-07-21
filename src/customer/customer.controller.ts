@@ -55,7 +55,7 @@ export class CustomerController{
      }
 
      @Get('customer-bid/:orderID')
-     async CustomerBid(@Body()dto:counterBidDto,@Param('orderID')orderID:number,@Req()req){
+     async CustomerBid(@Param('orderID')orderID:number,@Req()req){
         return await  this.customerservice.FetchBidRelatedTocustomerOrder(orderID,req.user)
      }
 
