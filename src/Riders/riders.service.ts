@@ -860,7 +860,7 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findOne({
         where: { rider: { id: Rider.id }, id: taskID },
-        relations: ['assigned_order','assigned_order.items', 'assigned_order.customer',,'assigned_order.admin','rider'],
+        relations: ['assigned_order','assigned_order.items', 'assigned_order.customer','assigned_order.admin','rider'],
       });
 
       if (!mytasks) throw new NotFoundException('the task does not exist');
@@ -882,7 +882,7 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findAndCount({
         where: { rider: { id: Rider.id }, status: TaskStatus.ONGOING },
-        relations: ['assigned_order','assigned_order.items','assigned_order.customer',,'assigned_order.admin','rider'],
+        relations: ['assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin','rider'],
       });
 
       if (mytasks[1] === 0)
@@ -904,7 +904,7 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findAndCount({
         where: { rider: { id: Rider.id }, status: TaskStatus.CONCLUDED },
-        relations: ['assigned_order','assigned_order.items' ,'assigned_order.customer',,'assigned_order.admin','rider'],
+        relations: ['assigned_order','assigned_order.items' ,'assigned_order.customer','assigned_order.admin','rider'],
       });
 
       if (mytasks[1] === 0)
