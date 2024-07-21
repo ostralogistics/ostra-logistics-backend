@@ -550,15 +550,21 @@ export class CustomerService {
     try {
       const bidraltedtocustomer = await this.bidRepo.findOne({
         where: { order: { id: orderID, customer: customer } },
-        relations:['order','order.customer']
+        relations: ['order', 'order.customer'],
       });
       if (!bidraltedtocustomer)
         throw new NotFoundException('bid related to customer not found');
       return bidraltedtocustomer;
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('something went wrong',error.message)
-      
+      if (error instanceof NotFoundException)
+        throw new NotAcceptableException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong',
+          error.message,
+        );
+      }
     }
   }
 
