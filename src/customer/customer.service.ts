@@ -549,7 +549,7 @@ export class CustomerService {
   ) {
     try {
       const bidraltedtocustomer = await this.bidRepo.findOne({
-        where: { order: { id: orderID, customer: customer } },
+        where: { order: { id: orderID, customer: {id:customer.id} } },
         relations: ['order', 'order.customer'],
       });
       if (!bidraltedtocustomer)
@@ -557,7 +557,7 @@ export class CustomerService {
       return bidraltedtocustomer;
     } catch (error) {
       if (error instanceof NotFoundException)
-        throw new NotAcceptableException(error.message);
+        throw new NotFoundException(error.message);
       else {
         console.log(error);
         throw new InternalServerErrorException(

@@ -248,6 +248,12 @@ export class OrderItemEntity {
 
   @Column('numeric', { nullable: false })
   distance: number;
+
+  @Column({ nullable: true, type:'boolean', default:false})
+  isdroppedOff :boolean;
+
+  @Column({ nullable: true, type:'timestamp' })
+  droppedOffAt : Date;
 }
 
 

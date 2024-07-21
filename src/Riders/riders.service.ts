@@ -726,7 +726,7 @@ export class RiderService {
           id: orderID,
           assigned_task: { id: taskID, rider: { id: Rider.id } },
         },
-        relations: ['rider', 'assigned_task', 'customer'],
+        relations: ['rider', 'assigned_task', 'customer','items'],
       });
       if (!isOrder)
         throw new NotAcceptableException(
@@ -747,6 +747,14 @@ export class RiderService {
           `Invalid number of items dropped off. Please select a number between 1 and ${itemsInOrder}`,
         );
       }
+
+         // Update item statuses
+    for (let i = 0; i < dto.itemsDroppedOff; i++) {
+      const item = isOrder.items[i];
+      item.isdroppedOff = true;
+      item.droppedOffAt = new Date();
+      await this.orderRepo.save(item); // Save the updated item
+    }
 
       // Update task milestone and status
       task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
