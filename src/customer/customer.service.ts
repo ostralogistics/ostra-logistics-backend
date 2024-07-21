@@ -811,7 +811,7 @@ export class CustomerService {
           customer: { id: customer.id },
           order_display_status: OrderDisplayStatus.IN_TRANSIT,
         },
-        relations: ['customer', 'bid', 'items', 'items.vehicleType'],
+        relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
         comment: 'fetching orders that are in transit ',
       });
 
@@ -840,7 +840,7 @@ export class CustomerService {
           customer: { id: customer.id },
           order_status: OrderStatus.ORDER_PLACED,
         },
-        relations: ['customer', 'bid', 'items', 'items.vehicleType'],
+        relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
         comment: 'fetching orders that are just placed ',
       });
 
@@ -869,7 +869,7 @@ export class CustomerService {
           customer: { id: customer.id },
           order_status: OrderStatus.ORDER_PLACED,
         },
-        relations: ['customer', 'bid', 'items', 'items.vehicleType'],
+        relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
         comment: 'fetching orders that are just placed ',
       });
 
@@ -898,7 +898,7 @@ export class CustomerService {
           customer: { id: customer.id },
           order_display_status: OrderDisplayStatus.COMPLETED,
         },
-        relations: ['customer', 'bid', 'items', 'items.vehicleType'],
+        relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
         comment: 'fetching orders that have been dropped off ',
       });
 
@@ -924,7 +924,7 @@ export class CustomerService {
     try {
       const order = await this.orderRepo.findAndCount({
         where: { id: orderID, customer: { id: customer.id } },
-        relations: ['bid', 'Rider', 'customer', 'items', 'items.vehicleType'], // Assuming relations are correctly defined
+        relations: ['bid', 'Rider', 'customer', 'items', 'items.vehicleType','transaction'], // Assuming relations are correctly defined
       });
 
       if (!order) throw new NotFoundException('order not found');

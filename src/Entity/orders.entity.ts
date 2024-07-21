@@ -30,6 +30,7 @@ import { Exclude, Type } from 'class-transformer';
 import { AdminEntity } from './admins.entity';
 import { VehicleEntity } from './vehicle.entity';
 import { VehicleTypeEntity } from './vehicleType.entity';
+import { TransactionEntity } from './transactions.entity';
 
 @Entity('orders')
 export class OrderEntity implements IOrder {
@@ -133,6 +134,10 @@ export class OrderEntity implements IOrder {
 
   @Column({ nullable: true, type: 'enum', enum: OrderDisplayStatus })
   order_display_status: OrderDisplayStatus;
+
+  @OneToOne(() => TransactionEntity, (transaction) => transaction.order)
+  @JoinColumn()
+  transaction: TransactionEntity;
 
 }
 

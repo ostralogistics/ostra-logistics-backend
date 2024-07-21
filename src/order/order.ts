@@ -2,6 +2,7 @@ import { CustomerEntity } from "src/Entity/customers.entity"
 import { OrderItemEntity } from "src/Entity/orders.entity"
 import { RiderEntity } from "src/Entity/riders.entity"
 import { TaskEntity } from "src/Entity/ridersTasks.entity"
+import { TransactionEntity } from "src/Entity/transactions.entity"
 import { OrderDisplayStatus, OrderStatus, ParcelStatus, PaymentStatus, PriorityDeliveryType } from "src/Enums/all-enums"
 import { BidStatus, VehicleType } from "src/Enums/all-enums"
 
@@ -37,6 +38,7 @@ export interface IOrder{
     bidStatus: BidStatus;
     order_display_status:OrderDisplayStatus
     customer: CustomerEntity;
+    transaction:TransactionEntity
 
 
    

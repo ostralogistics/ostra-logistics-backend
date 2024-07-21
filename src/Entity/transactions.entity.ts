@@ -2,7 +2,8 @@ import { TransactionConfirmation, TransactionType } from "src/Enums/all-enums"
 import { CustomerEntity } from "./customers.entity"
 import { RiderBankDetailsEntity, RiderEntity } from "./riders.entity"
 import { IMyBankAccountDetails } from "src/Riders/riders"
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
+import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm"
+import { OrderEntity } from "./orders.entity"
 
 export interface ITransactions{
     id:number
@@ -16,7 +17,7 @@ export interface ITransactions{
     paymentStatus:string // from pasyatck too, so whether successful or not
 
 
-    orderID:string
+    order:OrderEntity,
     amount:number
     customer:CustomerEntity
     Rider:RiderEntity
@@ -50,8 +51,8 @@ export class TransactionEntity implements ITransactions{
   @Column({nullable:true})
   paymentStatus: string;
 
-  @Column({nullable:true})
-  orderID: string;
+  @OneToOne(() => OrderEntity, (order) => order.transaction)
+  order: OrderEntity;
 
   @Column({nullable:true})
   amount: number;

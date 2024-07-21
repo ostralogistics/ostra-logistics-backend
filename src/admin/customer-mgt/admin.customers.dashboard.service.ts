@@ -437,7 +437,7 @@ export class AdminCustomerDashBoardService {
         where: {
           order_display_status: OrderDisplayStatus.IN_TRANSIT,
         },
-        relations: ['bid', 'Rider', 'customer', 'items'], // Assuming relations are correctly defined
+        relations: ['bid', 'Rider', 'customer', 'items','transaction'], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -474,6 +474,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
+          'transaction'
         ], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
@@ -510,6 +511,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
+          'transaction'
         ], // Assuming relations are correctly defined
       });
 
@@ -544,6 +546,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
+          'transaction'
         ], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
@@ -584,6 +587,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
+          'transaction'
         ],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
@@ -624,6 +628,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
+          'transaction'
         ],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
@@ -664,6 +669,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
+          'transaction'
         ],
         order: { orderPlacedAt: 'DESC' },
         take: limit,

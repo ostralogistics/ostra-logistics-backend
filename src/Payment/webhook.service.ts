@@ -176,7 +176,7 @@ export class PaystackWebhookService {
     transaction.transactionType = TransactionType.ORDER_PAYMENT;
     transaction.customer = order.customer;
     transaction.paymentMethod = "paystack";
-    transaction.orderID = order.orderID
+    transaction.order = order
     transaction.paymentStatus = order.payment_status;
     await this.transactionRepo.save(transaction);
   }
