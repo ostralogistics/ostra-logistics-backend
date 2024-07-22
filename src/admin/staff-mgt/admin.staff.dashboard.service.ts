@@ -211,7 +211,9 @@ export class AdminStaffDasboardService {
       admin.LGA_of_origin = dto.LGA_of_origin;
       admin.gender = dto.gender;
       admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
+      admin.adminAccessLevels = dto.accesslevel
       admin.UpdatedAt = new Date()
+
 
       await this.adminripo.save(admin);
 

@@ -374,6 +374,11 @@ export class UpdateOtherAdminInfoByAdminDto{
     @IsOptional()
     gender:Gender
 
+
+    @IsEnum(AdminAccessLevels)
+    @IsOptional()
+    accesslevel : AdminAccessLevels
+
   
 
 }
