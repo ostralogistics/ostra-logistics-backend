@@ -781,7 +781,7 @@ export class AdminService {
 
       //notification
       const notification = new Notifications();
-      notification.account = complaint.customer.id;
+      notification.account = 'admin';
       notification.subject = 'Replied a complaint!';
       notification.message = ` complaint with ticket ${complaint.ticket} has been replied by admin with id ${Admin.id}   on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
@@ -819,7 +819,7 @@ export class AdminService {
 
       //notification
       const notification = new Notifications();
-      notification.account = complaint.customer.id;
+      notification.account = 'admin';
       notification.subject = 'delete a complaint!';
       notification.message = ` complaint with ticket ${complaint.ticket} has been deleted on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
@@ -856,7 +856,7 @@ export class AdminService {
 
         //notification
         const notification = new Notifications();
-        notification.account = complaint.customer.id;
+        notification.account = 'admin';
         notification.subject = 'changed the channel status';
         notification.message = ` the channel for complaint with ticket ${complaint.ticket} has been closed  `;
         await this.notificationripo.save(notification);
@@ -914,7 +914,7 @@ export class AdminService {
 
         //notification
         const notification = new Notifications();
-        notification.account = complaint.customer.id;
+        notification.account = 'admin';
         notification.subject = 'changed the resolution status';
         notification.message = ` the resolution status for the  complaint with ticket ${complaint.ticket} has been updated to on_hold  `;
         await this.notificationripo.save(notification);
