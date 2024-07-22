@@ -305,6 +305,11 @@ export class Admincontroller{
         return await this.adminservice.DeliveryPaymentCount()
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('calculate-total-revenue')
+    async getTotalRevenue() {
+      return this.adminservice.calculateTotalRevenue();
+    }
 
 
     //graph data 

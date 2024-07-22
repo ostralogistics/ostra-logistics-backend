@@ -1609,5 +1609,19 @@ export class AdminService {
   }
 
 
+  async calculateTotalRevenue(): Promise<number> {
+    const successfulOrders = await this.orderRepo.find({
+      where: { payment_status: PaymentStatus.SUCCESSFUL },
+    });
+
+    const totalRevenue = successfulOrders.reduce(
+      (sum, order) => sum + Number(order.accepted_cost_of_delivery),
+      0,
+    );
+
+    return totalRevenue;
+  }
+
+
 }
 
