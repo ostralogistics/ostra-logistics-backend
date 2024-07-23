@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { RiderService } from "./riders.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
-import { AcceptOrDeclineTaskDto, ChangeBankPreferenceDto, DropOffCodeDto, MakeRequestDto } from "./riders.dto";
+import { AcceptOrDeclineTaskDto, CancelRideDto, ChangeBankPreferenceDto, DropOffCodeDto, MakeRequestDto } from "./riders.dto";
 import { RoleGuard } from "src/auth/guard/role.guard";
 import { Roles } from "src/auth/decorator/role.decorator";
 import { Role } from "src/Enums/all-enums";
@@ -27,6 +27,18 @@ export class RiderController{
     async AcceptOrDeclineTask(@Body()dto:AcceptOrDeclineTaskDto, @Req()req,@Param('taskID')taskID:number){
         return await this.riderservice.AcceptOrDeclineAssignedTask(dto,req.user,taskID)   
     }
+
+    @Patch('cancel-a-ride/:taskID')
+    async CancelARide(@Body()dto:CancelRideDto, @Req()req,@Param('taskID')taskID:number){
+        return await this.riderservice.CancelRideOrTask(dto,req.user,taskID)   
+    }
+
+    @Get('fetch-all-my-cancelled-rides')
+    async fetchMyCancelledARides(@Req()req){
+        return await this.riderservice.fetchAllCanceledRides(req.user)   
+    }
+
+       
 
 
     @Patch('checkin-enroute-to-pickup-location/:taskID/:orderID')

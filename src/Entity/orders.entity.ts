@@ -119,7 +119,7 @@ export class OrderEntity implements IOrder {
   @JoinColumn({ name: 'orderId', referencedColumnName: 'id' }) // Define join columns
   bid: BidEntity;
 
-  @ManyToOne(() => RiderEntity, (rider) => rider.assigned_order)
+  @ManyToOne(() => RiderEntity, (rider) => rider.assigned_order,{nullable:true})
   Rider: RiderEntity;
 
   @ManyToOne(() => CustomerEntity, (owner) => owner.my_orders)
@@ -129,7 +129,7 @@ export class OrderEntity implements IOrder {
   @ManyToOne(() => AdminEntity, (owner) => owner.my_orders)
   admin: AdminEntity;
 
-  @OneToMany(() => TaskEntity, (task) => task.assigned_order)
+  @OneToMany(() => TaskEntity, (task) => task.assigned_order,{nullable:true})
   assigned_task: TaskEntity;
 
   @Column({ nullable: true, type: 'enum', enum: OrderDisplayStatus })

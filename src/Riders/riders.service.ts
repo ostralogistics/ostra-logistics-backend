@@ -22,6 +22,7 @@ import {
 } from '@nestjs/common';
 import {
   AcceptOrDeclineTaskDto,
+  CancelRideDto,
   ChangeBankPreferenceDto,
   DropOffCodeDto,
   MakeRequestDto,
@@ -65,7 +66,7 @@ export class RiderService {
     try {
       const assigned_order = await this.orderRepo.findAndCount({
         where: { Rider: { id: Rider.id } },
-        relations: ['Rider', 'customer','items'],
+        relations: ['Rider', 'customer', 'items'],
       });
       if (assigned_order[1] === 0)
         throw new NotFoundException(
@@ -90,7 +91,7 @@ export class RiderService {
     try {
       const assigned_order = await this.orderRepo.findOne({
         where: { Rider: { id: Rider.id }, id: orderID },
-        relations: ['Rider', 'customer','items'],
+        relations: ['Rider', 'customer', 'items'],
       });
       if (!assigned_order)
         throw new NotFoundException(
@@ -123,7 +124,13 @@ export class RiderService {
           id: taskID,
           rider: { id: Rider.id },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -182,6 +189,104 @@ export class RiderService {
     }
   }
 
+  //cancel ride after accepting a task
+
+  async CancelRideOrTask(
+    dto: CancelRideDto,
+    rider: RiderEntity,
+    taskID: number,
+  ): Promise<{ message: string; task: TaskEntity }> {
+    try {
+      const task = await this.taskRepo.findOne({
+        where: {
+          id: taskID,
+          rider: { id: rider.id },
+        },
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
+      });
+
+      if (!task) {
+        throw new NotFoundException(
+          `Task with ID: ${taskID} is not assigned to this rider`,
+        );
+      }
+
+      if (task.status !== TaskStatus.ONGOING) {
+        throw new NotAcceptableException(
+          'You cannot cancel a ride you have not accepted. If you do not want to take the ride, please decline instead.',
+        );
+      }
+
+      // Cancel task and stateason
+      task.reason_for_cancelling_ride = dto.reason;
+      task.isCancelled = true;
+      task.cancelledAt = new Date();
+      await this.taskRepo.save(task);
+
+      // Change the status of the order to unassigned for rider and task
+      task.assigned_order.Rider = null;
+      task.assigned_order.assigned_task = null;
+      await this.orderRepo.save(task.assigned_order);
+
+      // Save notification
+      const notification = new Notifications();
+      notification.account = rider.id;
+      notification.subject = 'Ride Cancelled';
+      notification.message = `Rider with ID ${rider.id} has cancelled a ride.`;
+      await this.notificationripo.save(notification);
+
+      return { message: 'Ride has been successfully cancelled', task };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof NotAcceptableException
+      ) {
+        throw error;
+      } else {
+        console.error(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while trying to cancel the ride.',error.message
+        );
+      }
+    }
+  }
+
+  
+  async fetchAllCanceledRides(rider: RiderEntity): Promise<{ tasks: TaskEntity[]; count: number }> {
+    try {
+      const [tasks, count] = await this.taskRepo.findAndCount({
+        where: { isCancelled: true, rider: { id: rider.id } },
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
+      });
+  
+      if (count === 0) {
+        throw new NotFoundException('No cancelled rides found for this rider');
+      }
+  
+      return { tasks, count };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.error('Error fetching cancelled rides:', error.message);
+        throw new InternalServerErrorException('Something went wrong', error.message);
+      }
+    }
+  }
+  
+
   //check-in when rider gets to pick up location
   async RiderCheckswhenEnrouteToPickupLocation(
     taskID: number,
@@ -195,7 +300,13 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -232,7 +343,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of being on your way to the pick up location, please try again later',
+          'something went wrong while trying to update milestone status of being on your way to the pick up location, please try again later', error.message
         );
       }
     }
@@ -251,7 +362,13 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -288,7 +405,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of reaching the pick up location, please try again later',
+          'something went wrong while trying update milestone status of reaching the pick up location, please try again later',error.message
         );
       }
     }
@@ -306,7 +423,13 @@ export class RiderService {
           id: taskID,
           rider: { id: Rider.id },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -346,7 +469,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update the milestone status of reaching the pickup location, please try again later',
+          'something went wrong while trying to update the milestone status of reaching the pickup location, please try again later',error.message
         );
       }
     }
@@ -364,7 +487,13 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -402,7 +531,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of being on your way to  the ofice for rebranding, please try again later',
+          'something went wrong while trying update milestone status of being on your way to  the ofice for rebranding, please try again later',error
         );
       }
     }
@@ -422,7 +551,13 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -466,7 +601,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of arriving at the ofice for rebranding, please try again later',
+          'something went wrong while trying update milestone status of arriving at the ofice for rebranding, please try again later',error.message
         );
       }
     }
@@ -485,7 +620,13 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -523,7 +664,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of being on your way to the droppoff location, please try again later',
+          'something went wrong while trying update milestone status of being on your way to the droppoff location, please try again later',error.message
         );
       }
     }
@@ -542,7 +683,13 @@ export class RiderService {
           rider: { id: Rider.id },
           assigned_order: { id: orderID },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -580,7 +727,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of arriving at the droppoff location, please try again later',
+          'something went wrong while trying update milestone status of arriving at the droppoff location, please try again later',error.message
         );
       }
     }
@@ -599,7 +746,13 @@ export class RiderService {
           id: taskID,
           rider: { id: Rider.id },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -694,7 +847,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update the milestone status for dropping off parcel and concluding your trip, please try again later',
+          'something went wrong while trying to update the milestone status for dropping off parcel and concluding your trip, please try again later',error.message
         );
       }
     }
@@ -712,7 +865,13 @@ export class RiderService {
           id: taskID,
           rider: { id: Rider.id },
         },
-        relations: ['rider', 'assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin'],
+        relations: [
+          'rider',
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (!task)
@@ -726,7 +885,7 @@ export class RiderService {
           id: orderID,
           assigned_task: { id: taskID, rider: { id: Rider.id } },
         },
-        relations: ['Rider', 'assigned_task', 'customer','items'],
+        relations: ['Rider', 'assigned_task', 'customer', 'items'],
       });
       if (!isOrder)
         throw new NotAcceptableException(
@@ -748,13 +907,13 @@ export class RiderService {
         );
       }
 
-         // Update item statuses
-    for (let i = 0; i < dto.itemsDroppedOff; i++) {
-      const item = isOrder.items[i];
-      item.isdroppedOff = true;
-      item.droppedOffAt = new Date();
-      await this.orderRepo.save(item); // Save the updated item
-    }
+      // Update item statuses
+      for (let i = 0; i < dto.itemsDroppedOff; i++) {
+        const item = isOrder.items[i];
+        item.isdroppedOff = true;
+        item.droppedOffAt = new Date();
+        await this.orderRepo.save(item); // Save the updated item
+      }
 
       // Update task milestone and status
       task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
@@ -775,7 +934,6 @@ export class RiderService {
         notification.subject = 'Rider Reached a MileStone!';
         notification.message = `Rider with the id ${Rider.id} has dropped off one the parcel for a multiple order dropoff points and has finally completed the task.`;
         await this.notificationripo.save(notification);
-        
       } else {
         task.status = TaskStatus.CONCLUDED;
         isOrder.order_status = OrderStatus.DELIVERED;
@@ -797,12 +955,12 @@ export class RiderService {
       await this.taskRepo.save(task);
       await this.orderRepo.save(isOrder);
 
-       // Determine the email recipient
+      // Determine the email recipient
       // Determine the email recipient from the first item in the order
       const email = isOrder.customer?.email || isOrder.items[0]?.email;
       const firstName = isOrder.customer?.firstname || isOrder.items[0]?.name;
 
-      console.log(email,firstName)
+      console.log(email, firstName);
 
       if (email && firstName) {
         // Send mail
@@ -850,7 +1008,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'Something went wrong while trying to update the milestone status for dropping off the parcel and concluding your trip. Please try again later.',
+          'Something went wrong while trying to update the milestone status for dropping off the parcel and concluding your trip. Please try again later.',error.message
         );
       }
     }
@@ -861,7 +1019,13 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findAndCount({
         where: { rider: { id: Rider.id } },
-        relations: ['assigned_order','assigned_order.items', 'rider','assigned_order.customer','assigned_order.admin',],
+        relations: [
+          'assigned_order',
+          'assigned_order.items',
+          'rider',
+          'assigned_order.customer',
+          'assigned_order.admin',
+        ],
       });
 
       if (mytasks[1] === 0)
@@ -884,7 +1048,13 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findOne({
         where: { rider: { id: Rider.id }, id: taskID },
-        relations: ['assigned_order','assigned_order.items', 'assigned_order.customer','assigned_order.admin','rider'],
+        relations: [
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+          'rider',
+        ],
       });
 
       if (!mytasks) throw new NotFoundException('the task does not exist');
@@ -895,7 +1065,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch your assigned tasks',
+          'an error occured when trying to fetch your assigned tasks',error.message
         );
       }
     }
@@ -906,7 +1076,13 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findAndCount({
         where: { rider: { id: Rider.id }, status: TaskStatus.ONGOING },
-        relations: ['assigned_order','assigned_order.items','assigned_order.customer','assigned_order.admin','rider'],
+        relations: [
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+          'rider',
+        ],
       });
 
       if (mytasks[1] === 0)
@@ -918,7 +1094,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch your ongoing tasks',
+          'an error occured when trying to fetch your ongoing tasks', error.message
         );
       }
     }
@@ -928,7 +1104,13 @@ export class RiderService {
     try {
       const mytasks = await this.taskRepo.findAndCount({
         where: { rider: { id: Rider.id }, status: TaskStatus.CONCLUDED },
-        relations: ['assigned_order','assigned_order.items' ,'assigned_order.customer','assigned_order.admin','rider'],
+        relations: [
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.customer',
+          'assigned_order.admin',
+          'rider',
+        ],
       });
 
       if (mytasks[1] === 0)
@@ -941,7 +1123,7 @@ export class RiderService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch your concluded tasks',
+          'an error occured when trying to fetch your concluded tasks',error.message
         );
       }
     }
@@ -965,7 +1147,7 @@ export class RiderService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch all bank detials associated with this rider',
+          'an error occured when trying to fetch all bank detials associated with this rider',error.message
         );
       }
     }
@@ -989,7 +1171,7 @@ export class RiderService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch a bank detial of the selected bank',
+          'an error occured when trying to fetch a bank detial of the selected bank',error.message
         );
       }
     }
@@ -1029,7 +1211,7 @@ export class RiderService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'an error occured when trying to chnage the preference status of the bank details selected',
+          'an error occured when trying to chnage the preference status of the bank details selected', error.message
         );
       }
     }
@@ -1076,7 +1258,7 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong when trying to request for reset password, please try again later',
+          'something went wrong when trying to request for reset password, please try again later', error.message
         );
       }
     }
@@ -1105,7 +1287,7 @@ export class RiderService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while tracking order, please try again later',
+          'something went wrong while tracking order, please try again later', error.message
         );
       }
     }
@@ -1131,7 +1313,7 @@ export class RiderService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while scanning the barcode to get order status, please try again later',
+          'something went wrong while scanning the barcode to get order status, please try again later',error.message
         );
       }
     }

@@ -181,6 +181,8 @@ export class CustomerService {
       item.weight_of_parcel = dto.weight_of_parcel;
       item.describe_weight_of_parcel = dto.describe_weight_of_parcel;
       item.note_for_rider = dto.note_for_rider;
+      item.name = customer.firstname,
+      item.phoneNumber = customer.mobile
       item.pickup_address = dto.pickup_address;
       item.pickup_phone_number = dto.pickup_phone_number;
       item.Area_of_pickup = dto.Area_of_pickup;

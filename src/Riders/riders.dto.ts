@@ -20,6 +20,12 @@ export class AcceptOrDeclineTaskDto{
     action:AcceptOrDeclineTask
 }
 
+export class  CancelRideDto{
+    @IsString()
+    @IsNotEmpty()
+    reason:string
+}
+
 export class ChangeBankPreferenceDto{
     @IsEnum(BankDetailsStatus)
     @IsNotEmpty()

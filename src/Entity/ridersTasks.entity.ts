@@ -8,6 +8,7 @@ import { RiderEntity } from "./riders.entity";
 export interface IRiderTask{
     id:number,
     task:string,
+    reason_for_cancelling_ride:string
     rider:RiderEntity
     acceptedAt:Date
     declinedAT:Date,
@@ -24,6 +25,15 @@ export class TaskEntity implements IRiderTask{
 
     @Column({nullable:true})
     task: string;
+
+    @Column({nullable:true})
+    reason_for_cancelling_ride:string
+
+    @Column({nullable:true, type:'boolean', default:false})
+    isCancelled:boolean
+
+    @Column({ nullable: true,type:'timestamp' })
+    cancelledAt: Date;
 
    
     @ManyToOne(()=>RiderEntity,rider=>rider.tasks,{onDelete:'CASCADE'})
@@ -76,6 +86,8 @@ export class TaskEntity implements IRiderTask{
 
     @Column({ nullable: true,type:'timestamp' })
     assignedAT: Date;
+
+
 
 
 
