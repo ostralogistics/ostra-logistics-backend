@@ -136,6 +136,22 @@ export class AdminCustomerDashBoardController {
     return await this.admincustomerservice.counterCustomerCouterBid(BidID, dto,req.user);
   }
 
+  @Patch('accept-a-counter-bid/:BidID')
+  async AcceptCounterBid( @Param('BidID') BidID: number, @Req()req) {
+    return await this.admincustomerservice.AcceptCounterOffer(BidID,req.user);
+  }
+
+  @Get('fetch-all-bids')
+  async FetchAllBid() {
+    return await this.admincustomerservice.FetchAllBids();
+  }
+
+
+  @Get('fetch-one-bid/:bidID')
+  async FetchoneBid(@Param('bidID')bidID:number) {
+    return await this.admincustomerservice.FetchOneBid(bidID);
+  }
+
  
 
   @Get('all-customers')

@@ -16,6 +16,7 @@ import { OrderEntity } from 'src/Entity/orders.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
 import { CustomerService } from 'src/customer/customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
+import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 // import { FirebaseService } from 'src/firebase/firebase.service';
 // import { FirebaseModule } from 'src/firebase/firebase.module';
 
@@ -40,6 +41,7 @@ import { GeneatorService } from 'src/common/services/generator.service';
     Mailer,
     RiderService,
     GeneatorService,
+    EventsGateway
     //FirebaseService
   ],
   controllers: [RiderAuthController, RiderController],

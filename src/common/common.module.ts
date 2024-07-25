@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { websocketgw } from './gateways/websockets.gateway';
+import { EventsGateway,} from './gateways/websockets.gateway';
 import { DistanceService } from './services/distance.service';
 import { UploadService } from './helpers/upload.service';
 import { Mailer } from './mailer/mailer.service';
@@ -22,7 +22,7 @@ import { CloudinaryService } from './services/claudinary.service';
     TypeOrmModule.forFeature([OrderEntity, Notifications, NewsLetterEntity]),
   ],
   providers: [
-    websocketgw,
+    EventsGateway,
     DistanceService,
     UploadService,
     Mailer,
@@ -43,6 +43,7 @@ import { CloudinaryService } from './services/claudinary.service';
     GeneatorService,
     CloudinaryService,
     CloudinaryConfig,
+    EventsGateway
     //SmsSenderService
   ],
 })

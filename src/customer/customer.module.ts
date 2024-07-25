@@ -27,6 +27,7 @@ import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
+import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 //import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 //import { FirebaseService } from 'src/firebase/firebase.service';
 
@@ -62,6 +63,7 @@ import { TransactionEntity } from 'src/Entity/transactions.entity';
     UploadService,
     GeneatorService,
     CloudinaryService,
+    EventsGateway
     //SmsSenderService,
     //FirebaseService
   ],

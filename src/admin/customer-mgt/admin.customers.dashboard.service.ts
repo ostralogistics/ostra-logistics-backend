@@ -70,6 +70,7 @@ import {
   ITransactions,
   TransactionEntity,
 } from 'src/Entity/transactions.entity';
+import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 // import { FirebaseService } from 'src/firebase/firebase.service';
 // import * as admin from 'firebase-admin';
 
@@ -94,6 +95,7 @@ export class AdminCustomerDashBoardService {
     private readonly discountRepo: DiscountRepository,
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
+    private readonly eventsGateway: EventsGateway,
 
     private genratorservice: GeneatorService,
     private distanceservice: DistanceService,
@@ -155,6 +157,13 @@ export class AdminCustomerDashBoardService {
       //   console.log('No device token available for the customer.');
       // }
 
+      // Notify the customer via WebSocket
+      this.eventsGateway.notifyCustomer('openingBidMade', {
+        orderID: order.orderID,
+        bidValue: bid.bid_value,
+        adminName: admin.fullname,
+      });
+
       //save the notification
       const notification = new Notifications();
       notification.account = order.customer.id;
@@ -177,6 +186,90 @@ export class AdminCustomerDashBoardService {
   }
 
   //counter bids sent in
+
+  // Assuming you have imported necessary modules and decorators
+
+  async AcceptCounterOffer(bidID: number, admin: AdminEntity): Promise<IBids> {
+    try {
+      const bid = await this.bidRepo.findOne({
+        where: { id: bidID },
+        relations: ['order', 'order.customer', 'madeby'],
+      });
+      if (!bid) throw new NotFoundException('Bid not found');
+
+      // Check if the bid has been accepted
+      if (bid.bidStatus === BidStatus.ACCEPTED) {
+        throw new NotAcceptableException('Bid has already been accepted');
+      }
+
+      // Check if the bid has been countered
+      if (bid.bidStatus !== BidStatus.COUNTERED) {
+        throw new NotAcceptableException('Bid has not been countered');
+      }
+
+      // Accept the counter offer
+      bid.bidStatus = BidStatus.ACCEPTED;
+      bid.BidAcceptedAt = new Date();
+      // Record which admin accepted i
+      await this.bidRepo.save(bid);
+
+      //update the order table
+      bid.order.bidStatus = BidStatus.ACCEPTED;
+      bid.order.accepted_cost_of_delivery = bid.counter_bid_offer;
+      await this.orderRepo.save(bid.order);
+
+      // Notify the customer via WebSocket
+      this.eventsGateway.notifyCustomer('counterOfferAccepted', {
+        message: 'Your counter offer has been accepted',
+        bid: bid,
+        order: bid.order,
+      });
+
+      // // // Send push notification to the customer
+      // const payload: admin.messaging.MessagingPayload = {
+      //   notification: {
+      //     title: 'Countered Bid Accepted!',
+      //     body: `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
+      //   },
+      // };
+
+      // // Retrieve the most recent device token
+      // const recentDeviceToken =
+      //   bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1];
+
+      // if (recentDeviceToken) {
+      //   // Send the push notification to the most recent device token
+      //   await this.firebaseservice.sendNotification(
+      //     [recentDeviceToken],
+      //     payload,
+      //   );
+      // } else {
+      //   console.log('No device token available for the customer.');
+      // }
+
+      // Save notification for admin
+      const notification = new Notifications();
+      notification.account = bid.order.customer.id;
+      notification.subject = 'Counter Offer Accepted!';
+      notification.message = `Your counter offer for order ${bid.order.id} has been accepted. Thank you!`;
+      await this.notificationripo.save(notification);
+
+      return bid;
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof NotAcceptableException
+      ) {
+        throw error;
+      } else {
+        console.error(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while accepting the counter offer',
+          error.message,
+        );
+      }
+    }
+  }
 
   async counterCustomerCouterBid(
     bidID: number,
@@ -206,11 +299,12 @@ export class AdminCustomerDashBoardService {
       //finally counter the bid and set a new counter bid
       bid.counter_bid_offer = dto.counter_bid;
       bid.bidStatus = BidStatus.COUNTERED;
+      bid.isCounterOffer = true;
       bid.counteredAt = new Date();
 
       await this.bidRepo.save(bid);
 
-      // // // Send push notification to the admin
+      // // // Send push notification to the customer
       // const payload: admin.messaging.MessagingPayload = {
       //   notification: {
       //     title: 'Bid Countered!',
@@ -231,6 +325,13 @@ export class AdminCustomerDashBoardService {
       // } else {
       //   console.log('No device token available for the customer.');
       // }
+
+      // Notify the customer via WebSocket
+      this.eventsGateway.notifyCustomer('bidCountered', {
+        orderID: bid.order.orderID,
+        counterBidOffer: bid.counter_bid_offer,
+        adminName: admin.fullname,
+      });
 
       //save the notification
       const notification = new Notifications();
@@ -254,6 +355,62 @@ export class AdminCustomerDashBoardService {
       }
     }
   }
+  async FetchAllBids() {
+    try {
+      const [bids, count] = await this.bidRepo.findAndCount({
+        relations: ['order', 'order.items', 'madeby'],
+        order:{
+          bidStatus:"DESC"
+        }
+      });
+  
+      if (count === 0) {
+        throw new NotFoundException('Oops! No bids have been placed yet');
+      }
+
+  
+     
+      return { bids, count };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while fetching bids',
+          error.message,
+        );
+      }
+    }
+  }
+
+  async FetchOneBid(bidID:number) {
+    try {
+      const bid = await this.bidRepo.findOne({
+        where:{id:bidID},
+        relations: ['order', 'order.items', 'madeby'],
+       
+      });
+  
+      if (!bid) {
+        throw new NotFoundException('Oops! No bid found with this ID');
+      }
+
+
+      return bid
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while fetching bids',
+          error.message,
+        );
+      }
+    }
+  }
+  
 
   //fetch all customers
   async GetAllCustomers(page: number = 1, limit: number = 30) {
@@ -437,7 +594,7 @@ export class AdminCustomerDashBoardService {
         where: {
           order_display_status: OrderDisplayStatus.IN_TRANSIT,
         },
-        relations: ['bid', 'Rider', 'customer', 'items','transaction'], // Assuming relations are correctly defined
+        relations: ['bid', 'Rider', 'customer', 'items', 'transaction'], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
         skip: skip,
@@ -474,7 +631,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
-          'transaction'
+          'transaction',
         ], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
@@ -511,7 +668,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
-          'transaction'
+          'transaction',
         ], // Assuming relations are correctly defined
       });
 
@@ -546,7 +703,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
-          'transaction'
+          'transaction',
         ], // Assuming relations are correctly defined
         order: { orderPlacedAt: 'DESC' },
         take: limit,
@@ -587,7 +744,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
-          'transaction'
+          'transaction',
         ],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
@@ -628,7 +785,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
-          'transaction'
+          'transaction',
         ],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
@@ -669,7 +826,7 @@ export class AdminCustomerDashBoardService {
           'items',
           'items.vehicleType',
           'admin',
-          'transaction'
+          'transaction',
         ],
         order: { orderPlacedAt: 'DESC' },
         take: limit,
@@ -1564,16 +1721,16 @@ export class AdminCustomerDashBoardService {
       const totalOrders = await this.orderRepo.count({
         where: { customer: { id: customerID } },
       });
-  
+
       return totalOrders;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
-        'An error occurred while fetching the total number of orders by the customer',error.message
+        'An error occurred while fetching the total number of orders by the customer',
+        error.message,
       );
     }
   }
-  
 
   async getTotalPendingOrdersCountByCustomer(
     customerID: string,

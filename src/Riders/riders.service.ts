@@ -42,6 +42,7 @@ import { RequestEntity } from 'src/Entity/requests.entity';
 import { IOrder } from 'src/order/order';
 import { ILike } from 'typeorm';
 import { markNotificationAsReadDto } from 'src/customer/customer.dto';
+import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 // import * as admin from 'firebase-admin';
 // import { FirebaseService } from 'src/firebase/firebase.service';
 
@@ -58,6 +59,7 @@ export class RiderService {
     @InjectRepository(RequestEntity)
     private readonly requestrepo: RequestRepository,
     private mailer: Mailer,
+    private readonly eventsGateway: EventsGateway,
     //private firebaseservice: FirebaseService,
   ) {}
 
@@ -233,6 +235,14 @@ export class RiderService {
       task.assigned_order.Rider = null;
       task.assigned_order.assigned_task = null;
       await this.orderRepo.save(task.assigned_order);
+
+           // Notify admin about the ride cancellation
+    this.eventsGateway.notifyAdmin('rideCancelled', {
+      message: 'A Ride has been cancelled',
+      reason:dto.reason,
+      rider: task.rider,
+      task: task,
+    });
 
       // Save notification
       const notification = new Notifications();

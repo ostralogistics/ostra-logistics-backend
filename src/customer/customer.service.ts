@@ -88,6 +88,7 @@ import { plainToInstance } from 'class-transformer';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
+import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 
 @Injectable()
 export class CustomerService {
@@ -123,6 +124,7 @@ export class CustomerService {
     private readonly receiptrepo: ReceiptRespository,
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
+    private eventsGateway: EventsGateway,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
     private genratorservice: GeneatorService,
@@ -405,6 +407,13 @@ export class CustomerService {
       // Save the new order
       await this.orderRepo.save(order);
 
+        // Notify admin about the new order
+    this.eventsGateway.notifyAdmin('newOrder', {
+      message: 'A new order has been placed',
+      orderId: order.id,
+      customerId: customer.id,
+    });
+
       // Clear the cart and reset the checkedOut flag
       cart.checkedOut = false;
       cart.items = [];
@@ -451,20 +460,33 @@ export class CustomerService {
     try {
       const order = await this.validateOrder(orderID, customer);
       const bid = await this.validateBid(bidID);
-
+  
       await this.checkCustomerAuthorization(order, customer);
-
+  
       if (dto.action === BiddingAction.ACCEPT) {
-        await this.processBidAcceptance(order, bid);
+        if (bid.isCounterOffer) {
+          await this.processCounterBidOfferAcceptance(order, bid);
+        } else {
+          await this.processBidAcceptance(order, bid);
+        }
       } else if (dto.action === BiddingAction.DECLINE) {
         await this.processBidDecline(order, bid);
       }
-
+  
+      // Notify admin about the bid acceptance/decline
+      this.eventsGateway.notifyAdmin('bidAction', {
+        message: `A bid has been ${dto.action}ed`,
+        orderId: orderID,
+        customerId: customer.id,
+        bidId: bidID,
+      });
+  
       return bid;
     } catch (error) {
       this.handleError(error);
     }
   }
+  
 
   private async validateOrder(
     orderID: number,
@@ -525,6 +547,26 @@ export class CustomerService {
     );
   }
 
+  private async processCounterBidOfferAcceptance(
+    order: OrderEntity,
+    bid: BidEntity,
+  ): Promise<void> {
+    order.bidStatus = BidStatus.ACCEPTED;
+    order.accepted_cost_of_delivery = bid.counter_bid_offer;
+    await this.orderRepo.save(order);
+
+    bid.bidStatus = BidStatus.ACCEPTED;
+    bid.order = order;
+    bid.BidAcceptedAt = new Date();
+    await this.bidRepo.save(bid);
+
+    await this.sendNotification(
+      order.customer.id,
+      'Customer accepted the counter bid offer!',
+      `The customer with ID ${order.customer.id} has accepted a conter  bid offer.`,
+    );
+  }
+
   private async processBidDecline(
     order: OrderEntity,
     bid: BidEntity,
@@ -545,30 +587,7 @@ export class CustomerService {
     );
   }
 
-  async FetchBidRelatedTocustomerOrder(
-    orderID: number,
-    customer: CustomerEntity,
-  ) {
-    try {
-      const bidraltedtocustomer = await this.bidRepo.findOne({
-        where: { order: { id: orderID, customer: {id:customer.id} } },
-        relations: ['order', 'order.customer'],
-      });
-      if (!bidraltedtocustomer)
-        throw new NotFoundException('bid related to customer not found');
-      return bidraltedtocustomer;
-    } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong',
-          error.message,
-        );
-      }
-    }
-  }
+
 
   private async sendNotification(
     accountId: string,
@@ -599,6 +618,33 @@ export class CustomerService {
 
   /////////////////////////////////////////////////////////////////////
 
+
+  async FetchBidRelatedTocustomerOrder(
+    orderID: number,
+    customer: CustomerEntity,
+  ) {
+    try {
+      const bidraltedtocustomer = await this.bidRepo.findOne({
+        where: { order: { id: orderID, customer: {id:customer.id} } },
+        relations: ['order', 'order.customer'],
+      });
+      if (!bidraltedtocustomer)
+        throw new NotFoundException('bid related to customer not found');
+      return bidraltedtocustomer;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong',
+          error.message,
+        );
+      }
+    }
+  }
+
+
   //2. counterbid with an offer
   async CounterBid(dto: counterBidDto, bidID: number): Promise<IBids> {
     try {
@@ -626,8 +672,16 @@ export class CustomerService {
       bid.counter_bid_offer = dto.counter_bid;
       bid.counteredAt = new Date();
       bid.bidStatus = BidStatus.COUNTERED;
+      bid.isCounterOffer = true
 
       await this.bidRepo.save(bid);
+
+         // Notify admin about the counter bid
+    this.eventsGateway.notifyAdmin('counterBid', {
+      message: 'A bid has been countered',
+      bidId: bidID,
+      newOffer: dto.counter_bid,
+    });
 
       //save the notification
       const notification = new Notifications();

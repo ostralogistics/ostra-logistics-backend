@@ -39,6 +39,7 @@ import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { PasscodeEntity } from 'src/Entity/passcode.entity';
+import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 //import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 // import { FirebaseService } from 'src/firebase/firebase.service';
 // import { FirebaseModule } from 'src/firebase/firebase.module';
@@ -95,6 +96,7 @@ import { PasscodeEntity } from 'src/Entity/passcode.entity';
     DistanceService,
     GeoCodingService,
     CloudinaryService,
+    EventsGateway
     //SmsSenderService,
     //FirebaseService
   ],
