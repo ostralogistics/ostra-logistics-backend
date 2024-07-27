@@ -237,12 +237,13 @@ export class RiderService {
       await this.orderRepo.save(task.assigned_order);
 
            // Notify admin about the ride cancellation
-    this.eventsGateway.notifyAdmin('rideCancelled', {
-      message: 'A Ride has been cancelled',
-      reason:dto.reason,
-      rider: task.rider,
-      task: task,
-    });
+           this.eventsGateway.notifyCustomer('rideCancelled', {
+            message: 'Ride cancelled',
+            reason: task.reason_for_cancelling_ride,
+            rider: rider,
+            task: taskID,
+            customerId: task.assigned_order.customer.id,  // Include customer ID
+          })
 
       // Save notification
       const notification = new Notifications();

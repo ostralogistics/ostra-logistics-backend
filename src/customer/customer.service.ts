@@ -480,6 +480,9 @@ export class CustomerService {
         customerId: customer.id,
         bidId: bidID,
       });
+
+      //notification 
+      
   
       return bid;
     } catch (error) {
@@ -624,11 +627,11 @@ export class CustomerService {
     customer: CustomerEntity,
   ) {
     try {
-      const bidraltedtocustomer = await this.bidRepo.findOne({
+      const bidraltedtocustomer = await this.bidRepo.findAndCount({
         where: { order: { id: orderID, customer: {id:customer.id} } },
         relations: ['order', 'order.customer'],
       });
-      if (!bidraltedtocustomer)
+      if (bidraltedtocustomer[1]===0)
         throw new NotFoundException('bid related to customer not found');
       return bidraltedtocustomer;
     } catch (error) {

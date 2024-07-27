@@ -6,6 +6,7 @@ import { RoleGuard } from "src/auth/guard/role.guard";
 import { Roles } from "src/auth/decorator/role.decorator";
 import { Role } from "src/Enums/all-enums";
 import { markNotificationAsReadDto } from "src/customer/customer.dto";
+import { Request } from "express";
 
 @UseGuards(JwtGuard,RoleGuard)
 @Roles(Role.RIDER)
@@ -29,7 +30,9 @@ export class RiderController{
     }
 
     @Patch('cancel-a-ride/:taskID')
+
     async CancelARide(@Body()dto:CancelRideDto, @Req()req,@Param('taskID')taskID:number){
+
         return await this.riderservice.CancelRideOrTask(dto,req.user,taskID)   
     }
 

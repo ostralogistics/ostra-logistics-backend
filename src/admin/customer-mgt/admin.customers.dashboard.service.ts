@@ -42,6 +42,7 @@ import {
 } from 'src/Enums/all-enums';
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -71,6 +72,7 @@ import {
   TransactionEntity,
 } from 'src/Entity/transactions.entity';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
+import { Socket } from 'socket.io';
 // import { FirebaseService } from 'src/firebase/firebase.service';
 // import * as admin from 'firebase-admin';
 
@@ -114,12 +116,15 @@ export class AdminCustomerDashBoardService {
     try {
       const order = await this.orderRepo.findOne({
         where: { id: orderID },
-        relations: ['bid', 'customer', 'items', 'admin'],
+        relations: [ 'customer', 'items', 'admin',],
       });
       if (!order)
         throw new NotFoundException(
           `order with the id: ${orderID} is not found`,
         );
+
+      
+    
 
       // new bid
       const bid = new BidEntity();
@@ -157,12 +162,14 @@ export class AdminCustomerDashBoardService {
       //   console.log('No device token available for the customer.');
       // }
 
-      // Notify the customer via WebSocket
-      this.eventsGateway.notifyCustomer('openingBidMade', {
-        orderID: order.orderID,
-        bidValue: bid.bid_value,
-        adminName: admin.fullname,
-      });
+       // Notify the customer via WebSocket
+    this.eventsGateway.notifyCustomer('openingBidMade', {
+      message:'openning bid made',
+      orderID: order.orderID,
+      bidValue: bid.bid_value,
+      adminName: admin.fullname,
+      customerId: order.customer.id,  // Add customer ID to the payload
+    });
 
       //save the notification
       const notification = new Notifications();
@@ -173,8 +180,9 @@ export class AdminCustomerDashBoardService {
 
       return bid;
     } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
+      if (error instanceof NotFoundException || error instanceof ConflictException) {
+        throw error;
+      }
       else {
         console.log(error);
         throw new InternalServerErrorException(
@@ -549,7 +557,7 @@ export class AdminCustomerDashBoardService {
       const qb = this.orderRepo.createQueryBuilder('order');
 
       qb.where('order.orderID ILIKE :keyword', { keyword: `%${keyword}%` });
-      qb.orWhere('customer.trackingID ILIKE :keyword', {
+      qb.orWhere('order.trackingID ILIKE :keyword', {
         keyword: `%${keyword}%`,
       });
       qb.cache(false);

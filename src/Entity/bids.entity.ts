@@ -1,5 +1,5 @@
 import { BidStatus } from "src/Enums/all-enums";
-import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OrderEntity } from "./orders.entity";
 import { AdminEntity } from "./admins.entity";
 
@@ -47,8 +47,8 @@ id:number
 @Column({type:'enum',enum:BidStatus,nullable:false,default:BidStatus.PENDING})
 bidStatus : BidStatus
 
-@OneToOne(()=>OrderEntity,order=>order.bid)
-order : OrderEntity
+@ManyToOne(() => OrderEntity, order => order.bid, { nullable: true }) // Many-to-one relationship with orders// This is optional; it creates a foreign key column in the BidEntity table
+order: OrderEntity;
 
 @Column('numeric',{nullable:true})
 bid_value: number;

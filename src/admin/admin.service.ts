@@ -78,6 +78,7 @@ import { OrderEntity } from 'src/Entity/orders.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
+import { LessThan, MoreThanOrEqual } from 'typeorm';
 @Injectable()
 export class AdminService {
   constructor(
@@ -409,7 +410,7 @@ export class AdminService {
     try {
       const qb = this.vehiclerepo.createQueryBuilder('vehicle')
 
-      qb.where('vehicle.name ILIKE :keyword',{keyword:`%${keyword}%`})
+      qb.where('vehicle.vehicle_type ILIKE :keyword',{keyword:`%${keyword}%`})
       qb.orWhere('vehicle.vehicle_model ILIKE :keyword',{keyword:`%${keyword}%`})
       qb.orWhere('vehicle.registration_number ILIKE :keyword',{keyword:`%${keyword}%`})
       qb.cache(false)
@@ -1092,56 +1093,68 @@ export class AdminService {
   // set discount
   async SetDiscountAndDuration(dto: DiscountDto) {
     try {
+      // Check for an existing active discount
+      const now = new Date();
+      const activeDiscount = await this.discountripo.findOne({
+        where: { expires_in: LessThan(now) },
+      });
+  
+      if (activeDiscount) {
+        throw new BadRequestException('An active discount already exists and is not expired yet.You can only create another when it is expired');
+      }
+  
       const discount = new DiscountEntity();
       discount.OneTime_discountCode = dto.discountCode;
       discount.createdAT = new Date();
       discount.DiscountDuration_days = dto.DiscountDuration_days;
       discount.DiscountDuration_weeks = dto.DiscountDuration_weeks;
-
-      // scnerio where discount duration in days was given
+  
+      // Scenario where discount duration in days was given
       if (dto.DiscountDuration_days) {
         discount.expires_in = new Date(
           discount.createdAT.getTime() +
             dto.DiscountDuration_days * 24 * 60 * 60 * 1000,
         );
-        //scenerio where duration in weeks is given
-      } else if (dto.DiscountDuration_weeks) {
-        discount.expires_in = new Date(
-          discount.createdAT.getTime() +
-            dto.DiscountDuration_weeks * 7 * 24 * 60 * 60 * 1000,
-        );
-      }
-
+      } 
+  
       discount.percentageOff = dto.percentageOff;
-      discount.isExpired = false;
-
+  
       await this.discountripo.save(discount);
-
-      //notifiction
+  
+      // Notification
       const notification = new Notifications();
       notification.account = 'super admin';
       notification.subject = 'Discount Created!';
-      notification.message = `the Admin have set a new promo Discout on ostra logistics `;
+      notification.message = `The admin has set a new promo discount on Ostra Logistics.`;
       await this.notificationripo.save(notification);
-
+  
       return discount;
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'something went wrong while trying to set a promo discount',
-        error.message,
-      );
+      if (error instanceof BadRequestException)
+        throw new BadRequestException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong.',
+          error.message,
+        )
     }
   }
+}
 
   //get discount
   async GetDiscount() {
     try {
-      const discounts = await this.discountripo.findAndCount();
+      const now = new Date();
+      const discounts = await this.discountripo.findAndCount({
+        where: { expires_in: MoreThanOrEqual(now) },
+      });
+  
       if (discounts[1] === 0)
         throw new NotFoundException(
-          'oops! no discount has been set at the moment',
+          'Oops! No discount has been set at the moment',
         );
+  
       return discounts;
     } catch (error) {
       if (error instanceof NotFoundException)
@@ -1149,12 +1162,13 @@ export class AdminService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch promocode ',
+          'Something went wrong while trying to fetch the promo code.',
           error.message,
         );
       }
     }
   }
+  
 
   //update discount
 

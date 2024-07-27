@@ -115,9 +115,8 @@ export class OrderEntity implements IOrder {
   @Column({nullable:true, type:'boolean', default:false})
   IsDiscountApplied:boolean
 
-  @OneToOne(() => BidEntity, (bid) => bid.order) // Specify the inverse side
-  @JoinColumn({ name: 'orderId', referencedColumnName: 'id' }) // Define join columns
-  bid: BidEntity;
+  @OneToMany(() => BidEntity, bid => bid.order) // One-to-many relationship with bids
+  bid: BidEntity[];
 
   @ManyToOne(() => RiderEntity, (rider) => rider.assigned_order,{nullable:true})
   Rider: RiderEntity;
