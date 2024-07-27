@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 export interface IDiscount{
     id:number
@@ -9,7 +9,7 @@ export interface IDiscount{
     DiscountDuration_days:number
     percentageOff:number
     expires_in:Date
-    isExpired:boolean
+    isActive:boolean
 
 }
 
@@ -40,6 +40,17 @@ export class DiscountEntity implements IDiscount{
     updatedAT: Date
 
     @Column({nullable:true})
-    isExpired: boolean
+    isActive: boolean
+
+    @Column({nullable:true})
+    isExpired:boolean
+
+    @BeforeUpdate()
+    checkExpiration() {
+        if (this.expires_in && this.expires_in < new Date()) {
+            this.isActive = false;
+            this.isExpired = true
+        }
+    }
 
 }

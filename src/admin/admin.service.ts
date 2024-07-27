@@ -1094,22 +1094,20 @@ export class AdminService {
   async SetDiscountAndDuration(dto: DiscountDto) {
     try {
       // Check for an existing active discount
-      const now = new Date();
       const activeDiscount = await this.discountripo.findOne({
-        where: { expires_in: LessThan(now) },
+        where: { isActive:true },
       });
   
       if (activeDiscount) {
-        throw new BadRequestException('An active discount already exists and is not expired yet.You can only create another when it is expired');
+        throw new BadRequestException('An active discount already exists');
       }
   
       const discount = new DiscountEntity();
       discount.OneTime_discountCode = dto.discountCode;
       discount.createdAT = new Date();
+      discount.isActive = true 
       discount.DiscountDuration_days = dto.DiscountDuration_days;
-      discount.DiscountDuration_weeks = dto.DiscountDuration_weeks;
-  
-      // Scenario where discount duration in days was given
+     
       if (dto.DiscountDuration_days) {
         discount.expires_in = new Date(
           discount.createdAT.getTime() +
@@ -1147,7 +1145,7 @@ export class AdminService {
     try {
       const now = new Date();
       const discounts = await this.discountripo.findAndCount({
-        where: { expires_in: MoreThanOrEqual(now) },
+        where: { isActive:true},
       });
   
       if (discounts[1] === 0)
@@ -1202,7 +1200,7 @@ export class AdminService {
       }
 
       discount.percentageOff = dto.percentageOff;
-      discount.isExpired = false;
+    
 
       await this.discountripo.save(discount);
 
