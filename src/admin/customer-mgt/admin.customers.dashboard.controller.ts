@@ -276,9 +276,9 @@ export class AdminCustomerDashBoardController {
 
 
   //generate air waybill
-  @Get('generate-airwaybill/:trackingID')
-  async CreateAirWaybill(@Param('trackingID')trackingID:string){
-    return await this.admincustomerservice.createAirWaybill(trackingID)
+  @Get('generate-airwaybill/:barcodeDigit')
+  async CreateAirWaybill(@Param('barcodeDigit')barcodeDigit:string){
+    return await this.admincustomerservice.createAirWaybill(barcodeDigit)
   }
 
 

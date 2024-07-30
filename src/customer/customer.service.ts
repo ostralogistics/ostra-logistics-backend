@@ -654,7 +654,7 @@ export class CustomerService {
       //check bid
       const bid = await this.bidRepo.findOne({
         where: { id: bidID },
-        relations: ['order'],
+        relations: ['order','order.customer'],
       });
       if (!bid)
         throw new NotFoundException(
@@ -678,6 +678,9 @@ export class CustomerService {
       bid.isCounterOffer = true
 
       await this.bidRepo.save(bid);
+
+      bid.order.bidStatus = BidStatus.COUNTERED
+      await this.orderRepo.save(bid.order)
 
          // Notify admin about the counter bid
     this.eventsGateway.notifyAdmin('counterBid', {

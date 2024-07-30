@@ -190,10 +190,7 @@ export enum PriorityDeliveryType{
 export enum Gender {
     Male = 'male',
     Female = 'female',
-    Genderfluid = 'genderfluid',
-    Genderqueer = 'genderqueer',
-    Cisgender = 'cisgender',
-    Rather_not_say = 'rather_not_say',
+   
   }
 
   export enum MaritalStatus{

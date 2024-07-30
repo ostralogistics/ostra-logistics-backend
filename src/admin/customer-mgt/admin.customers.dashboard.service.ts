@@ -73,13 +73,13 @@ import {
 } from 'src/Entity/transactions.entity';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { Socket } from 'socket.io';
-// import { FirebaseService } from 'src/firebase/firebase.service';
-// import * as admin from 'firebase-admin';
+import { FirebaseService } from 'src/firebase/firebase.service';
+import * as admin from 'firebase-admin';
 
 @Injectable()
 export class AdminCustomerDashBoardService {
   constructor(
-    //@Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
+    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(AdminEntity) private readonly adminrepo: AdminRepository,
     @InjectRepository(CustomerEntity)
     private readonly customerRepo: CustomerRepository,
@@ -104,7 +104,7 @@ export class AdminCustomerDashBoardService {
     private geocodingservice: GeoCodingService,
     @InjectRepository(ReceiptEntity)
     private readonly receiptrepo: ReceiptRespository,
-    //private firebaseservice: FirebaseService,
+    private firebaseservice: FirebaseService,
   ) {}
 
   //make openning bid based on influenced matrix cost calculations
@@ -140,27 +140,27 @@ export class AdminCustomerDashBoardService {
 
       // Assume 'order' and 'bid' are already defined
 
-      // // Construct the payload for the push notification
-      // const payload: admin.messaging.MessagingPayload = {
-      //   notification: {
-      //     title: 'Opening Bid Sent!',
-      //     body: `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
-      //   },
-      // };
+      // Construct the payload for the push notification
+      const payload: admin.messaging.MessagingPayload = {
+        notification: {
+          title: 'Opening Bid Sent!',
+          body: `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
+        },
+      };
 
-      // // Retrieve the most recent device token
-      // const recentDeviceToken =
-      //   order.customer.deviceToken[order.customer.deviceToken.length - 1];
+      // Retrieve the most recent device token
+      const recentDeviceToken =
+        order.customer.deviceToken[order.customer.deviceToken.length - 1];
 
-      // if (recentDeviceToken) {
-      //   // Send the push notification to the most recent device token
-      //   await this.firebaseservice.sendNotification(
-      //     [recentDeviceToken],
-      //     payload,
-      //   );
-      // } else {
-      //   console.log('No device token available for the customer.');
-      // }
+      if (recentDeviceToken) {
+        // Send the push notification to the most recent device token
+        await this.firebaseservice.sendNotification(
+          [recentDeviceToken],
+          payload,
+        );
+      } else {
+        console.log('No device token available for the customer.');
+      }
 
        // Notify the customer via WebSocket
     this.eventsGateway.notifyCustomer('openingBidMade', {
@@ -234,26 +234,26 @@ export class AdminCustomerDashBoardService {
       });
 
       // // // Send push notification to the customer
-      // const payload: admin.messaging.MessagingPayload = {
-      //   notification: {
-      //     title: 'Countered Bid Accepted!',
-      //     body: `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
-      //   },
-      // };
+      const payload: admin.messaging.MessagingPayload = {
+        notification: {
+          title: 'Countered Bid Accepted!',
+          body: `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
+        },
+      };
 
-      // // Retrieve the most recent device token
-      // const recentDeviceToken =
-      //   bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1];
+      // Retrieve the most recent device token
+      const recentDeviceToken =
+        bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1];
 
-      // if (recentDeviceToken) {
-      //   // Send the push notification to the most recent device token
-      //   await this.firebaseservice.sendNotification(
-      //     [recentDeviceToken],
-      //     payload,
-      //   );
-      // } else {
-      //   console.log('No device token available for the customer.');
-      // }
+      if (recentDeviceToken) {
+        // Send the push notification to the most recent device token
+        await this.firebaseservice.sendNotification(
+          [recentDeviceToken],
+          payload,
+        );
+      } else {
+        console.log('No device token available for the customer.');
+       }
 
       // Save notification for admin
       const notification = new Notifications();
@@ -312,27 +312,27 @@ export class AdminCustomerDashBoardService {
 
       await this.bidRepo.save(bid);
 
-      // // // Send push notification to the customer
-      // const payload: admin.messaging.MessagingPayload = {
-      //   notification: {
-      //     title: 'Bid Countered!',
-      //     body: `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
-      //   },
-      // };
+      // // Send push notification to the customer
+      const payload: admin.messaging.MessagingPayload = {
+        notification: {
+          title: 'Bid Countered!',
+          body: `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
+        },
+      };
 
-      // // Retrieve the most recent device token
-      // const recentDeviceToken =
-      //   bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1];
+      // Retrieve the most recent device token
+      const recentDeviceToken =
+        bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1];
 
-      // if (recentDeviceToken) {
-      //   // Send the push notification to the most recent device token
-      //   await this.firebaseservice.sendNotification(
-      //     [recentDeviceToken],
-      //     payload,
-      //   );
-      // } else {
-      //   console.log('No device token available for the customer.');
-      // }
+      if (recentDeviceToken) {
+        // Send the push notification to the most recent device token
+        await this.firebaseservice.sendNotification(
+          [recentDeviceToken],
+          payload,
+        );
+      } else {
+        console.log('No device token available for the customer.');
+      }
 
       // Notify the customer via WebSocket
       this.eventsGateway.notifyCustomer('bidCountered', {
@@ -984,7 +984,7 @@ export class AdminCustomerDashBoardService {
     try {
       const checkbarcode = await this.orderRepo.findOne({
         where: { barcodeDigits: barcodeDigit },
-        relations: ['customer', 'bid', 'items'],
+        relations: ['customer', 'bid', 'items','Rider'],
       });
       if (!checkbarcode) throw new NotFoundException('trackingID not found');
 

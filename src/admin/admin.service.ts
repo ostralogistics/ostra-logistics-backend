@@ -667,7 +667,7 @@ export class AdminService {
           'this is not same vehicle that was assigned to this driver',
         );
 
-      if (dto && dto.returned === ReturnedVehicle.YES) {
+      if ( dto.returned === ReturnedVehicle.YES) {
         //report
         vehicle.returned_vehicle = dto.returned;
         vehicle.status = VehicleAssignedStatus.UNASSIGNED;
