@@ -28,7 +28,6 @@ export class AdminStaffDashBoardController{
     async AdminRegisterStaff(@Body()dto:RegisterOtherAdminByAdminDto,){
         return await this.adminstaffservice.RegisterStaff(dto)
 
-        
     }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
@@ -79,11 +78,8 @@ export class AdminStaffDashBoardController{
 
     }
 
-    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
-    @Post('generate-passcode')
-    async GeneratePasscode() {
-      return await this.adminstaffservice.GeneratePasscode();
-    }
+   
+  
   
     @AdminAccessLevel(AdminAccessLevels.LEVEL3)
     @Patch('update-passcode/:passcodeID')

@@ -13,6 +13,7 @@ export class AdminAuthController{
     constructor(private readonly adminauthservice:AdminAuthService){}
 
 
+
     @UseGuards(JwtGuard)
     @Get('profile')
     async getProfile(@Req() req: any): Promise<any> {
@@ -26,6 +27,11 @@ export class AdminAuthController{
     @Body() dto: PasscodeDto,
   ){
     return await this.adminauthservice.VerifyPasscodeBeforeSignup(dto);
+  }
+
+  @Post('generate-passcode')
+  async GeneratePasscode() {
+    return await this.adminauthservice.GeneratePasscode();
   }
 
 
