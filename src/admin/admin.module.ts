@@ -40,14 +40,12 @@ import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { PasscodeEntity } from 'src/Entity/passcode.entity';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
-//import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
-// import { FirebaseService } from 'src/firebase/firebase.service';
-//  import { FirebaseModule } from 'src/firebase/firebase.module';
+import { firebaseAdminProvider } from 'src/firebase/firebase-admin.provider';
+
 
 
 @Module({
   imports: [
-    //FirebaseModule,
   
     TypeOrmModule.forFeature([
       AdminEntity,
@@ -97,8 +95,6 @@ import { EventsGateway } from 'src/common/gateways/websockets.gateway';
     GeoCodingService,
     CloudinaryService,
     EventsGateway
-    //SmsSenderService,
-    //FirebaseService
   ],
 })
 export class AdminModule {}

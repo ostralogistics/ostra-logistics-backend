@@ -73,13 +73,12 @@ import {
 } from 'src/Entity/transactions.entity';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { Socket } from 'socket.io';
-//import { FirebaseService } from 'src/firebase/firebase.service';
-//import * as admin from 'firebase-admin';
+import * as firebase from 'firebase-admin';
+
 
 @Injectable()
 export class AdminCustomerDashBoardService {
   constructor(
-    //@Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
     @InjectRepository(AdminEntity) private readonly adminrepo: AdminRepository,
     @InjectRepository(CustomerEntity)
     private readonly customerRepo: CustomerRepository,
@@ -104,7 +103,6 @@ export class AdminCustomerDashBoardService {
     private geocodingservice: GeoCodingService,
     @InjectRepository(ReceiptEntity)
     private readonly receiptrepo: ReceiptRespository,
-    //  private firebaseservice: FirebaseService,
   ) {}
 
   //make openning bid based on influenced matrix cost calculations
@@ -123,8 +121,6 @@ export class AdminCustomerDashBoardService {
           `order with the id: ${orderID} is not found`,
         );
 
-      
-    
 
       // new bid
       const bid = new BidEntity();
@@ -138,29 +134,43 @@ export class AdminCustomerDashBoardService {
       order.processingOrderAT = new Date();
       await this.orderRepo.save(order);
 
-      // Assume 'order' and 'bid' are already defined
 
-      // Construct the payload for the push notification
-      // const payload: admin.messaging.MessagingPayload = {
-      //   notification: {
-      //     title: 'Opening Bid Sent!',
-      //     body: `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
-      //   },
-      // };
+      //push otification
+      await firebase.messaging().send({
+        notification:{
+          title:'Opening Bid Sent!',
+          body:`Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid ones. We believe our bid is very reasonable. Thank you.`,
+        },
+        token : order.customer.deviceToken[order.customer.deviceToken.length - 1],
+        data:{
+          orderID: order.orderID,
+          bidValue: bid.bid_value.toString(),
+          customerId: order.customer.id,
+        },
+        android:{
+          priority:'high',
+          notification:{
+            sound:'default',
+            channelId:'default'
+          }
+        },
+        apns:{
+          headers:{
+            'apns-priority':'10',
+          },
+          payload:{
+            aps:{
+              contentAvailable:true,
+              sound:'default'
+            }
+          }
+        }
+      })
+      .catch((error: any) => {
+        console.error(error);
+      });
 
-      // // Retrieve the most recent device token
-      // const recentDeviceToken =
-      //   order.customer.deviceToken[order.customer.deviceToken.length - 1];
 
-      // if (recentDeviceToken) {
-      //   // Send the push notification to the most recent device token
-      //   await this.firebaseservice.sendNotification(
-      //     [recentDeviceToken],
-      //     payload,
-      //   );
-      // } else {
-      //   console.log('No device token available for the customer.');
-      // }
 
        // Notify the customer via WebSocket
     this.eventsGateway.notifyCustomer('openingBidMade', {
@@ -233,27 +243,41 @@ export class AdminCustomerDashBoardService {
         order: bid.order,
       });
 
-      // // // Send push notification to the customer
-      // const payload: admin.messaging.MessagingPayload = {
-      //   notification: {
-      //     title: 'Countered Bid Accepted!',
-      //     body: `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
-      //   },
-      // };
-
-      // // Retrieve the most recent device token
-      // const recentDeviceToken =
-      //   bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1];
-
-      // if (recentDeviceToken) {
-      //   // Send the push notification to the most recent device token
-      //   await this.firebaseservice.sendNotification(
-      //     [recentDeviceToken],
-      //     payload,
-      //   );
-      // } else {
-      //   console.log('No device token available for the customer.');
-      //  }
+        //push otification
+        await firebase.messaging().send({
+          notification:{
+            title:'Counter Bid Accepted!',
+            body:`the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
+          },
+          token : bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1],
+          data:{
+            orderID: bid.order.orderID,
+            counterbidValue: bid.counter_bid_offer.toString(),
+            customerId: bid.order.customer.id,
+          },
+          android:{
+            priority:'high',
+            notification:{
+              sound:'default',
+              channelId:'default'
+            }
+          },
+          apns:{
+            headers:{
+              'apns-priority':'10',
+            },
+            payload:{
+              aps:{
+                contentAvailable:true,
+                sound:'default'
+              }
+            }
+          }
+        })
+        .catch((error: any) => {
+          console.error(error);
+        });
+  
 
       // Save notification for admin
       const notification = new Notifications();
@@ -333,6 +357,43 @@ export class AdminCustomerDashBoardService {
       // } else {
       //   console.log('No device token available for the customer.');
       // }
+
+        //push otification
+        await firebase.messaging().send({
+          notification:{
+            title:'Bid Countered!',
+            body:`the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
+          },
+          token : bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1],
+          data:{
+            orderID: bid.order.orderID,
+            counterbidValue: bid.counter_bid_offer.toString(),
+            customerId: bid.order.customer.id,
+          },
+          android:{
+            priority:'high',
+            notification:{
+              sound:'default',
+              channelId:'default'
+            }
+          },
+          apns:{
+            headers:{
+              'apns-priority':'10',
+            },
+            payload:{
+              aps:{
+                contentAvailable:true,
+                sound:'default'
+              }
+            }
+          }
+        })
+        .catch((error: any) => {
+          console.error(error);
+        });
+  
+      
 
       // Notify the customer via WebSocket
       this.eventsGateway.notifyCustomer('bidCountered', {

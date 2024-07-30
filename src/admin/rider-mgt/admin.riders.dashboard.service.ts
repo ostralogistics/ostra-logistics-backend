@@ -54,13 +54,12 @@ import {
 import { all } from 'axios';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
-//import * as admin from 'firebase-admin'
-//import { FirebaseService } from 'src/firebase/firebase.service';
+import * as firebase from 'firebase-admin';
 
 @Injectable()
 export class AdminRiderDashboardService {
   constructor(
-    //@Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
+
     @InjectRepository(RiderEntity) private readonly riderripo: RidersRepository,
     @InjectRepository(AdminEntity) private readonly adminripo: AdminRepository,
     @InjectRepository(Notifications)
@@ -81,7 +80,6 @@ export class AdminRiderDashboardService {
     private mailer: Mailer,
     private genratorservice: GeneatorService,
 
-    //private firebaseservice:FirebaseService
   ) {}
 
   //admin register rider
@@ -696,28 +694,41 @@ export class AdminRiderDashboardService {
       (task.rider = order.Rider), (task.task= dto.task);
       (task.assigned_order = order), (task.assignedAT = new Date());
 
-      await this.taskRepo.save(task);
+      await this.taskRepo.save(task)
 
-      // // //send push notification to the rider
-      // const payload: admin.messaging.MessagingPayload={
-      //   notification:{
-      //     title:'New Task Assigned!',
-      //     body:`A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `
-      //   }
-      // }
-      // // Retrieve the most recent device token
-      // const recentDeviceToken =
-      //   rider.deviceToken[rider.deviceToken.length - 1];
-
-      // if (recentDeviceToken) {
-      //   // Send the push notification to the most recent device token
-      //   await this.firebaseservice.sendNotification(
-      //     [recentDeviceToken],
-      //     payload,
-      //   );
-      // } else {
-      //   console.log('No device token available for the customer.');
-      // }
+      await firebase.messaging().send({
+        notification: {
+          title: 'New Task Assigned!',
+          body: `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
+        },
+        token: rider.deviceToken[rider.deviceToken.length - 1],
+        data: {
+          task: task.task,
+          orderID: order.orderID,
+          customerId: order.customer.id,
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            sound: 'default',
+            channelId: 'default'
+          }
+        },
+        apns: {
+          headers: {
+            'apns-priority': '10',
+          },
+          payload: {
+            aps: {
+              contentAvailable: true,
+              sound: 'default'
+            }
+          }
+        }
+      })
+      .catch((error: any) => {
+        console.error(error);
+      });
 
       //save the notification
       const notification = new Notifications();

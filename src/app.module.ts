@@ -11,6 +11,7 @@ import { RiderModule } from './Riders/riders.module';
 import { AdminModule } from './admin/admin.module';
 import { WebHookModule } from './Payment/webhook.module';
 import { AuthModule } from './auth/auth.module';
+import { firebaseAdminProvider } from './firebase/firebase-admin.provider';
 //import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
@@ -39,6 +40,6 @@ import { AuthModule } from './auth/auth.module';
     })
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,firebaseAdminProvider],
 })
 export class AppModule {}
