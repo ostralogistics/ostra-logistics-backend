@@ -74,7 +74,7 @@ import {
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { Socket } from 'socket.io';
 //import { FirebaseService } from 'src/firebase/firebase.service';
-import * as admin from 'firebase-admin';
+//import * as admin from 'firebase-admin';
 
 @Injectable()
 export class AdminCustomerDashBoardService {

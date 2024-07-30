@@ -41,7 +41,6 @@
     "cloudinary": "^2.2.0",
     "cors": "^2.8.5",
     "file-type": "^16.5.3",
-    "firebase-admin": "^12.3.0",
     "geocoder": "^0.1.0",
     "jsbarcode": "^3.11.6",
     "multer": "^1.4.5-lts.1",
