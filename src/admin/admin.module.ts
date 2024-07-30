@@ -41,13 +41,13 @@ import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { PasscodeEntity } from 'src/Entity/passcode.entity';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 //import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
-import { FirebaseService } from 'src/firebase/firebase.service';
- import { FirebaseModule } from 'src/firebase/firebase.module';
+// import { FirebaseService } from 'src/firebase/firebase.service';
+//  import { FirebaseModule } from 'src/firebase/firebase.module';
 
 
 @Module({
   imports: [
-    FirebaseModule,
+    //FirebaseModule,
   
     TypeOrmModule.forFeature([
       AdminEntity,
