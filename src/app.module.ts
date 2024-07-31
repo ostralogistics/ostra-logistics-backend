@@ -11,7 +11,8 @@ import { RiderModule } from './Riders/riders.module';
 import { AdminModule } from './admin/admin.module';
 import { WebHookModule } from './Payment/webhook.module';
 import { AuthModule } from './auth/auth.module';
-import { firebaseAdminProvider } from './firebase/firebase-admin.provider';
+//import { firebaseAdminProvider } from './firebase/firebase-admin.provider';
+import { FcmModule } from './firebase/fcm-node.module';
 //import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
@@ -21,6 +22,7 @@ import { firebaseAdminProvider } from './firebase/firebase-admin.provider';
     AdminModule,
     WebHookModule,
     AuthModule,
+    FcmModule,
     //FirebaseModule,
     
     ConfigModule.forRoot({ isGlobal: true }),
@@ -40,6 +42,6 @@ import { firebaseAdminProvider } from './firebase/firebase-admin.provider';
     })
   ],
   controllers: [AppController],
-  providers: [AppService,firebaseAdminProvider],
+  providers: [AppService],
 })
 export class AppModule {}

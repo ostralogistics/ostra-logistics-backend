@@ -54,7 +54,8 @@ import {
 import { all } from 'axios';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
-import * as firebase from 'firebase-admin';
+//import * as firebase from 'firebase-admin';
+import { FcmService } from 'src/firebase/fcm-node.service';
 
 @Injectable()
 export class AdminRiderDashboardService {
@@ -79,6 +80,7 @@ export class AdminRiderDashboardService {
     private cloudinaryservice: CloudinaryService,
     private mailer: Mailer,
     private genratorservice: GeneatorService,
+    private readonly fcmService: FcmService,
 
   ) {}
 
@@ -696,39 +698,20 @@ export class AdminRiderDashboardService {
 
       await this.taskRepo.save(task)
 
-      await firebase.messaging().send({
-        notification: {
-          title: 'New Task Assigned!',
-          body: `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
-        },
-        token: rider.deviceToken[rider.deviceToken.length - 1],
-        data: {
-          task: task.task,
-          orderID: order.orderID,
-          customerId: order.customer.id,
-        },
-        android: {
-          priority: 'high',
-          notification: {
-            sound: 'default',
-            channelId: 'default'
-          }
-        },
-        apns: {
-          headers: {
-            'apns-priority': '10',
-          },
-          payload: {
-            aps: {
-              contentAvailable: true,
-              sound: 'default'
-            }
-          }
-        }
-      })
-      .catch((error: any) => {
-        console.error(error);
-      });
+     
+             // Push notification
+             await this.fcmService.sendNotification(
+              rider.deviceToken[rider.deviceToken.length - 1],
+              ' New Task Assigned!',
+              `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
+              {
+                task: task.task,
+                orderID: order.orderID,
+                customerId: order.customer.id,
+              },
+              
+            );
+        
 
       //save the notification
       const notification = new Notifications();

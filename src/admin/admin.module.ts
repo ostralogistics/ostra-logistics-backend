@@ -40,7 +40,8 @@ import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { PasscodeEntity } from 'src/Entity/passcode.entity';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
-import { firebaseAdminProvider } from 'src/firebase/firebase-admin.provider';
+//import { firebaseAdminProvider } from 'src/firebase/firebase-admin.provider';
+import { FcmService } from 'src/firebase/fcm-node.service';
 
 
 
@@ -94,7 +95,8 @@ import { firebaseAdminProvider } from 'src/firebase/firebase-admin.provider';
     DistanceService,
     GeoCodingService,
     CloudinaryService,
-    EventsGateway
+    EventsGateway,
+    FcmService
   ],
 })
 export class AdminModule {}

@@ -73,7 +73,8 @@ import {
 } from 'src/Entity/transactions.entity';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { Socket } from 'socket.io';
-import * as firebase from 'firebase-admin';
+//import * as firebase from 'firebase-admin';
+import { FcmService } from 'src/firebase/fcm-node.service';
 
 
 @Injectable()
@@ -101,6 +102,7 @@ export class AdminCustomerDashBoardService {
     private genratorservice: GeneatorService,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
+    private readonly fcmService: FcmService,
     @InjectRepository(ReceiptEntity)
     private readonly receiptrepo: ReceiptRespository,
   ) {}
@@ -135,40 +137,17 @@ export class AdminCustomerDashBoardService {
       await this.orderRepo.save(order);
 
 
-      //push otification
-      await firebase.messaging().send({
-        notification:{
-          title:'Opening Bid Sent!',
-          body:`Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid ones. We believe our bid is very reasonable. Thank you.`,
-        },
-        token : order.customer.deviceToken[order.customer.deviceToken.length - 1],
-        data:{
-          orderID: order.orderID,
-          bidValue: bid.bid_value.toString(),
-          customerId: order.customer.id,
-        },
-        android:{
-          priority:'high',
-          notification:{
-            sound:'default',
-            channelId:'default'
-          }
-        },
-        apns:{
-          headers:{
-            'apns-priority':'10',
+         // Push notification
+         await this.fcmService.sendNotification(
+          order.customer.deviceToken[order.customer.deviceToken.length - 1],
+          'Opening Bid Sent!',
+          `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
+          {
+            orderID: order.orderID,
+            bidValue: bid.bid_value.toString(),
+            customerId: order.customer.id,
           },
-          payload:{
-            aps:{
-              contentAvailable:true,
-              sound:'default'
-            }
-          }
-        }
-      })
-      .catch((error: any) => {
-        console.error(error);
-      });
+        );
 
 
 
@@ -243,40 +222,19 @@ export class AdminCustomerDashBoardService {
         order: bid.order,
       });
 
-        //push otification
-        await firebase.messaging().send({
-          notification:{
-            title:'Counter Bid Accepted!',
-            body:`the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
-          },
-          token : bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1],
-          data:{
-            orderID: bid.order.orderID,
-            counterbidValue: bid.counter_bid_offer.toString(),
-            customerId: bid.order.customer.id,
-          },
-          android:{
-            priority:'high',
-            notification:{
-              sound:'default',
-              channelId:'default'
-            }
-          },
-          apns:{
-            headers:{
-              'apns-priority':'10',
-            },
-            payload:{
-              aps:{
-                contentAvailable:true,
-                sound:'default'
-              }
-            }
-          }
-        })
-        .catch((error: any) => {
-          console.error(error);
-        });
+     
+
+           // Push notification
+      await this.fcmService.sendNotification(
+        bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1],
+        'Counter Bid Accepted!',
+        `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
+        {
+          orderID: bid.order.orderID,
+          counterbidValue: bid.counter_bid_offer.toString(),
+          customerId: bid.order.customer.id,
+        }
+      );
   
 
       // Save notification for admin
@@ -336,62 +294,20 @@ export class AdminCustomerDashBoardService {
 
       await this.bidRepo.save(bid);
 
-      // // Send push notification to the customer
-      // const payload: admin.messaging.MessagingPayload = {
-      //   notification: {
-      //     title: 'Bid Countered!',
-      //     body: `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
-      //   },
-      // };
 
-      // // Retrieve the most recent device token
-      // const recentDeviceToken =
-      //   bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1];
 
-      // if (recentDeviceToken) {
-      //   // Send the push notification to the most recent device token
-      //   await this.firebaseservice.sendNotification(
-      //     [recentDeviceToken],
-      //     payload,
-      //   );
-      // } else {
-      //   console.log('No device token available for the customer.');
-      // }
-
-        //push otification
-        await firebase.messaging().send({
-          notification:{
-            title:'Bid Countered!',
-            body:`the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
-          },
-          token : bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1],
-          data:{
-            orderID: bid.order.orderID,
-            counterbidValue: bid.counter_bid_offer.toString(),
-            customerId: bid.order.customer.id,
-          },
-          android:{
-            priority:'high',
-            notification:{
-              sound:'default',
-              channelId:'default'
-            }
-          },
-          apns:{
-            headers:{
-              'apns-priority':'10',
-            },
-            payload:{
-              aps:{
-                contentAvailable:true,
-                sound:'default'
-              }
-            }
-          }
-        })
-        .catch((error: any) => {
-          console.error(error);
-        });
+           // Push notification
+      await this.fcmService.sendNotification(
+        bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1],
+        ' Bid Countered!',
+        `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
+        {
+          orderID: bid.order.orderID,
+          counterbidValue: bid.counter_bid_offer.toString(),
+          customerId: bid.order.customer.id,
+        },
+        
+      );
   
       
 
