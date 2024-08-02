@@ -66,8 +66,8 @@ export class CustomerController{
      }
 
      @Get('track-order/')
-     async TrackOrder(@Query('keyword')keyword:string|any){
-      await this.customerservice.TrackOrder(keyword)
+     async TrackOrder(@Query('keyword')keyword:string){
+      return await this.customerservice.TrackOrder(keyword)
      }
 
      

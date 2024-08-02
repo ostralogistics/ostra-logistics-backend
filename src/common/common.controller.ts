@@ -7,7 +7,7 @@ export class CommonController{
     constructor(private readonly publicservice:PublicService){}
 
     @Get('track-order-unprotected')
-    async TrackOrder(@Query('keyword')keyword: string|any){
+    async TrackOrder(@Query('keyword')keyword: string){
         return await this.publicservice.TrackOrder(keyword)
     }
 

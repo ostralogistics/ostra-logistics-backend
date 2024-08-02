@@ -402,7 +402,7 @@ export class AdminCustomerDashBoardService {
     try {
       const skip = (page - 1) * limit;
       const customers = await this.customerRepo.findAndCount({
-        relations: ['my_orders', 'my_cards', 'my_orders', 'my_orders.items'],
+        relations: [ 'my_cards', 'my_orders', 'my_orders.items'],
         skip: skip,
         take: limit,
       });
