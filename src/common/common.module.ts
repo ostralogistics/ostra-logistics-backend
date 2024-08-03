@@ -14,12 +14,13 @@ import { Notifications } from 'src/Entity/notifications.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryConfig } from './config/claudinary.config';
 import { CloudinaryService } from './services/claudinary.service';
+import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 //import { SmsSenderService } from './twilioSmsSender/sms';
 
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrderEntity, Notifications, NewsLetterEntity]),
+    TypeOrmModule.forFeature([OrderEntity, Notifications, NewsLetterEntity,TaskEntity]),
   ],
   providers: [
     EventsGateway,

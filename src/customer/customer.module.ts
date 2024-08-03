@@ -28,6 +28,7 @@ import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
+import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 //import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 //import { FirebaseService } from 'src/firebase/firebase.service';
 
@@ -49,7 +50,8 @@ import { EventsGateway } from 'src/common/gateways/websockets.gateway';
       OrderItemEntity,
       VehicleTypeEntity,
       ReceiptEntity,
-      TransactionEntity
+      TransactionEntity,
+      TaskEntity
     ]),
   ],
   providers: [
