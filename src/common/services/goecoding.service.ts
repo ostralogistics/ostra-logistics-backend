@@ -41,26 +41,40 @@ export class GeoCodingService{
     }
 
 
-    public async GoggleApiCordinates(address:string):Promise<{lat:number, lng:number}>{
-        try {
-            const response: any = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`,{
-                params:{
-                    address:address,
-                    key:process.env.GOOGLE_MAPS_API
+    
+    public async GoggleApiCordinates(address: string): Promise<{ lat: number, lng: number }> {
+        const maxRetries = 3;
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const response: any = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
+                    params: {
+                        address: address,
+                        key: this.configservice.get('GOOGLE_MAPS_API')
+                    },
+                    timeout: 5000 // Set a timeout of 5 seconds
+                });
+    
+                if (response.data.status !== 'OK') {
+                    throw new Error('Failed to retrieve data from Google Maps API');
                 }
-
-            });
-
-            console.log(response.data)
-            const {lat,lng}=response.data.results[0].geometry.location
-            return{lat,lng}
-        } catch (error) {
-            console.log(error)
-            throw new HttpException('Failed to retrieve latitude and longitude ',HttpStatus.BAD_GATEWAY)
-            
+    
+                const { lat, lng } = response.data.results[0].geometry.location;
+                return { lat, lng };
+    
+            } catch (error) {
+                if (attempt < maxRetries) {
+                    console.warn(`Attempt ${attempt} failed. Retrying...`);
+                    await delay(1000 * attempt); // Exponential backoff
+                } else {
+                    console.error(`All ${maxRetries} attempts failed.`);
+                    throw new HttpException('Failed to retrieve latitude and longitude', HttpStatus.BAD_GATEWAY);
+                }
+            }
         }
     }
-
+    
 
 
 

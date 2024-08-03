@@ -14,6 +14,7 @@ import {
   NotificationRepository,
   ReceiptRespository,
   TransactionRespository,
+  paymentmappingRespository,
 } from 'src/common/common.repositories';
 import { BidEntity, IBids, IInitialBidsResponse } from 'src/Entity/bids.entity';
 import { IOrder } from 'src/order/order';
@@ -75,7 +76,8 @@ import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { Socket } from 'socket.io';
 //import * as firebase from 'firebase-admin';
 import { FcmService } from 'src/firebase/fcm-node.service';
-
+import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AdminCustomerDashBoardService {
@@ -97,6 +99,10 @@ export class AdminCustomerDashBoardService {
     private readonly discountRepo: DiscountRepository,
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
+
+    @InjectRepository(PaymentMappingEntity)
+    private readonly paymentMappingRepo: paymentmappingRespository,
+
     private readonly eventsGateway: EventsGateway,
 
     private genratorservice: GeneatorService,
@@ -1276,13 +1282,16 @@ export class AdminCustomerDashBoardService {
 
       // Calculate total amount including VAT
       const totalAmountWithVAT = Number(totalamountpaid) + Number(vatAmount);
+
+        // Generate a unique reference for the transaction
+    const paymentReference = `order_${order.orderID}_${uuidv4()}`;
       // Paystack payment integration
       const response = await axios.post(
         'https://api.paystack.co/transaction/initialize',
         {
           amount: totalAmountWithVAT * 100, // Convert to kobo (Paystack currency)
           email: email, // Customer email for reference
-          reference: order.orderID, // Order ID as payment reference
+          reference: paymentReference, // Order ID as payment reference
           currency: 'NGN',
         },
         {
@@ -1295,6 +1304,14 @@ export class AdminCustomerDashBoardService {
 
       if (response.data.status === true) {
         console.log('payment successfully initiated');
+
+      // Save the mapping of orderID to paymentReference for webhook handling
+      const paymentMapping = new PaymentMappingEntity();
+      paymentMapping.orderID = order.orderID;
+      paymentMapping.reference = paymentReference;
+      await this.paymentMappingRepo.save(paymentMapping);
+
+        
       } else {
         throw new InternalServerErrorException(
           'Payment initialization failed. Please try again later',
@@ -1403,11 +1420,11 @@ export class AdminCustomerDashBoardService {
         throw new NotAcceptableException('The limit for multiple orders is 3');
       }
 
-      const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
+      const pickupCoordinates = await this.geocodingservice.GoggleApiCordinates(
         dto.pickup_address,
       );
       const dropOffCoordinates =
-        await this.geocodingservice.getYahooCoordinates(dto.dropOff_address);
+        await this.geocodingservice.GoggleApiCordinates(dto.dropOff_address);
 
       if (!pickupCoordinates || !dropOffCoordinates) {
         throw new NotAcceptableException('cordinates not found');
@@ -1459,9 +1476,9 @@ export class AdminCustomerDashBoardService {
       item.delivery_type = dto.delivery_type;
       item.schedule_date = dto.schedule_date;
       item.pickupLat = pickupCoordinates.lat;
-      item.pickupLong = pickupCoordinates.lon;
+      item.pickupLong = pickupCoordinates.lng;
       item.dropOffLat = dropOffCoordinates.lat;
-      item.dropOffLong = dropOffCoordinates.lon;
+      item.dropOffLong = dropOffCoordinates.lng;
       item.distance = roundDistance;
 
       await this.cartItemRepo.save(item);

@@ -16,11 +16,13 @@ import { TransactionEntity } from 'src/Entity/transactions.entity';
 import {
   ReceiptRespository,
   TransactionRespository,
+  paymentmappingRespository,
 } from 'src/common/common.repositories';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { ConfigService } from '@nestjs/config';
 import JsBarcode from 'jsbarcode';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
+import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
 
 @Injectable()
 export class PaystackWebhookService {
@@ -30,6 +32,8 @@ export class PaystackWebhookService {
     private readonly transactionRepo: TransactionRespository,
     @InjectRepository(ReceiptEntity)
     private readonly receiptrepo: ReceiptRespository,
+    @InjectRepository(PaymentMappingEntity)
+    private readonly paymentMappingRepo: paymentmappingRespository,
     private genservice: GeneatorService,
     private mailer: Mailer,
     private configservice: ConfigService,
@@ -61,16 +65,28 @@ export class PaystackWebhookService {
   }
 
   private async handleChargeSuccessEvent(
-    orderReference: string,
+    paymentReference: string,
     eventData: any,
   ) {
     try {
-      const order = await this.findOrder(orderReference);
+       // Find the orderID from the payment mapping
+    const paymentMapping = await this.paymentMappingRepo.findOne({
+      where: { reference: paymentReference },
+    });
 
-      if (!order) {
-        console.error('Order not found for reference:', orderReference);
-        return;
-      }
+    if (!paymentMapping) {
+      console.error('Payment mapping not found for reference:', paymentReference);
+      return;
+    }
+
+
+    const orderID = paymentMapping.orderID;
+    const order = await this.findOrder(orderID);
+
+    if (!order) {
+      console.error('Order not found for order ID:', orderID);
+      return;
+    }
 
       await this.updateOrderPaymentStatus(order);
 
@@ -128,7 +144,7 @@ export class PaystackWebhookService {
     }
 
     if (!email) {
-      console.error('No email found for order:', orderReference);
+      console.error('No email found for order:', paymentReference);
       
     }
 

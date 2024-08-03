@@ -4,6 +4,7 @@ import { Notifications } from "src/Entity/notifications.entity";
 
 import { UserOtp } from "src/Entity/otp.entity";
 import { ReceiptEntity } from "src/Entity/receipt.entity";
+import { PaymentMappingEntity } from "src/Entity/refrencemapping.entity";
 import { RequestEntity } from "src/Entity/requests.entity";
 import { TransactionEntity } from "src/Entity/transactions.entity";
 import { EntityRepository, Repository } from "typeorm";
@@ -31,3 +32,6 @@ export class TransactionRespository extends Repository<TransactionEntity>{}
 
 @EntityRepository(ReceiptEntity)
 export class ReceiptRespository extends Repository<ReceiptEntity>{}
+
+@EntityRepository(PaymentMappingEntity)
+export class paymentmappingRespository extends Repository<PaymentMappingEntity>{}

@@ -9,10 +9,11 @@ import { GeneatorService } from 'src/common/services/generator.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
+import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrderEntity, TransactionEntity, ReceiptEntity]),
+    TypeOrmModule.forFeature([OrderEntity, TransactionEntity, ReceiptEntity,PaymentMappingEntity]),
   ],
   providers: [PaystackWebhookService, Mailer, GeneatorService, JwtService],
   controllers: [WebhookController],
