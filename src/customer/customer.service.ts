@@ -390,6 +390,7 @@ export class CustomerService {
           Recipient_name: cartItem.Recipient_name,
           Recipient_phone_number: cartItem.Recipient_phone_number,
           delivery_type: cartItem.delivery_type,
+          weight_of_parcel :cartItem.weight_of_parcel,
           describe_weight_of_parcel: cartItem.describe_weight_of_parcel,
           distance: cartItem.distance,
           dropOffLat: cartItem.dropOffLat,

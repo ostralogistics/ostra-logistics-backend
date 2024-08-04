@@ -1657,6 +1657,7 @@ export class AdminCustomerDashBoardService {
           Recipient_name: cartItem.Recipient_name,
           Recipient_phone_number: cartItem.Recipient_phone_number,
           delivery_type: cartItem.delivery_type,
+          weight_of_parcel:cartItem.weight_of_parcel,
           describe_weight_of_parcel: cartItem.describe_weight_of_parcel,
           distance: cartItem.distance,
           dropOffLat: cartItem.dropOffLat,
@@ -1666,6 +1667,7 @@ export class AdminCustomerDashBoardService {
           landmark_of_dropoff: cartItem.landmark_of_dropoff,
           landmark_of_pickup: cartItem.landmark_of_pickup,
           note_for_rider: cartItem.note_for_rider,
+          
           parcelWorth: cartItem.parcelWorth,
           parcel_name: cartItem.parcel_name,
           pickup_address: cartItem.pickup_address,
