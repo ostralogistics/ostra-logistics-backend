@@ -275,9 +275,9 @@ export class Mailer {
             <h1 class="verification-heading">Password Reset Request</h1>
             <p class="message">Hi ${name},</p>
             <div class="instructions">
-              <p>It seems like you requested a password reset. Please click on the link below to reset your password:</p>
-              <p style="text-align: center;"><a href="${resettoken}" style="background-color: #53B1FD; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
-              <p>If you did not request a password reset, please ignore this email. This link will expire in 30 minutes.</p>
+              <p>It seems like you requested a password reset. Please use the OTP below to reset your password:</p>
+              <p class="otp">${resettoken}</p>
+              <p>If you did not request a password reset token, please ignore this email. This OTP will expire in 1 Hour.</p>
             </div>
             <div class="footer">
               <p>Ostra Logistics</p>
