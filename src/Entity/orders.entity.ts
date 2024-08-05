@@ -31,6 +31,7 @@ import { AdminEntity } from './admins.entity';
 import { VehicleEntity } from './vehicle.entity';
 import { VehicleTypeEntity } from './vehicleType.entity';
 import { TransactionEntity } from './transactions.entity';
+import { ReceiptEntity } from './receipt.entity';
 
 @Entity('orders')
 export class OrderEntity implements IOrder {
@@ -137,6 +138,9 @@ export class OrderEntity implements IOrder {
   @OneToOne(() => TransactionEntity, (transaction) => transaction.order)
   @JoinColumn()
   transaction: TransactionEntity;
+
+  @OneToOne(() => ReceiptEntity, (receipt) => receipt.order)
+  receipt: ReceiptEntity;
 
 }
 

@@ -17,8 +17,8 @@ import { RequestEntity } from 'src/Entity/requests.entity';
 import { CustomerService } from 'src/customer/customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
-// import { FirebaseService } from 'src/firebase/firebase.service';
-// import { FirebaseModule } from 'src/firebase/firebase.module';
+import { FcmService } from 'src/firebase/fcm-node.service';
+
 
  @Module({
   imports: [
@@ -41,8 +41,9 @@ import { EventsGateway } from 'src/common/gateways/websockets.gateway';
     Mailer,
     RiderService,
     GeneatorService,
-    EventsGateway
-    //FirebaseService
+    EventsGateway,
+    FcmService
+    
   ],
   controllers: [RiderAuthController, RiderController],
 })

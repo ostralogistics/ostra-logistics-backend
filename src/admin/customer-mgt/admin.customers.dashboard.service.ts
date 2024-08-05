@@ -967,7 +967,7 @@ export class AdminCustomerDashBoardService {
     try {
       const checkbarcode = await this.orderRepo.findOne({
         where: { barcodeDigits: barcodeDigit },
-        relations: ['customer', 'bid', 'items','Rider'],
+        relations: ['customer', 'receipt', 'items',],
       });
       if (!checkbarcode) throw new NotFoundException('trackingID not found');
 
@@ -981,7 +981,7 @@ export class AdminCustomerDashBoardService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'an error occured while generating air waybill, please try again later',
+          'an error occured while generating air waybill,',
           error.message,
         );
       }
