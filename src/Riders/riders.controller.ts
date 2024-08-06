@@ -72,7 +72,7 @@ export class RiderController{
 
     @Patch('checkin-enroute-to-dropoff-location/:taskID/:orderID')
     async RiderChecksinWhenEnrouteToDropOffLocation (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
-        return await this.riderservice.RiderCheckInWhenHeGetsToDropoffLocation(taskID,orderID,req.user)
+        return await this.riderservice.RiderCheckInWhenHeISEnrouteToDropoffLocation(taskID,orderID,req.user)
     }
 
     @Patch('checkin-dropoff-location/:taskID/:orderID')
