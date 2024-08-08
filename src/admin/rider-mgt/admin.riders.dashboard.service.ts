@@ -1011,6 +1011,32 @@ export class AdminRiderDashboardService {
     }
   }
 
+   //get one rider tasks or rides
+   async getOneTask(taskID: number) {
+    try {
+      const alltasks = await this.taskRepo.findOne({
+        where: { id:taskID },
+        relations: ['rider','rider.vehicle_for_the_day', 'assigned_order', 'assigned_order.customer'],
+      });
+      if (!alltasks)
+        throw new NotFoundException(
+          'task not found',
+        );
+
+      return alltasks;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while trying fetch this rider task',
+          error.message,
+        );
+      }
+    }
+  }
+
 
   //get all the count of the task for one rider
   async getOneriderTaskCount(riderID: string) {

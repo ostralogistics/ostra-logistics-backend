@@ -323,6 +323,17 @@ export class AdminRiderDashBoardController {
     AdminAccessLevels.LEVEL2,
     AdminAccessLevels.LEVEL1,
   )
+  @Get('one-task/:taskID')
+  async GetOneTask(@Param('taskID') taskID: number) {
+    return await this.adminriderservice.getOneTask(taskID);
+  }
+
+  @AdminTypes(AdminType.CEO, AdminType.STAFF)
+  @AdminAccessLevel(
+    AdminAccessLevels.LEVEL3,
+    AdminAccessLevels.LEVEL2,
+    AdminAccessLevels.LEVEL1,
+  )
   @Get('one-rider-tasks-count/:riderID')
   async GetOneriderTasksCount(@Param('riderID') riderID: string) {
     return await this.adminriderservice.getOneriderTaskCount(riderID);
