@@ -32,7 +32,7 @@ export class BankDetailsDto{
 
 
     @IsNotEmpty()
-    @IsNumber()
+    @IsString()
     account_number :string
 
 }
