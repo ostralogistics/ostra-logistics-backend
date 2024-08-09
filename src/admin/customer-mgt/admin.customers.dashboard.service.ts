@@ -349,7 +349,7 @@ export class AdminCustomerDashBoardService {
   async FetchAllBids() {
     try {
       const [bids, count] = await this.bidRepo.findAndCount({
-        relations: ['order', 'order.items', 'madeby'],
+        relations: ['order','order.customer', 'order.items', 'madeby'],
         order:{
           bidStatus:"DESC"
         }
@@ -379,7 +379,7 @@ export class AdminCustomerDashBoardService {
     try {
       const bid = await this.bidRepo.findOne({
         where:{id:bidID},
-        relations: ['order', 'order.items', 'madeby'],
+        relations: ['order', 'order.customer','order.items', 'madeby'],
        
       });
   
