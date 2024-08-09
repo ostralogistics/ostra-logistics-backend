@@ -59,6 +59,10 @@ export class addPasswordDto{
     @Match('password', { message: 'ConfirmPassword does not match the new password.' })
     confirmPassword:string 
 
+    @IsEmail()
+    @IsNotEmpty()
+    email:string
+
 }
 
 

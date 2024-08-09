@@ -437,12 +437,12 @@ export class AdminAuthService {
 
   //reset password
   async FinallyResetPasswordAfterVerification(
-    adminID: string | any,
+    
     dto: addPasswordDto,
   ): Promise<{ message: string }> {
     try {
       const checkcustomer = await this.adminrepo.findOne({
-        where: { id: adminID },
+        where: { email:dto.email },
       });
       if (!checkcustomer.isVerified)
         throw new UnauthorizedException(

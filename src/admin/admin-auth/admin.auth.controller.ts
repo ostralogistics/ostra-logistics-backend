@@ -69,9 +69,8 @@ export class AdminAuthController{
     }
 
     @Patch('/reset-password')
-    async ResetPassword(@Req()req:Request,@Body()dto:addPasswordDto):Promise<{message:string}>{
-        const adminID = req.headers.id
-        return await this.adminauthservice.FinallyResetPasswordAfterVerification(adminID,dto)
+    async ResetPassword(@Body()dto:addPasswordDto):Promise<{message:string}>{
+        return await this.adminauthservice.FinallyResetPasswordAfterVerification(dto)
 
     }
 
