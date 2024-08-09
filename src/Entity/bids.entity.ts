@@ -11,6 +11,8 @@ export interface IBids{
     bid_value:number
     initialBidPlacedAt: Date;
     BidAcceptedAt: Date;
+    counterOfferAcceptedAt:Date
+    isCounterOfferAccepted:boolean
     BidDeclinedAt: Date;
     counter_bid_offer: number
     counteredAt:Date
@@ -58,6 +60,14 @@ initialBidPlacedAt: Date;
 
 @Column({nullable:true,type:"timestamp"})
 BidAcceptedAt: Date;
+
+@Column({nullable:true,type:"timestamp"})
+counterOfferAcceptedAt: Date;
+
+@Column({nullable:true,type:'boolean', default:false})
+isCounterOfferAccepted: boolean;
+
+
 
 @Column({nullable:true,type:"timestamp"})
 BidDeclinedAt: Date;

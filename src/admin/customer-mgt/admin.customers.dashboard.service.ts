@@ -213,6 +213,8 @@ export class AdminCustomerDashBoardService {
       // Accept the counter offer
       bid.bidStatus = BidStatus.ACCEPTED;
       bid.BidAcceptedAt = new Date();
+      bid.counterOfferAcceptedAt = new Date()
+      bid.isCounterOfferAccepted = true
       // Record which admin accepted i
       await this.bidRepo.save(bid);
 

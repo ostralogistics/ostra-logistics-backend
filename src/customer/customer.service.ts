@@ -572,6 +572,8 @@ export class CustomerService {
     bid.bidStatus = BidStatus.ACCEPTED;
     bid.order = order;
     bid.BidAcceptedAt = new Date();
+    bid.counterOfferAcceptedAt = new Date()
+    bid.isCounterOfferAccepted = true
     await this.bidRepo.save(bid);
 
     await this.sendNotification(
