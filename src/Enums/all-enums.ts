@@ -10,7 +10,6 @@ export enum BidStatus {
     COUNTERED ="countered",
     PENDING ="pending",
     BID_PLACED ="bid_placed"
-
 }
 
 

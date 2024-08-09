@@ -7,12 +7,12 @@ export class DistanceService {
     // calculate the distance between two points given the parameter of lat and long using the Harvasine Formular 
 
   public calculateDistance(
-    point1: { lat: number; lng: number },
-    point2: { lat: number; lng: number },
+    point1: { lat: number; lon: number },
+    point2: { lat: number; lon: number },
   ): number {
     const earthRadiusInKm = 6371;
     const dlat = this.degreesToRadians(point2.lat - point1.lat);
-    const dlong = this.degreesToRadians(point2.lng - point1.lng);
+    const dlong = this.degreesToRadians(point2.lon - point1.lon);
 
     const a =
       Math.sin(dlat / 2) * Math.sin(dlat / 2) +

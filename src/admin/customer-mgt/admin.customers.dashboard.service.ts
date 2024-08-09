@@ -1420,11 +1420,11 @@ export class AdminCustomerDashBoardService {
         throw new NotAcceptableException('The limit for multiple orders is 3');
       }
 
-      const pickupCoordinates = await this.geocodingservice.GoggleApiCordinates(
+      const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
         dto.pickup_address,
       );
       const dropOffCoordinates =
-        await this.geocodingservice.GoggleApiCordinates(dto.dropOff_address);
+        await this.geocodingservice.getYahooCoordinates(dto.dropOff_address);
 
       if (!pickupCoordinates || !dropOffCoordinates) {
         throw new NotAcceptableException('cordinates not found');
@@ -1476,9 +1476,9 @@ export class AdminCustomerDashBoardService {
       item.delivery_type = dto.delivery_type;
       item.schedule_date = dto.schedule_date;
       item.pickupLat = pickupCoordinates.lat;
-      item.pickupLong = pickupCoordinates.lng;
+      item.pickupLong = pickupCoordinates.lon;
       item.dropOffLat = dropOffCoordinates.lat;
-      item.dropOffLong = dropOffCoordinates.lng;
+      item.dropOffLong = dropOffCoordinates.lon;
       item.distance = roundDistance;
 
       await this.cartItemRepo.save(item);
