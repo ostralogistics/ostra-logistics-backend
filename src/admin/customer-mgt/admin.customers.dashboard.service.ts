@@ -137,6 +137,7 @@ export class AdminCustomerDashBoardService {
       bid.initialBidPlacedAt = new Date();
       bid.bidStatus = BidStatus.BID_PLACED;
       bid.madeby = admin;
+      bid.updatedAT = new Date()
       await this.bidRepo.save(bid);
 
       order.processingOrderAT = new Date();
@@ -215,6 +216,7 @@ export class AdminCustomerDashBoardService {
       bid.BidAcceptedAt = new Date();
       bid.counterOfferAcceptedAt = new Date()
       bid.isCounterOfferAccepted = true
+      bid.updatedAT = new Date()
       // Record which admin accepted i
       await this.bidRepo.save(bid);
 
@@ -298,6 +300,7 @@ export class AdminCustomerDashBoardService {
       bid.counter_bid_offer = dto.counter_bid;
       bid.bidStatus = BidStatus.COUNTERED;
       bid.isCounterOffer = true;
+      bid.updatedAT = new Date()
       bid.counteredAt = new Date();
 
       await this.bidRepo.save(bid);

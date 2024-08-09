@@ -552,6 +552,7 @@ export class CustomerService {
     bid.bidStatus = BidStatus.ACCEPTED;
     bid.order = order;
     bid.BidAcceptedAt = new Date();
+    bid.updatedAT = new Date()
     await this.bidRepo.save(bid);
 
     await this.sendNotification(
@@ -574,6 +575,7 @@ export class CustomerService {
     bid.BidAcceptedAt = new Date();
     bid.counterOfferAcceptedAt = new Date()
     bid.isCounterOfferAccepted = true
+    bid.updatedAT = new Date()
     await this.bidRepo.save(bid);
 
     await this.sendNotification(
@@ -594,6 +596,7 @@ export class CustomerService {
     bid.bidStatus = BidStatus.DECLINED;
     bid.order = order;
     bid.BidDeclinedAt = new Date();
+    bid.updatedAT = new Date()
     await this.bidRepo.save(bid);
 
     await this.sendNotification(

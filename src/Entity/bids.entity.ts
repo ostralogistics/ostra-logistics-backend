@@ -7,7 +7,7 @@ export interface IBids{
     id:number,
     bidStatus: BidStatus,
     order:OrderEntity
-    // bidGroupId: string;
+   updatedAT:Date
     bid_value:number
     initialBidPlacedAt: Date;
     BidAcceptedAt: Date;
@@ -67,6 +67,8 @@ counterOfferAcceptedAt: Date;
 @Column({nullable:true,type:'boolean', default:false})
 isCounterOfferAccepted: boolean;
 
+@Column({nullable:true,type:"timestamp"})
+updatedAT: Date;
 
 
 @Column({nullable:true,type:"timestamp"})
