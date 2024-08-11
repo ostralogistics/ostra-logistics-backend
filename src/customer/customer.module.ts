@@ -53,7 +53,8 @@ import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
       ReceiptEntity,
       TransactionEntity,
       TaskEntity,
-      PaymentMappingEntity
+      PaymentMappingEntity,
+      VehicleTypeEntity
     ]),
   ],
   providers: [

@@ -444,6 +444,9 @@ export class AdminAuthService {
       const checkcustomer = await this.adminrepo.findOne({
         where: { email:dto.email },
       });
+
+
+
       if (!checkcustomer.isVerified)
         throw new UnauthorizedException(
           'sorry this customer has not been verified yet, please request for an otp to verify your account',

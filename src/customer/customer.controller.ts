@@ -17,6 +17,17 @@ import { Role } from "src/Enums/all-enums";
 @Controller('customer-action')
 export class CustomerController{
     constructor(private readonly customerservice:CustomerService){}
+
+    @Get('all-vehicleType')
+    async GetAllVehicleTypes(){
+        return await this.customerservice.GetAllVehicleType()
+    }
+
+    
+    @Get('one-vehicleType/:vehicletypeID')
+    async GetOneVehicletype(@Param('vehicletypeID')vehicletypeID:number){
+        return await this.customerservice.GetOneVehicleType(vehicletypeID)
+    }
     
     @Get('fetch-discout-code')
     async GetDiscount(){

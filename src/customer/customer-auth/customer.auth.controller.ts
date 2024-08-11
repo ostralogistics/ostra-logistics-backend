@@ -48,9 +48,8 @@ export class CustomerAuthController{
     }
 
     @Patch('/reset-password')
-    async ResetPassword (@Req()req:Request,@Body()dto:addPasswordDto):Promise<{message:string}>{
-        const customerID = req.headers.id 
-        return await this.customerauthservice.FinallyResetPasswordAfterVerification(customerID,dto)
+    async ResetPassword (@Body()dto:addPasswordDto):Promise<{message:string}>{
+        return await this.customerauthservice.FinallyResetPasswordAfterVerification(dto)
     }
 
    

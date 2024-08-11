@@ -409,12 +409,11 @@ export class CustomerAuthService {
 
   //reset password
   async FinallyResetPasswordAfterVerification(
-    customerID: string | any,
     dto: addPasswordDto,
   ): Promise<{ message: string }> {
     try {
       const checkcustomer = await this.customerrepo.findOne({
-        where: { id: customerID },
+        where: { email:dto.email },
       });
       if (!checkcustomer.isVerified)
         throw new UnauthorizedException(

@@ -129,6 +129,8 @@ export class CustomerService {
     private readonly receiptrepo: ReceiptRespository,
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
+    @InjectRepository(VehicleTypeEntity)
+    private readonly vehicletyperepo: VehicleTypeRepository,
 
     @InjectRepository(PaymentMappingEntity)
     private readonly paymentMappingRepo: paymentmappingRespository,
@@ -140,6 +142,56 @@ export class CustomerService {
     private genratorservice: GeneatorService,
     private cloudinaryservice: CloudinaryService,
   ) {}
+
+
+  //get the vehicle types
+  async GetAllVehicleType() {
+    try {
+      const vehicletype = await this.vehicletyperepo.findAndCount();
+      if (vehicletype[1] === 0)
+        throw new NotFoundException(
+          'you have no vehicle type added at the moment',
+        );
+
+      return vehicletype;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching all vehicletype, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
+  //get one vehicletype
+  async GetOneVehicleType(vehicletypeID: number) {
+    try {
+      const vehicletype = await this.vehicletyperepo.findOne({
+        where: { id: vehicletypeID },
+      });
+      if (!vehicletype)
+        throw new NotFoundException(
+          `you have no vehicleType with the ID ${vehicletype}`,
+        );
+
+      return vehicletype;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching one vehicletype, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+
 
   // add to cart
   async addToOrderCart(
