@@ -125,6 +125,10 @@ export class OrderEntity implements IOrder {
   @ManyToOne(() => CustomerEntity, (owner) => owner.my_orders)
   customer: CustomerEntity;
 
+  
+  @Column({nullable:true, type:'boolean', default:false})
+  isExpressDelivery : boolean
+
 
   @ManyToOne(() => AdminEntity, (owner) => owner.my_orders)
   admin: AdminEntity;
@@ -154,6 +158,9 @@ export class OrderItemEntity {
 
   @ManyToOne(() => OrderEntity, (order) => order.items)
   order: OrderEntity;
+
+  @Column({nullable:true, type:'boolean', default:false})
+  isExpressDelivery : boolean
 
   //in office order user details 
 
@@ -300,6 +307,9 @@ export class CartItemEntity {
 
   @ManyToOne(() => OrderCartEntity, (cart) => cart.items)
   cart: OrderCartEntity;
+
+  @Column({nullable:true, type:'boolean', default:false})
+  isExpressDelivery : boolean
 
   @Column({ nullable: true })
   name:string

@@ -39,9 +39,11 @@ import {
   BidEvent,
   BidStatus,
   BiddingAction,
+  DeliveryPriority,
   OrderDisplayStatus,
   OrderStatus,
   PaymentStatus,
+  PriorityDeliveryType,
   channelforconversation,
   complainResolutionStatus,
 } from 'src/Enums/all-enums';
@@ -49,6 +51,7 @@ import { BidEntity, IBids } from 'src/Entity/bids.entity';
 import {
   BidRepository,
   DiscountUsageRepository,
+  ExpressDeliveryFeeRespository,
   NotificationRepository,
   ReceiptRespository,
   TransactionRespository,
@@ -58,7 +61,7 @@ import axios from 'axios';
 import * as nanoid from 'nanoid';
 
 import { IOrder } from 'src/order/order';
-import { ILike } from 'typeorm';
+import { ExplainVerbosity, ILike } from 'typeorm';
 import {
   CardDetailsDto,
   ChangePasswordDto,
@@ -82,7 +85,7 @@ import {
   VehicleRepository,
   VehicleTypeRepository,
 } from 'src/admin/admin.repository';
-import { DiscountEntity } from 'src/Entity/discount.entity';
+import { DiscountEntity, ExpressDeliveryFeeEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { plainToInstance } from 'class-transformer';
@@ -131,9 +134,10 @@ export class CustomerService {
     private readonly transactionRepo: TransactionRespository,
     @InjectRepository(VehicleTypeEntity)
     private readonly vehicletyperepo: VehicleTypeRepository,
-
     @InjectRepository(PaymentMappingEntity)
     private readonly paymentMappingRepo: paymentmappingRespository,
+    @InjectRepository(ExpressDeliveryFeeEntity)
+    private readonly expressDeliveryFeeRepo: ExpressDeliveryFeeRespository,
 
     @InjectRepository(TaskEntity) private readonly taskRepo: TaskRepository,
     private eventsGateway: EventsGateway,
@@ -267,6 +271,9 @@ export class CustomerService {
         item.vehicleType = vehicle;
       }
       item.delivery_type = dto.delivery_type;
+      if (dto.delivery_type === PriorityDeliveryType.EXPRESS_DELIVERY){
+        item.isExpressDelivery = true
+      }
       item.schedule_date = dto.schedule_date;
       item.pickupLat = pickupCoordinates.lat;
       item.pickupLong = pickupCoordinates.lon;
@@ -410,6 +417,8 @@ export class CustomerService {
           );
         }
 
+
+
         const promoCode = await this.discountRepo.findOne({
           where: { OneTime_discountCode: dto.code },
         });
@@ -433,10 +442,13 @@ export class CustomerService {
       order.order_status = OrderStatus.ORDER_PLACED;
       order.order_display_status = OrderDisplayStatus.ORDER_PLACED;
 
+
+      let hasExpressDelivery = false;
       // Add items to the order
       order.items = cart.items.map((cartItem) => {
         const orderItem = new OrderItemEntity();
         Object.assign(orderItem, {
+          isExpressDelivery:cartItem.isExpressDelivery,
           Area_of_dropoff: cartItem.Area_of_dropoff,
           Area_of_pickup: cartItem.Area_of_pickup,
           Recipient_name: cartItem.Recipient_name,
@@ -463,9 +475,19 @@ export class CustomerService {
           vehicleType: cartItem.vehicleType,
           house_apartment_number_of_dropoff:
             cartItem.house_apartment_number_of_dropoff,
+            
         });
+
+        if (cartItem.isExpressDelivery) {
+          hasExpressDelivery = true;
+        }
         return orderItem;
       });
+
+
+      order.isExpressDelivery = hasExpressDelivery
+
+   
 
       // Save the new order
       await this.orderRepo.save(order);
@@ -509,6 +531,14 @@ export class CustomerService {
         );
       }
     }
+  }
+
+  async getExpressDeliveryFeePercentage(): Promise<number> {
+    const expressDeliveryFee = await this.expressDeliveryFeeRepo.findOne({
+      where: { isSet: true },
+      order: { updatedAT: 'DESC' },
+    });
+    return expressDeliveryFee ? expressDeliveryFee.addedPercentage : 0;
   }
 
   /////////////////////////////////biding process ///////////////////////////////
@@ -806,15 +836,32 @@ export class CustomerService {
         );
       }
 
-      //calculate VAT
-      const vatPercentage = 0.07;
-      const vatAmount = +(
-        order.accepted_cost_of_delivery * vatPercentage
-      ).toFixed(2);
-      console.log('vatamount', vatAmount);
-
+      
       //check if discount is applied
       let totalamountpaid = order.accepted_cost_of_delivery;
+
+      let expressDeliveryCharge = 0;
+
+      // Check if any item in the order is marked for express delivery
+      const hasExpressDelivery = order.items.some(item => item.isExpressDelivery);
+  
+      if (hasExpressDelivery) {
+        const expressDeliveryFeePercentage = await this.getExpressDeliveryFeePercentage();
+        expressDeliveryCharge = +(totalamountpaid * (expressDeliveryFeePercentage / 100)).toFixed(2);
+        totalamountpaid += expressDeliveryCharge;
+      }
+
+    //calculate VAT
+    const vatPercentage = 0.07;
+    const vatAmount = +(
+      order.accepted_cost_of_delivery * vatPercentage
+    ).toFixed(2);
+    console.log('vatamount', vatAmount);
+
+
+
+
+
       if (order.IsDiscountApplied && order.discount) {
         //calculate discounted amount
         const discooutAmount = +(

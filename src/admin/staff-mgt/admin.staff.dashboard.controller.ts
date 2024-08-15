@@ -61,6 +61,13 @@ export class AdminStaffDashBoardController{
         return await this.adminstaffservice.GetOneStaffByID(staffID)
     }
 
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Get('/one-staff-more-details/:staffID')
+    async GetOneStaffMoreDetails(@Param('staffID')staffID:string) {
+        return await this.adminstaffservice.GetOneStaffDetails(staffID)
+    }
+
     @AdminAccessLevel(AdminAccessLevels.LEVEL3, AdminAccessLevels.LEVEL2)
     @Get('/search-staff')
     async SearchStaff(

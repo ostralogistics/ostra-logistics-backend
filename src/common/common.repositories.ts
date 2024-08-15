@@ -1,4 +1,5 @@
 import { BidEntity } from "src/Entity/bids.entity";
+import { ExpressDeliveryFeeEntity } from "src/Entity/discount.entity";
 import { DiscountUsageEntity } from "src/Entity/discountUsage.entity";
 import { Notifications } from "src/Entity/notifications.entity";
 
@@ -35,3 +36,7 @@ export class ReceiptRespository extends Repository<ReceiptEntity>{}
 
 @EntityRepository(PaymentMappingEntity)
 export class paymentmappingRespository extends Repository<PaymentMappingEntity>{}
+
+@EntityRepository(ExpressDeliveryFeeEntity)
+export class ExpressDeliveryFeeRespository extends Repository<ExpressDeliveryFeeEntity>{}
+

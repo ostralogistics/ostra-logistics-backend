@@ -10,10 +10,11 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
+import { ExpressDeliveryFeeEntity } from 'src/Entity/discount.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrderEntity, TransactionEntity, ReceiptEntity,PaymentMappingEntity]),
+    TypeOrmModule.forFeature([OrderEntity, TransactionEntity, ReceiptEntity,PaymentMappingEntity,ExpressDeliveryFeeEntity]),
   ],
   providers: [PaystackWebhookService, Mailer, GeneatorService, JwtService],
   controllers: [WebhookController],

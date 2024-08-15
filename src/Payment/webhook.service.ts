@@ -14,6 +14,7 @@ import * as nanoid from 'nanoid';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
 import {
+  ExpressDeliveryFeeRespository,
   ReceiptRespository,
   TransactionRespository,
   paymentmappingRespository,
@@ -23,6 +24,7 @@ import { ConfigService } from '@nestjs/config';
 import JsBarcode from 'jsbarcode';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
+import { ExpressDeliveryFeeEntity } from 'src/Entity/discount.entity';
 
 @Injectable()
 export class PaystackWebhookService {
@@ -34,6 +36,8 @@ export class PaystackWebhookService {
     private readonly receiptrepo: ReceiptRespository,
     @InjectRepository(PaymentMappingEntity)
     private readonly paymentMappingRepo: paymentmappingRespository,
+    @InjectRepository(ExpressDeliveryFeeEntity)
+    private readonly expressDeliveryFeeRepo: ExpressDeliveryFeeRespository,
     private genservice: GeneatorService,
     private mailer: Mailer,
     private configservice: ConfigService,
@@ -69,107 +73,102 @@ export class PaystackWebhookService {
     eventData: any,
   ) {
     try {
-       // Find the orderID from the payment mapping
-    const paymentMapping = await this.paymentMappingRepo.findOne({
-      where: { reference: paymentReference },
-    });
-
-    if (!paymentMapping) {
-      console.error('Payment mapping not found for reference:', paymentReference);
-      return;
-    }
-
-
-    const orderID = paymentMapping.orderID;
-    const order = await this.findOrder(orderID);
-
-    if (!order) {
-      console.error('Order not found for order ID:', orderID);
-      return;
-    }
-
+      // Find the orderID from the payment mapping
+      const paymentMapping = await this.paymentMappingRepo.findOne({
+        where: { reference: paymentReference },
+      });
+  
+      if (!paymentMapping) {
+        console.error('Payment mapping not found for reference:', paymentReference);
+        return;
+      }
+  
+      const orderID = paymentMapping.orderID;
+      const order = await this.findOrder(orderID);
+  
+      if (!order) {
+        console.error('Order not found for order ID:', orderID);
+        return;
+      }
+  
       await this.updateOrderPaymentStatus(order);
-
+  
       const vatPercentage = 0.07;
-      const vatAmount = +(
-        order.accepted_cost_of_delivery * vatPercentage
-      ).toFixed(2);
-
+      let totalBeforeVAT = order.accepted_cost_of_delivery;
+  
+      // Calculate express delivery charge
+      let expressDeliveryCharge = 0;
+      if (order.isExpressDelivery) {
+        const expressDeliveryFeePercentage = await this.getExpressDeliveryFeePercentage();
+        expressDeliveryCharge = +(totalBeforeVAT * (expressDeliveryFeePercentage / 100)).toFixed(2);
+        totalBeforeVAT += expressDeliveryCharge;
+      }
+  
+      // Calculate discount
       let discountAmount = 0;
       if (order.discount && order.IsDiscountApplied) {
         const discountPercentage = order.discount;
-        discountAmount = +(
-          (order.accepted_cost_of_delivery * discountPercentage) /
-          100
-        ).toFixed(2);
+        discountAmount = +((totalBeforeVAT * discountPercentage) / 100).toFixed(2);
+        totalBeforeVAT -= discountAmount;
       }
-
-      const totalBeforeVAT = order.accepted_cost_of_delivery - discountAmount;
+  
+      // Calculate VAT
+      const vatAmount = +(totalBeforeVAT * vatPercentage).toFixed(2);
+  
+      // Calculate total
       const total = Number(totalBeforeVAT) + Number(vatAmount);
-
+  
       const receipt = new ReceiptEntity();
       receipt.ReceiptID = `#${this.genservice.generatereceiptID()}`;
-      //receipt.dueAt = new Date();
       receipt.issuedAt = new Date();
       receipt.order = order;
-      receipt.subtotal = totalBeforeVAT;
+      receipt.subtotal = order.accepted_cost_of_delivery;
+      receipt.expressDeliveryCharge = expressDeliveryCharge;
       receipt.VAT = vatAmount;
       receipt.total = total;
       receipt.discount = discountAmount;
       await this.receiptrepo.save(receipt);
-
-      //transaction 
-      await this.createTransaction(order)
-
-
-      //send mail 
-
-    // Prepare email and name for notification
-    let email: string | undefined;
-    let name: string | undefined;
-
-    // Check if the order has a customer
-    if (order.customer) {
-      email = order.customer.email;
-      name = order.customer.firstname;
-    }
-
-    // Check if the order items have email and name
-    if (!email) {
-      email = order.items.map(item => item.email).find(email => email);
-    }
-
-    if (!name) {
-      name = order.items.map(item => item.name).find(name => name);
-    }
-
-    if (!email) {
-      console.error('No email found for order:', paymentReference);
-      
-    }
-
-    // Send the email
-    await this.mailer.OrderAcceptedMail(
-      email,
-      name ?? 'Customer', // Use 'Customer' if name is not found
-      order.trackingID,
-      order.dropoffCode,
-      order.orderID
-    );
-
-
-      
-
+  
+      // Create transaction
+      await this.createTransaction(order);
+  
+      // Send email
+      let email: string | undefined;
+      let name: string | undefined;
+  
+      if (order.customer) {
+        email = order.customer.email;
+        name = order.customer.firstname;
+      }
+  
+      if (!email) {
+        email = order.items.map(item => item.email).find(email => email);
+      }
+  
+      if (!name) {
+        name = order.items.map(item => item.name).find(name => name);
+      }
+  
+      if (!email) {
+        console.error('No email found for order:', paymentReference);
+      }
+  
+      await this.mailer.OrderAcceptedMail(
+        email,
+        name ?? 'Customer',
+        order.trackingID,
+        order.dropoffCode,
+        order.orderID
+      );
+  
       return {
         trackingID: order.trackingID,
         dropoffCode: order.dropoffCode,
-        
       };
     } catch (error) {
       console.error('Error handling charge success event:', error);
     }
   }
-
   private async findOrder(orderReference: string): Promise<OrderEntity | null> {
     return await this.orderRepo.findOne({
       where: { orderID: orderReference },
@@ -195,5 +194,13 @@ export class PaystackWebhookService {
     transaction.order = order
     transaction.paymentStatus = order.payment_status;
     await this.transactionRepo.save(transaction);
+  }
+
+  async getExpressDeliveryFeePercentage(): Promise<number> {
+    const expressDeliveryFee = await this.expressDeliveryFeeRepo.findOne({
+      where: { isSet: true },
+      order: { updatedAT: 'DESC' },
+    });
+    return expressDeliveryFee ? expressDeliveryFee.addedPercentage : 0;
   }
 }

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { AdminService } from "./admin.service";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
-import { ChannelDto, DiscountDto, PriceListDto, RegisterVehicleDto, ReplyDto, ReturnedVehicleDto, UpdateAdminDto, UpdateDiscountDto, UpdatePriceListDto, UpdateVehicleDto, VehicleTypeDto, updateResolutionStatusDto } from "./admin.dto";
+import { ChannelDto, DiscountDto, ExpressDeliverychargeDto, PriceListDto, RegisterVehicleDto, ReplyDto, ReturnedVehicleDto, UpdateAdminDto, UpdateDiscountDto, UpdatePriceListDto, UpdateVehicleDto, VehicleTypeDto, updateResolutionStatusDto } from "./admin.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "src/auth/guard/role.guard";
 import { Roles } from "src/auth/decorator/role.decorator";
@@ -316,6 +316,25 @@ export class Admincontroller{
     @Get('delivery-volume-hourly')
     async getHourlyRevenue() {
       return this.adminservice.calculateHourlyRevenue();
+    }
+
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Post('set-express-delivery-percentage-charge')
+    async SetExpressDelivery(@Body()dto:ExpressDeliverychargeDto){
+        return await this.adminservice.setExpressDeliveryFee(dto)
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2,AdminAccessLevels.LEVEL1)
+    @Get('fetch-express-delivery-percentage-charge')
+    async GetExpress(){
+        return await this.adminservice.GetExpressDeliveryCost()
+    }
+
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Patch('update-express-delivery-percentage-charge/:expressID')
+    async UpdateExpressDelivery(@Body()dto:ExpressDeliverychargeDto, @Param('expressID')expressID:number){
+        return await this.adminservice.UpdateExpressDeliveryFee(dto,expressID)
     }
 
 

@@ -194,6 +194,7 @@ export class AdminStaffDasboardService {
       admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
       admin.adminAccessLevels = dto.accesslevel
       admin.UpdatedAt = new Date()
+      
 
 
       await this.adminripo.save(admin);
@@ -364,6 +365,41 @@ export class AdminStaffDasboardService {
       }
     }
   }
+
+  async GetOneStaffDetails(staffID: string) {
+    try {
+      const staff = await this.adminripo.findOne({
+        where: { id: staffID, admintype: AdminType.STAFF },
+        relations: ['my_orders', 'my_orders.items', 'bids_sent', 'bids_sent.order', 'bids_sent.order.customer'],
+      });
+  
+      if (!staff) {
+        throw new NotFoundException(`Staff with id: ${staffID} is not found in the Ostra logistics staff database`);
+      }
+  
+      // Calculate bidCount and orderCount
+      const bidCount = staff.bids_sent ? staff.bids_sent.length : 0;
+      const orderCount = staff.my_orders ? staff.my_orders.length : 0;
+  
+      // Return the staff details along with bidCount and orderCount
+      return {
+        staff,
+        bidCount,
+        orderCount,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while trying to get one staff by id, please try again later',
+          error.message,
+        );
+      }
+    }
+  }
+  
 
   //admin search for an admin
   async SearchForOtherAdmin(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: AdminEntity[]; total: number }> {

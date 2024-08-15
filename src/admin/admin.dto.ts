@@ -492,6 +492,13 @@ export class PriceListDto{
     amount:string
 }
 
+export class ExpressDeliverychargeDto{
+    @IsNumber()
+    @IsNotEmpty()
+    expressDeliveryPercentageCharge:number
+
+   
+}
 export class LogtransactionDto{
     @IsNumber()
     @IsNotEmpty()

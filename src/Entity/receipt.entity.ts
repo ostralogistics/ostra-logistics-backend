@@ -9,6 +9,7 @@ export interface IReceipt{
     order:OrderEntity
     subtotal:number
     VAT:number
+    expressDeliveryCharge: number;
     discount?:number
     total:number
 }
@@ -29,6 +30,9 @@ export class ReceiptEntity implements IReceipt{
 
     @Column({nullable:true})
     discount?: number
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    expressDeliveryCharge: number;
 
     @Column({nullable:true})
     VAT: number

@@ -6,7 +6,7 @@ import { BidEntity } from 'src/Entity/bids.entity';
 import { CardEntity } from 'src/Entity/card.entity';
 import { ComplaintEntity } from 'src/Entity/complaints.entity';
 import { CustomerEntity } from 'src/Entity/customers.entity';
-import { DiscountEntity } from 'src/Entity/discount.entity';
+import { DiscountEntity, ExpressDeliveryFeeEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { Notifications } from 'src/Entity/notifications.entity';
@@ -66,7 +66,8 @@ export class TypeOrmService {
         CartItemEntity,
         VehicleTypeEntity,
         PasscodeEntity,
-        PaymentMappingEntity
+        PaymentMappingEntity,
+        ExpressDeliveryFeeEntity
       ],
       migrations: [],
       subscribers: [],

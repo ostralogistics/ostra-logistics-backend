@@ -11,6 +11,7 @@ import { CustomerRepository } from 'src/customer/customer.repository';
 import {
   BidRepository,
   DiscountUsageRepository,
+  ExpressDeliveryFeeRespository,
   NotificationRepository,
   ReceiptRespository,
   TransactionRespository,
@@ -40,6 +41,7 @@ import {
   OrderDisplayStatus,
   OrderStatus,
   PaymentStatus,
+  PriorityDeliveryType,
 } from 'src/Enums/all-enums';
 import {
   BadRequestException,
@@ -65,7 +67,7 @@ import { GeneatorService } from 'src/common/services/generator.service';
 import { DistanceService } from 'src/common/services/distance.service';
 import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
-import { DiscountEntity } from 'src/Entity/discount.entity';
+import { DiscountEntity, ExpressDeliveryFeeEntity } from 'src/Entity/discount.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import {
@@ -99,6 +101,8 @@ export class AdminCustomerDashBoardService {
     private readonly discountRepo: DiscountRepository,
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
+    @InjectRepository(ExpressDeliveryFeeEntity)
+    private readonly expressDeliveryFeeRepo: ExpressDeliveryFeeRespository,
 
     @InjectRepository(PaymentMappingEntity)
     private readonly paymentMappingRepo: paymentmappingRespository,
@@ -1276,6 +1280,19 @@ export class AdminCustomerDashBoardService {
 
       //check if discount is applied
       let totalamountpaid = order.accepted_cost_of_delivery;
+
+
+      let expressDeliveryCharge = 0;
+
+      // Check if any item in the order is marked for express delivery
+      const hasExpressDelivery = order.items.some(item => item.isExpressDelivery);
+  
+      if (hasExpressDelivery) {
+        const expressDeliveryFeePercentage = await this.getExpressDeliveryFeePercentage();
+        expressDeliveryCharge = +(totalamountpaid * (expressDeliveryFeePercentage / 100)).toFixed(2);
+        totalamountpaid += expressDeliveryCharge;
+      }
+      
       if (order.IsDiscountApplied && order.discount) {
         //calculate discounted amount
         const discooutAmount = +(
@@ -1300,7 +1317,7 @@ export class AdminCustomerDashBoardService {
           currency: 'NGN',
         },
         {
-          headers: {
+          headers: {    
             Authorization: `Bearer ${process.env.PAYSTACK_TEST_SECRET}`,
             'Content-Type': 'application/json',
           },
@@ -1479,6 +1496,9 @@ export class AdminCustomerDashBoardService {
       }
 
       item.delivery_type = dto.delivery_type;
+      if (dto.delivery_type === PriorityDeliveryType.EXPRESS_DELIVERY){
+        item.isExpressDelivery = true
+      }
       item.schedule_date = dto.schedule_date;
       item.pickupLat = pickupCoordinates.lat;
       item.pickupLong = pickupCoordinates.lon;
@@ -1646,6 +1666,7 @@ export class AdminCustomerDashBoardService {
       order.order_status = OrderStatus.ORDER_PLACED;
       order.order_display_status = OrderDisplayStatus.ORDER_PLACED;
 
+      let hasExpressDelivery = false;
       // Add items to the order
       order.items = cart.items.map((cartItem) => {
         const orderItem = new OrderItemEntity();
@@ -1685,9 +1706,15 @@ export class AdminCustomerDashBoardService {
           house_apartment_number_of_dropoff:
             cartItem.house_apartment_number_of_dropoff,
         });
+
+        if (cartItem.isExpressDelivery) {
+          hasExpressDelivery = true;
+        }
+
         return orderItem;
       });
 
+      order.isExpressDelivery = hasExpressDelivery
       // Save the new order
       await this.orderRepo.save(order);
 
@@ -1723,6 +1750,14 @@ export class AdminCustomerDashBoardService {
         );
       }
     }
+  }
+
+  async getExpressDeliveryFeePercentage(): Promise<number> {
+    const expressDeliveryFee = await this.expressDeliveryFeeRepo.findOne({
+      where: { isSet: true },
+      order: { updatedAT: 'DESC' },
+    });
+    return expressDeliveryFee ? expressDeliveryFee.addedPercentage : 0;
   }
 
   async getTotalOrdersCountByCustomer(customerID: string): Promise<number> {

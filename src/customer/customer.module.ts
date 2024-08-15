@@ -20,7 +20,7 @@ import { GeneatorService } from 'src/common/services/generator.service';
 import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { ComplaintEntity } from 'src/Entity/complaints.entity';
 import { DiscountDto } from 'src/admin/admin.dto';
-import { DiscountEntity } from 'src/Entity/discount.entity';
+import { DiscountEntity, ExpressDeliveryFeeEntity } from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
@@ -54,7 +54,8 @@ import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
       TransactionEntity,
       TaskEntity,
       PaymentMappingEntity,
-      VehicleTypeEntity
+      VehicleTypeEntity,
+      ExpressDeliveryFeeEntity
     ]),
   ],
   providers: [

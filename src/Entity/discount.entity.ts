@@ -52,5 +52,26 @@ export class DiscountEntity implements IDiscount{
             this.isExpired = true
         }
     }
+}
+
+
+
+@Entity({name:"ExpressDeliveryFee"})
+export class ExpressDeliveryFeeEntity{
+    @PrimaryGeneratedColumn()
+    id:number
+
+    @Column('numeric',{nullable:true})
+    addedPercentage:number
+
+    @Column({nullable:true, type:'boolean', default:false})
+    isSet : boolean
+
+    @Column({nullable:true, type:'timestamp'})
+    createdAT:Date
+
+    @Column({nullable:true, type:'timestamp'})
+    updatedAT:Date
 
 }
+

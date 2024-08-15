@@ -22,6 +22,7 @@ import {
 import {
   ChannelDto,
   DiscountDto,
+  ExpressDeliverychargeDto,
   PriceListDto,
   RegisterVehicleDto,
   ReplyDto,
@@ -55,6 +56,7 @@ import * as nanoid from 'nanoid';
 import { Notifications } from 'src/Entity/notifications.entity';
 import {
   DiscountUsageRepository,
+  ExpressDeliveryFeeRespository,
   NotificationRepository,
 } from 'src/common/common.repositories';
 import { ComplaintEntity } from 'src/Entity/complaints.entity';
@@ -69,7 +71,10 @@ import {
   markNotificationAsReadDto,
 } from 'src/customer/customer.dto';
 import { GeneatorService } from 'src/common/services/generator.service';
-import { DiscountEntity } from 'src/Entity/discount.entity';
+import {
+  DiscountEntity,
+  ExpressDeliveryFeeEntity,
+} from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { ApplypromoCodeDto } from 'src/common/common.dto';
 import { PriceListEntity } from 'src/Entity/pricelist.entity';
@@ -104,6 +109,9 @@ export class AdminService {
 
     @InjectRepository(RepliesEntity)
     private readonly repliesripo: RepliesRepository,
+
+    @InjectRepository(ExpressDeliveryFeeEntity)
+    private readonly expressDeliveryFeeRepo: ExpressDeliveryFeeRespository,
     private uploadservice: UploadService,
     private genratorservice: GeneatorService,
     private cloudinaryservice: CloudinaryService,
@@ -115,53 +123,57 @@ export class AdminService {
         where: { id: Admin.id, admintype: AdminType.CEO },
       });
       if (!admin) throw new NotFoundException('ceo not found');
-  
+
       // Validate and update DOB if provided
       if (dto.DOB) {
         const dob = new Date(dto.DOB);
         if (isNaN(dob.getTime())) {
           throw new BadRequestException('Invalid date of birth');
         }
-  
+
         const today = new Date();
         let age = today.getFullYear() - dob.getFullYear();
         const monthDifference = today.getMonth() - dob.getMonth();
         const dayDifference = today.getDate() - dob.getDate();
-  
+
         // Adjust age if the birthday hasn't occurred yet this year
-        if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) {
+        if (
+          monthDifference < 0 ||
+          (monthDifference === 0 && dayDifference < 0)
+        ) {
           age--;
         }
-  
+
         admin.DOB = dto.DOB;
         admin.age = age;
       }
-  
+
       // Update other fields if provided
       if (dto.LGA !== undefined) admin.LGA_of_origin = dto.LGA;
       if (dto.email !== undefined) admin.email = dto.email;
       if (dto.fullname !== undefined) admin.fullname = dto.fullname;
-      if (dto.state_of_origin !== undefined) admin.state_of_origin = dto.state_of_origin;
+      if (dto.state_of_origin !== undefined)
+        admin.state_of_origin = dto.state_of_origin;
       if (dto.Address !== undefined) admin.home_address = dto.Address;
       if (dto.gender !== undefined) admin.gender = dto.gender;
       if (dto.mobile !== undefined) admin.mobile = dto.mobile;
       if (dto.Nationality !== undefined) admin.Nationality = dto.Nationality;
-  
+
       admin.UpdatedAt = new Date();
-  
+
       await this.adminRepo.save(admin);
-  
+
       // Save the notification
       const notification = new Notifications();
       notification.account = 'super admin';
       notification.subject = 'ceo updated Record!';
       notification.message = `ceo with id ${admin.id} has updated their record on Ostra Logistics.`;
       await this.notificationripo.save(notification);
-  
+
       return {
-        message:'Ceo profile updated successfully',
-        admin }
-      
+        message: 'Ceo profile updated successfully',
+        admin,
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
@@ -176,7 +188,6 @@ export class AdminService {
       }
     }
   }
-  
 
   async UploadAdminProfilePics(
     mediafile: Express.Multer.File,
@@ -406,15 +417,25 @@ export class AdminService {
     }
   }
 
-  async SearchVehicle(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: VehicleEntity[]; total: number }> {
+  async SearchVehicle(
+    keyword: string,
+    page?: number,
+    perPage?: number,
+    sort?: string,
+  ): Promise<{ data: VehicleEntity[]; total: number }> {
     try {
-      const qb = this.vehiclerepo.createQueryBuilder('vehicle')
+      const qb = this.vehiclerepo.createQueryBuilder('vehicle');
 
-      qb.where('vehicle.vehicle_type ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.orWhere('vehicle.vehicle_model ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.orWhere('vehicle.registration_number ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.cache(false)
-
+      qb.where('vehicle.vehicle_type ILIKE :keyword', {
+        keyword: `%${keyword}%`,
+      });
+      qb.orWhere('vehicle.vehicle_model ILIKE :keyword', {
+        keyword: `%${keyword}%`,
+      });
+      qb.orWhere('vehicle.registration_number ILIKE :keyword', {
+        keyword: `%${keyword}%`,
+      });
+      qb.cache(false);
 
       if (sort) {
         const [sortField] = sort.split(',');
@@ -432,10 +453,8 @@ export class AdminService {
           `No vehicle found matching your search criteria for "${keyword}".`,
         );
       }
-  
-      return { data: vehicle, total };
 
-      
+      return { data: vehicle, total };
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -667,7 +686,7 @@ export class AdminService {
           'this is not same vehicle that was assigned to this driver',
         );
 
-      if ( dto.returned === ReturnedVehicle.YES) {
+      if (dto.returned === ReturnedVehicle.YES) {
         //report
         vehicle.returned_vehicle = dto.returned;
         vehicle.status = VehicleAssignedStatus.UNASSIGNED;
@@ -716,7 +735,7 @@ export class AdminService {
   async FetchAllComplaint() {
     try {
       const complaint = await this.complaintripo.findAndCount({
-        relations: ['customer', 'replies','admin','assigned_staff'],
+        relations: ['customer', 'replies', 'admin', 'assigned_staff'],
       });
 
       if (complaint[1] === 0)
@@ -739,7 +758,7 @@ export class AdminService {
     try {
       const complaint = await this.complaintripo.findOne({
         where: { id: complaintID },
-        relations: ['customer', 'replies','admin','assigned_staff'],
+        relations: ['customer', 'replies', 'admin', 'assigned_staff'],
       });
 
       if (!complaint)
@@ -954,48 +973,50 @@ export class AdminService {
     }
   }
 
-    //admin search for an admin
-    async SearchForComplaints(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: ComplaintEntity[]; total: number }> {
-      try {
-        const qb = this.complaintripo.createQueryBuilder('ticket')
-  
-        qb.where('ticket.ticket ILIKE :keyword',{keyword:`%${keyword}%`})
-        qb.orWhere('ticket.title ILIKE :keyword',{keyword:`%${keyword}%`})
-        qb.cache(false)
-  
-  
-        if (sort) {
-          const [sortField] = sort.split(',');
-          qb.orderBy(`ticket.${sortField}`, 'DESC');
-        }
-  
-        if (page && perPage) {
-          qb.skip((page - 1) * perPage).take(perPage);
-        }
-  
-        const [ticket, total] = await qb.getManyAndCount();
-  
-        if (!ticket.length) {
-          throw new NotFoundException(
-            `No complaints found matching your search criteria for "${keyword}".`,
-          );
-        }
-    
-        return { data: ticket, total };
-  
-        
-      } catch (error) {
-        if (error instanceof NotFoundException)
-          throw new NotFoundException(error.message);
-        else {
-          console.log(error);
-          throw new InternalServerErrorException(
-            'something went wrong while tryig to search for an admin, please try again later',
-            error.message,
-          );
-        }
+  //admin search for an admin
+  async SearchForComplaints(
+    keyword: string,
+    page?: number,
+    perPage?: number,
+    sort?: string,
+  ): Promise<{ data: ComplaintEntity[]; total: number }> {
+    try {
+      const qb = this.complaintripo.createQueryBuilder('ticket');
+
+      qb.where('ticket.ticket ILIKE :keyword', { keyword: `%${keyword}%` });
+      qb.orWhere('ticket.title ILIKE :keyword', { keyword: `%${keyword}%` });
+      qb.cache(false);
+
+      if (sort) {
+        const [sortField] = sort.split(',');
+        qb.orderBy(`ticket.${sortField}`, 'DESC');
+      }
+
+      if (page && perPage) {
+        qb.skip((page - 1) * perPage).take(perPage);
+      }
+
+      const [ticket, total] = await qb.getManyAndCount();
+
+      if (!ticket.length) {
+        throw new NotFoundException(
+          `No complaints found matching your search criteria for "${keyword}".`,
+        );
+      }
+
+      return { data: ticket, total };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while tryig to search for an admin, please try again later',
+          error.message,
+        );
       }
     }
+  }
 
   // create compliant conflict manually from the admin desk
 
@@ -1011,7 +1032,7 @@ export class AdminService {
       //file complaint
       const newcomplaint = new ComplaintEntity();
       newcomplaint.complaints = dto.complaint;
-      newcomplaint.admin = findadmin
+      newcomplaint.admin = findadmin;
       newcomplaint.email = dto.email;
       newcomplaint.title = dto.title;
       newcomplaint.createdAt = new Date();
@@ -1032,7 +1053,7 @@ export class AdminService {
         message:
           'you have succefully filed a complaint, here is your ticket, please query this over time to track the compliant status of your issue.',
         ticket,
-        newcomplaint
+        newcomplaint,
       };
     } catch (error) {
       console.log(error);
@@ -1043,18 +1064,18 @@ export class AdminService {
     }
   }
 
-
   async assignAcomplaintToAstaff(complaintID: number, staffID: string) {
     try {
-      const complaint = await this.complaintripo.findOne({ where: { id: complaintID } });
+      const complaint = await this.complaintripo.findOne({
+        where: { id: complaintID },
+      });
       if (!complaint)
         throw new NotFoundException(
           `complaint with id ${complaintID}is not found, so this complaint  cannot be assigned`,
         );
 
       const staff = await this.adminRepo.findOne({
-        where: { id: staffID , admintype:AdminType.STAFF},
-        
+        where: { id: staffID, admintype: AdminType.STAFF },
       });
       if (!staff)
         throw new NotFoundException(
@@ -1063,11 +1084,8 @@ export class AdminService {
 
       //assingn complaint
       complaint.updatedAT = new Date();
-      complaint.assigned_staff = staff
+      complaint.assigned_staff = staff;
       await this.complaintripo.save(complaint);
-
-     
-     
 
       //save the notification
       const notification = new Notifications();
@@ -1095,37 +1113,37 @@ export class AdminService {
     try {
       // Check for an existing active discount
       const activeDiscount = await this.discountripo.findOne({
-        where: { isActive:true },
+        where: { isActive: true },
       });
-  
+
       if (activeDiscount) {
         throw new BadRequestException('An active discount already exists');
       }
-  
+
       const discount = new DiscountEntity();
       discount.OneTime_discountCode = dto.discountCode;
       discount.createdAT = new Date();
-      discount.isActive = true 
+      discount.isActive = true;
       discount.DiscountDuration_days = dto.DiscountDuration_days;
-     
+
       if (dto.DiscountDuration_days) {
         discount.expires_in = new Date(
           discount.createdAT.getTime() +
             dto.DiscountDuration_days * 24 * 60 * 60 * 1000,
         );
-      } 
-  
+      }
+
       discount.percentageOff = dto.percentageOff;
-  
+
       await this.discountripo.save(discount);
-  
+
       // Notification
       const notification = new Notifications();
       notification.account = 'super admin';
       notification.subject = 'Discount Created!';
       notification.message = `The admin has set a new promo discount on Ostra Logistics.`;
       await this.notificationripo.save(notification);
-  
+
       return discount;
     } catch (error) {
       if (error instanceof BadRequestException)
@@ -1135,24 +1153,24 @@ export class AdminService {
         throw new InternalServerErrorException(
           'Something went wrong.',
           error.message,
-        )
+        );
+      }
     }
   }
-}
 
   //get discount
   async GetDiscount() {
     try {
       const now = new Date();
       const discounts = await this.discountripo.findAndCount({
-        where: { isActive:true},
+        where: { isActive: true },
       });
-  
+
       if (discounts[1] === 0)
         throw new NotFoundException(
           'Oops! No discount has been set at the moment',
         );
-  
+
       return discounts;
     } catch (error) {
       if (error instanceof NotFoundException)
@@ -1166,7 +1184,6 @@ export class AdminService {
       }
     }
   }
-  
 
   //update discount
 
@@ -1200,7 +1217,6 @@ export class AdminService {
       }
 
       discount.percentageOff = dto.percentageOff;
-    
 
       await this.discountripo.save(discount);
 
@@ -1279,15 +1295,18 @@ export class AdminService {
     }
   }
 
-
-  async SearchPricelist(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: PriceListEntity[]; total: number }> {
+  async SearchPricelist(
+    keyword: string,
+    page?: number,
+    perPage?: number,
+    sort?: string,
+  ): Promise<{ data: PriceListEntity[]; total: number }> {
     try {
-      const qb = this.pricelistripo.createQueryBuilder('price')
+      const qb = this.pricelistripo.createQueryBuilder('price');
 
-      qb.where('price.location ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.orWhere('price.amount ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.cache(false)
-
+      qb.where('price.location ILIKE :keyword', { keyword: `%${keyword}%` });
+      qb.orWhere('price.amount ILIKE :keyword', { keyword: `%${keyword}%` });
+      qb.cache(false);
 
       if (sort) {
         const [sortField] = sort.split(',');
@@ -1305,10 +1324,8 @@ export class AdminService {
           `No pricelist found matching your search criteria for "${keyword}".`,
         );
       }
-  
-      return { data: price, total };
 
-      
+      return { data: price, total };
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -1479,10 +1496,8 @@ export class AdminService {
 
   async AllNotifications() {
     try {
-     
       const notification = await this.notificationripo.findAndCount({
-        order:{}
-       
+        order: {},
       });
       if (notification[1] === 0)
         throw new NotFoundException(
@@ -1556,35 +1571,41 @@ export class AdminService {
     }
   }
 
-  //dashboard counts and mapping 
-  async activeorderCount():Promise<number>{
-    const count = await this.orderRepo.count({where:{order_display_status:OrderDisplayStatus.IN_TRANSIT}})
-    return count
+  //dashboard counts and mapping
+  async activeorderCount(): Promise<number> {
+    const count = await this.orderRepo.count({
+      where: { order_display_status: OrderDisplayStatus.IN_TRANSIT },
+    });
+    return count;
   }
 
-  async activecompletedCount():Promise<number>{
-    const count = await this.orderRepo.count({where:{order_display_status:OrderDisplayStatus.COMPLETED}})
-    return count
+  async activecompletedCount(): Promise<number> {
+    const count = await this.orderRepo.count({
+      where: { order_display_status: OrderDisplayStatus.COMPLETED },
+    });
+    return count;
   }
 
-  async activependingCount():Promise<number>{
-    const count = await this.orderRepo.count({where:{order_display_status:OrderDisplayStatus.PENDING}})
-    return count
+  async activependingCount(): Promise<number> {
+    const count = await this.orderRepo.count({
+      where: { order_display_status: OrderDisplayStatus.PENDING },
+    });
+    return count;
   }
 
-  async AllorderCount():Promise<number>{
-    const count = await this.orderRepo.count()
-    return count
+  async AllorderCount(): Promise<number> {
+    const count = await this.orderRepo.count();
+    return count;
   }
 
-  async DeliveryPaymentCount():Promise<number>{
-    const count = await this.orderRepo.count({where:{payment_status:PaymentStatus.SUCCESSFUL}})
-    return count
+  async DeliveryPaymentCount(): Promise<number> {
+    const count = await this.orderRepo.count({
+      where: { payment_status: PaymentStatus.SUCCESSFUL },
+    });
+    return count;
   }
-
 
   async calculateHourlyRevenue() {
-
     const orders = await this.orderRepo.find({
       where: {
         payment_status: PaymentStatus.SUCCESSFUL,
@@ -1604,9 +1625,9 @@ export class AdminService {
       { name: '5pm', income: 0, previous: 0 },
     ];
 
-    orders.forEach(order => {
+    orders.forEach((order) => {
       const hour = order.orderPlacedAt.getHours();
-      const hourSlot = hourlyRevenue.find(slot => {
+      const hourSlot = hourlyRevenue.find((slot) => {
         const hourLabel = parseInt(slot.name);
         return hour === hourLabel || (hour === 12 && slot.name === '12pm');
       });
@@ -1619,7 +1640,6 @@ export class AdminService {
     // Optionally, populate the `previous` values with historical data if available.
     return hourlyRevenue;
   }
-
 
   async calculateTotalRevenue(): Promise<number> {
     const successfulOrders = await this.orderRepo.find({
@@ -1634,6 +1654,117 @@ export class AdminService {
     return totalRevenue;
   }
 
+  // set express delivery charge percentage
+  async setExpressDeliveryFee(dto: ExpressDeliverychargeDto) {
+    try {
+      // Check for an existing active discount
+      const activeExpressCharge = await this.expressDeliveryFeeRepo.findOne({
+        where: { isSet: true },
+      });
 
+      if (activeExpressCharge) {
+        throw new BadRequestException(
+          'An active Experess Delivery Charge Percentage already exists',
+        );
+      }
+
+      const express = new ExpressDeliveryFeeEntity();
+
+      express.createdAT = new Date();
+      express.isSet = true;
+      express.addedPercentage = dto.expressDeliveryPercentageCharge;
+
+      await this.expressDeliveryFeeRepo.save(express);
+
+      // Notification
+      const notification = new Notifications();
+      notification.account = 'super admin';
+      notification.subject = 'Express Delivery Charge Percentage Created!';
+      notification.message = `The admin has set a new Charge Express Delivery Charge Percentage on Ostra Logistics.`;
+      await this.notificationripo.save(notification);
+
+      return express;
+    } catch (error) {
+      if (error instanceof BadRequestException)
+        throw new BadRequestException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong.',
+          error.message,
+        );
+      }
+    }
+  }
+
+  // set express delivery charge percentage
+  async UpdateExpressDeliveryFee(
+    dto: ExpressDeliverychargeDto,
+    expressId: number,
+  ) {
+    try {
+      // Check for an existing active discount
+      const activeExpressCharge = await this.expressDeliveryFeeRepo.findOne({
+        where: { isSet: true, id: expressId },
+      });
+
+      if (!activeExpressCharge) {
+        throw new NotFoundException(
+          'Experess Delivery Charge Percentage not found',
+        );
+      }
+
+      const express = new ExpressDeliveryFeeEntity();
+
+      express.updatedAT = new Date();
+      express.isSet = true;
+      express.addedPercentage = dto.expressDeliveryPercentageCharge;
+
+      await this.expressDeliveryFeeRepo.save(express);
+
+      // Notification
+      const notification = new Notifications();
+      notification.account = 'super admin';
+      notification.subject = 'Express Delivery Charge Percentage Updated!';
+      notification.message = `The admin has updated an existing Charge Express Delivery Charge Percentage on Ostra Logistics.`;
+      await this.notificationripo.save(notification);
+
+      return express;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong.',
+          error.message,
+        );
+      }
+    }
+  }
+
+  async GetExpressDeliveryCost() {
+    try {
+      const express = await this.expressDeliveryFeeRepo.findAndCount({
+        where: { isSet: true },
+      });
+
+      if (express[1] === 0)
+        throw new NotFoundException(
+          'Oops! No express delivery percentage charge  has been set at the moment',
+        );
+
+      return express;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong',
+          error.message,
+        );
+      }
+    }
+  }
 }
-
