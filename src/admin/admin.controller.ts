@@ -337,6 +337,12 @@ export class Admincontroller{
         return await this.adminservice.UpdateExpressDeliveryFee(dto,expressID)
     }
 
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @Patch('delete-express/:expressID')
+    async DeleteExpressDelived( @Param('expressID')expressID:number){
+        return await this.adminservice.DeleteExpressDeliveryFee(expressID)
+    }
+
 
 
 

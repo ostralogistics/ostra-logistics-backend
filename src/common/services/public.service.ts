@@ -46,7 +46,7 @@ export class PublicService {
       //find a rider task associated wit this orderassigned_order.items
       const task = await this.taskRepo.findOne({
         where: { assigned_order: trackorder },
-        relations:['assigned_order.items','assigned_order.customer','rider']
+        relations:['assigned_order','assigned_order.items','assigned_order.items.vehicleType','assigned_order.customer','rider']
       });
 
       if (!task) throw new NotFoundException('ride associated with order not found')
@@ -78,7 +78,7 @@ export class PublicService {
 
         const task = await this.taskRepo.findOne({
           where: { assigned_order: order },
-          relations:['assigned_order.items','assigned_order.customer','rider']
+          relations:['assigned_order','assigned_order.items','assigned_order.items.vehicleType','assigned_order.customer','rider']
         });
   
         if (!task) throw new NotFoundException('ride associated with order not found')

@@ -93,30 +93,33 @@ export class PaystackWebhookService {
   
       await this.updateOrderPaymentStatus(order);
   
-      const vatPercentage = 0.07;
-      let totalBeforeVAT = order.accepted_cost_of_delivery;
-  
-      // Calculate express delivery charge
+     
+            
+      let baseAmount = Number(order.accepted_cost_of_delivery);
       let expressDeliveryCharge = 0;
-      if (order.isExpressDelivery) {
+      let discountAmount = 0;
+      const vatPercentage = 0.07;
+  
+      // Calculate express delivery charge if applicable
+      const hasExpressDelivery = order.items.some(item => item.isExpressDelivery);
+      if (hasExpressDelivery) {
         const expressDeliveryFeePercentage = await this.getExpressDeliveryFeePercentage();
-        expressDeliveryCharge = +(totalBeforeVAT * (expressDeliveryFeePercentage / 100)).toFixed(2);
-        totalBeforeVAT += expressDeliveryCharge;
+        expressDeliveryCharge = Number((baseAmount * (expressDeliveryFeePercentage / 100)).toFixed(2));
       }
   
-      // Calculate discount
-      let discountAmount = 0;
-      if (order.discount && order.IsDiscountApplied) {
-        const discountPercentage = order.discount;
-        discountAmount = +((totalBeforeVAT * discountPercentage) / 100).toFixed(2);
-        totalBeforeVAT -= discountAmount;
+      // Calculate discount if applicable
+      if (order.IsDiscountApplied && order.discount) {
+        discountAmount = Number(((baseAmount * order.discount) / 100).toFixed(2));
       }
+  
+      // Calculate subtotal (base amount + express delivery charge - discount)
+      const subtotal = Number((baseAmount + expressDeliveryCharge - discountAmount).toFixed(2));
   
       // Calculate VAT
-      const vatAmount = +(totalBeforeVAT * vatPercentage).toFixed(2);
+      const vatAmount = Number((subtotal * vatPercentage).toFixed(2));
   
-      // Calculate total
-      const total = Number(totalBeforeVAT) + Number(vatAmount);
+      // Calculate total amount including VAT
+      const totalAmountWithVAT = Number((subtotal + vatAmount).toFixed(2));
   
       const receipt = new ReceiptEntity();
       receipt.ReceiptID = `#${this.genservice.generatereceiptID()}`;
@@ -125,7 +128,7 @@ export class PaystackWebhookService {
       receipt.subtotal = order.accepted_cost_of_delivery;
       receipt.expressDeliveryCharge = expressDeliveryCharge;
       receipt.VAT = vatAmount;
-      receipt.total = total;
+      receipt.total = totalAmountWithVAT;
       receipt.discount = discountAmount;
       await this.receiptrepo.save(receipt);
   

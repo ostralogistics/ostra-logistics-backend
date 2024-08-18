@@ -84,6 +84,7 @@ import { NewsLetterEntity } from 'src/Entity/newsletter.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { LessThan, MoreThanOrEqual } from 'typeorm';
+import exp from 'constants';
 @Injectable()
 export class AdminService {
   constructor(
@@ -1704,20 +1705,19 @@ export class AdminService {
   ) {
     try {
       // Check for an existing active discount
-      const activeExpressCharge = await this.expressDeliveryFeeRepo.findOne({
+      const express = await this.expressDeliveryFeeRepo.findOne({
         where: { isSet: true, id: expressId },
       });
 
-      if (!activeExpressCharge) {
+      if (!express) {
         throw new NotFoundException(
           'Experess Delivery Charge Percentage not found',
         );
       }
 
-      const express = new ExpressDeliveryFeeEntity();
+     
 
       express.updatedAT = new Date();
-      express.isSet = true;
       express.addedPercentage = dto.expressDeliveryPercentageCharge;
 
       await this.expressDeliveryFeeRepo.save(express);
@@ -1762,6 +1762,43 @@ export class AdminService {
         console.log(error);
         throw new InternalServerErrorException(
           'Something went wrong',
+          error.message,
+        );
+      }
+    }
+  }
+
+  async DeleteExpressDeliveryFee(
+    expressId: number,
+  ) {
+    try {
+      // Check for an existing active discount
+      const express = await this.expressDeliveryFeeRepo.findOne({
+        where: { isSet: true, id: expressId },
+      });
+
+      if (!express) {
+        throw new NotFoundException(
+          'Experess Delivery Charge Percentage not found',
+        );
+      }
+
+     
+
+      
+
+      await this.expressDeliveryFeeRepo.remove(express);
+
+    
+
+      return {message:"deleted successfully"};
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong.',
           error.message,
         );
       }

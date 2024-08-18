@@ -346,7 +346,7 @@ export class AdminStaffDasboardService {
     try {
       const staff = await this.adminripo.findOne({
         where: { id: staffID, admintype: AdminType.STAFF },
-        relations:['my_orders','replies','carts','bids_sent','assigned_complaints','my_filed_complains'],
+        relations:['my_orders','my_orders.items','replies','carts','bids_sent','bids_sent.order', 'bids_sent.order.customer','assigned_complaints','my_filed_complains'],
       });
       if (!staff)
         throw new NotFoundException(
@@ -370,7 +370,7 @@ export class AdminStaffDasboardService {
     try {
       const staff = await this.adminripo.findOne({
         where: { id: staffID, admintype: AdminType.STAFF },
-        relations: ['my_orders', 'my_orders.items', 'bids_sent', 'bids_sent.order', 'bids_sent.order.customer'],
+        relations:['my_orders','my_orders.items','replies','carts','bids_sent','bids_sent.order', 'bids_sent.order.customer','assigned_complaints','my_filed_complains'],
       });
   
       if (!staff) {

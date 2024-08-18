@@ -1271,39 +1271,32 @@ export class AdminCustomerDashBoardService {
         );
       }
 
-      //cslculate VAT
-      const vatPercentage = 0.07;
-      const vatAmount = +(
-        order.accepted_cost_of_delivery * vatPercentage
-      ).toFixed(2);
-      console.log('vatamount', vatAmount);
-
-      //check if discount is applied
-      let totalamountpaid = order.accepted_cost_of_delivery;
-
-
+           
+      let baseAmount = Number(order.accepted_cost_of_delivery);
       let expressDeliveryCharge = 0;
-
-      // Check if any item in the order is marked for express delivery
-      const hasExpressDelivery = order.items.some(item => item.isExpressDelivery);
+      let discountAmount = 0;
+      const vatPercentage = 0.07;
   
+      // Calculate express delivery charge if applicable
+      const hasExpressDelivery = order.items.some(item => item.isExpressDelivery);
       if (hasExpressDelivery) {
         const expressDeliveryFeePercentage = await this.getExpressDeliveryFeePercentage();
-        expressDeliveryCharge = +(totalamountpaid * (expressDeliveryFeePercentage / 100)).toFixed(2);
-        totalamountpaid += expressDeliveryCharge;
+        expressDeliveryCharge = Number((baseAmount * (expressDeliveryFeePercentage / 100)).toFixed(2));
       }
-      
+  
+      // Calculate discount if applicable
       if (order.IsDiscountApplied && order.discount) {
-        //calculate discounted amount
-        const discooutAmount = +(
-          (order.accepted_cost_of_delivery * order.discount) /
-          100
-        ).toFixed(2);
-        totalamountpaid -= discooutAmount;
+        discountAmount = Number(((baseAmount * order.discount) / 100).toFixed(2));
       }
-
+  
+      // Calculate subtotal (base amount + express delivery charge - discount)
+      const subtotal = Number((baseAmount + expressDeliveryCharge - discountAmount).toFixed(2));
+  
+      // Calculate VAT
+      const vatAmount = Number((subtotal * vatPercentage).toFixed(2));
+  
       // Calculate total amount including VAT
-      const totalAmountWithVAT = Number(totalamountpaid) + Number(vatAmount);
+      const totalAmountWithVAT = Number((subtotal + vatAmount).toFixed(2));
 
         // Generate a unique reference for the transaction
     const paymentReference = `order_${order.orderID}_${uuidv4()}`;
@@ -1311,7 +1304,7 @@ export class AdminCustomerDashBoardService {
       const response = await axios.post(
         'https://api.paystack.co/transaction/initialize',
         {
-          amount: totalAmountWithVAT * 100, // Convert to kobo (Paystack currency)
+          amount: Math.round(totalAmountWithVAT * 100), // Convert to kobo (Paystack currency)
           email: email, // Customer email for reference
           reference: paymentReference, // Order ID as payment reference
           currency: 'NGN',
