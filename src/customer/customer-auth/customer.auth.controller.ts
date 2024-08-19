@@ -11,10 +11,17 @@ export class CustomerAuthController{
 
 
     @UseGuards(JwtGuard)
-    @Post('profile')
-    async getProfile(@Req()req, @Body()dto:GetDeviceTokenDto): Promise<any> {
+    @Get('profile')
+    async getProfile(@Req()req): Promise<any> {
       
-      return this.customerauthservice.getProfile(req.user,dto);
+      return this.customerauthservice.getProfile(req.user);
+    }
+
+    @UseGuards(JwtGuard)
+    @Post('deviceToken')
+    async getdeviceToken(@Req()req,@Body()dto:GetDeviceTokenDto): Promise<any> {
+      
+      return this.customerauthservice.deviceToken(req.user,dto);
     }
 
     @Post('/register')

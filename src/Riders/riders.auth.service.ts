@@ -45,7 +45,24 @@ export class RiderAuthService {
   ) {}
 
   // get rider profile
-  async getProfile(rider: RiderEntity,dto:GetDeviceTokenDto): Promise<IRider> {
+  async getProfile(rider: RiderEntity): Promise<IRider> {
+    try {
+      if (!rider) {
+        throw new NotFoundException('Rider not found');
+      }
+
+      return rider;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while trying to fetch rider profile',
+        error.message,
+      );
+    }
+  }
+
+
+  async deviceToken(rider: RiderEntity,dto:GetDeviceTokenDto): Promise<IRider> {
     try {
       if (!rider) {
         throw new NotFoundException('Rider not found');
@@ -83,6 +100,7 @@ export class RiderAuthService {
       );
     }
   }
+
 
   //login rider
 

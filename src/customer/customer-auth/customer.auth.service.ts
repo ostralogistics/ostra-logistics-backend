@@ -56,33 +56,12 @@ export class CustomerAuthService {
   ) {}
 
   // get customer profile
-  async getProfile(customer: CustomerEntity, dto:GetDeviceTokenDto): Promise<ICustomer> {
+  async getProfile(customer: CustomerEntity): Promise<ICustomer> {
     try {
       if (!customer) {
         throw new NotFoundException('Customer not found');
       }
-       // Handle device tokens
-       const devicetoken = dto.deviceToken;
-
-       if (devicetoken) {
-         // Ensure the deviceToken array is initialized
-         if (!customer.deviceToken) {
-           customer.deviceToken = [];
-         }
-   
-         // Check if the token already exists
-         if (!customer.deviceToken.includes(devicetoken)) {
-           // Add the new token
-           customer.deviceToken.push(devicetoken);
-   
-           // If there are more than 3 tokens, remove the oldest one
-           if (customer.deviceToken.length > 3) {
-             customer.deviceToken.shift();
-           }
-             // Save the updated customer entity
-          await this.customerrepo.save(customer);
-         }
-       }
+     
       return customer;
     } catch (error) {
       console.log(error);
@@ -92,6 +71,47 @@ export class CustomerAuthService {
       );
     }
   }
+
+
+  async deviceToken(customer: CustomerEntity,dto:GetDeviceTokenDto): Promise<ICustomer> {
+    try {
+      if (!customer) {
+        throw new NotFoundException('Customer not found');
+      }
+
+        // Handle device tokens
+        const devicetoken = dto.deviceToken;
+
+        if (devicetoken) {
+          // Ensure the deviceToken array is initialized
+          if (!customer.deviceToken) {
+            customer.deviceToken = [];
+          }
+    
+          // Check if the token already exists
+          if (!customer.deviceToken.includes(devicetoken)) {
+            // Add the new token
+            customer.deviceToken.push(devicetoken);
+    
+            // If there are more than 3 tokens, remove the oldest one
+            if (customer.deviceToken.length > 3) {
+              customer.deviceToken.shift();
+            }
+               // Save the updated rider entity
+          await this.customerrepo.save(customer)
+          }
+        }
+
+      return customer;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong while trying to fetch rider profile',
+        error.message,
+      );
+    }
+  }
+
 
   //sign up customer
 

@@ -10,10 +10,17 @@ export class RiderAuthController{
     constructor(private readonly riderauthsrvice:RiderAuthService){}
 
     @UseGuards(JwtGuard)
-    @Post('profile')
-    async getProfile(@Req()req,@Body()dto:GetDeviceTokenDto): Promise<any> {
+    @Get('profile')
+    async getProfile(@Req()req,): Promise<any> {
       
-      return this.riderauthsrvice.getProfile(req.user,dto);
+      return this.riderauthsrvice.getProfile(req.user);
+    }
+
+    @UseGuards(JwtGuard)
+    @Post('deviceToken')
+    async getdeviceToken(@Req()req,@Body()dto:GetDeviceTokenDto): Promise<any> {
+      
+      return this.riderauthsrvice.deviceToken(req.user,dto);
     }
 
     @Post('/login')
