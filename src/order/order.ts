@@ -39,6 +39,8 @@ export interface IOrder{
     order_display_status:OrderDisplayStatus
     customer: CustomerEntity;
     transaction:TransactionEntity
+    rating:number,
+    review:string
 
 
    

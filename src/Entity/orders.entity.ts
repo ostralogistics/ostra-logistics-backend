@@ -146,6 +146,12 @@ export class OrderEntity implements IOrder {
   @OneToOne(() => ReceiptEntity, (receipt) => receipt.order)
   receipt: ReceiptEntity;
 
+  @Column({ type: 'float', nullable: true })
+  rating: number;
+
+  @Column({ type: 'text', nullable: true })
+  review: string;
+
 }
 
 

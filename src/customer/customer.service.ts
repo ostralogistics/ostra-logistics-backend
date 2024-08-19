@@ -67,6 +67,7 @@ import {
   ChangePasswordDto,
   ComplaintDto,
   NewsLetterDto,
+  RatingReviewDto,
   UpdateCustomerDto,
   addPasswordDto,
   markNotificationAsReadDto,
@@ -1671,5 +1672,30 @@ export class CustomerService {
         );
       }
     }
+  }
+
+  async rateOrder(orderId: number, ratingReviewDto: RatingReviewDto): Promise<OrderEntity> {
+    const { rating, review } = ratingReviewDto;
+
+    const order = await this.orderRepo.findOne({where:{id:orderId}});
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${orderId} not found`);
+    }
+
+    order.rating = rating;
+    order.review = review;
+
+    await this.orderRepo.save(order);
+
+   
+
+     //notifiction
+     const notification = new Notifications();
+     notification.account = "customer";
+     notification.subject = 'Review And Rating Left for an Order !';
+     notification.message = `the customer has left a review and a rating `;
+     await this.notificationripo.save(notification);
+
+     return order
   }
 }

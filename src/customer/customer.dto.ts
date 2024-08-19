@@ -1,4 +1,4 @@
-import { IsBoolean, IsCreditCard, IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsStrongPassword, Matches, MaxLength } from "class-validator";
+import { IsBoolean, IsCreditCard, IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsStrongPassword, Matches, Max, MaxLength, Min } from "class-validator";
 import { DeliveryPriority, Gender, VehicleType } from "src/Enums/all-enums";
 import { Match } from "src/common/helpers/match.decorator";
 
@@ -195,3 +195,14 @@ export class CardDetailsDto {
     title:string
   }
 
+
+  export class RatingReviewDto {
+    @IsNumber()
+    @Min(1)
+    @Max(5)
+    rating: number;
+  
+    @IsString()
+    @IsOptional()
+    review?: string;
+  }
