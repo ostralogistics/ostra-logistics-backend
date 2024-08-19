@@ -11,7 +11,7 @@ export class CustomerAuthController{
 
 
     @UseGuards(JwtGuard)
-    @Get('profile')
+    @Post('profile')
     async getProfile(@Req()req, @Body()dto:GetDeviceTokenDto): Promise<any> {
       
       return this.customerauthservice.getProfile(req.user,dto);
