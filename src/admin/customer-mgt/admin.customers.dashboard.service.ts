@@ -1278,7 +1278,7 @@ export class AdminCustomerDashBoardService {
       const vatPercentage = 0.07;
   
       // Calculate express delivery charge if applicable
-      const hasExpressDelivery = order.items.some(item => item.isExpressDelivery);
+      const hasExpressDelivery = order.isExpressDelivery
       if (hasExpressDelivery) {
         const expressDeliveryFeePercentage = await this.getExpressDeliveryFeePercentage();
         expressDeliveryCharge = Number((baseAmount * (expressDeliveryFeePercentage / 100)).toFixed(2));
