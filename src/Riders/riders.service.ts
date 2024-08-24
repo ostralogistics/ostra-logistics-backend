@@ -11,6 +11,7 @@ import { Notifications } from 'src/Entity/notifications.entity';
 import {
   NotificationRepository,
   RequestRepository,
+  TransactionRespository,
 } from 'src/common/common.repositories';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import {
@@ -45,6 +46,7 @@ import { ILike } from 'typeorm';
 import { markNotificationAsReadDto } from 'src/customer/customer.dto';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { FcmService } from 'src/firebase/fcm-node.service';
+import { TransactionEntity } from 'src/Entity/transactions.entity';
 
 
 export class RiderService {
@@ -62,6 +64,9 @@ export class RiderService {
     private mailer: Mailer,
     private readonly eventsGateway: EventsGateway,
     private readonly fcmService: FcmService,
+    @InjectRepository(TransactionEntity)
+    private readonly transactionRepo: TransactionRespository,
+   
     
   ) {}
 
@@ -1406,6 +1411,31 @@ export class RiderService {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while trying to delete a notification',
+          error.message,
+        );
+      }
+    }
+  }
+
+  async fetchRiderPaymentTransactionHistory(rider:RiderEntity) {
+    try {
+      const mytransactions = await this.transactionRepo.findAndCount({
+        where: { Rider: { id: rider.id } },
+        relations: ['bankInfo'],
+      });
+      if (mytransactions[1] == 0)
+        throw new NotFoundException(
+          'there are no transaction logs for this rider at the moment',
+        );
+
+      return mytransactions;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'something went wrong while fetching the logged transactions of this rider',
           error.message,
         );
       }

@@ -18,6 +18,7 @@ import { CustomerService } from 'src/customer/customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { FcmService } from 'src/firebase/fcm-node.service';
+import { TransactionEntity } from 'src/Entity/transactions.entity';
 
 
  @Module({
@@ -31,7 +32,8 @@ import { FcmService } from 'src/firebase/fcm-node.service';
       TaskEntity,
       OrderEntity,
       RequestEntity,
-      RiderBankDetailsEntity
+      RiderBankDetailsEntity,
+      TransactionEntity
     ]),
   ],
   providers: [

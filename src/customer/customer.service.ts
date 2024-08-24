@@ -1656,8 +1656,8 @@ export class CustomerService {
   async getPaymenthistoryOfOneCustomer(Customer: CustomerEntity) {
     try {
       const transaction = await this.transactionRepo.findAndCount({
-        where: { customer: Customer },
-        relations: ['customer'],
+        where: { customer: {id:Customer.id} },
+        
       });
       if (!transaction)
         throw new NotFoundException(

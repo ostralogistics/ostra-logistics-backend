@@ -158,6 +158,12 @@ export class RiderController{
         return await this.riderservice.scanBarcode(barcodeDegit)
     }
 
+    @Get('/my-payment-transaction-history')
+    async GetRiderTransaction(@Req()req) {
+      return await this.riderservice.fetchRiderPaymentTransactionHistory(req
+      );
+    }
+
      
 
     
