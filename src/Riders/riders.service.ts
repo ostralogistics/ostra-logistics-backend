@@ -14,6 +14,7 @@ import {
 } from 'src/common/common.repositories';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   InternalServerErrorException,
@@ -135,54 +136,55 @@ export class RiderService {
           'assigned_order.admin',
         ],
       });
-
+  
       if (!task)
         throw new NotFoundException(
           `task with the id: ${taskID} is not assigned to this rider`,
         );
-
-      //accept or decline and update the order status
-      if (dto && dto.action === AcceptOrDeclineTask.ACCEPT) {
+  
+      if (dto.action === AcceptOrDeclineTask.ACCEPT) {
         task.rider = Rider;
         task.acceptedAt = new Date();
         task.status = TaskStatus.ONGOING;
         await this.taskRepo.save(task);
-
-        //update order status
+  
         task.assigned_order.order_status = OrderStatus.RIDER_ASSIGNED;
         task.assigned_order.RiderAssignedAT = new Date();
         await this.orderRepo.save(task.assigned_order);
-
-        //update rider info
+  
         Rider.status = RiderStatus.IN_TRANSIT;
         await this.riderRepo.save(Rider);
-
-        //save notification
+  
         const notification = new Notifications();
         notification.account = Rider.id;
         notification.subject = 'Rider Accepted a Task !';
-        notification.message = `Rider with the  id ${Rider} has accepted the Task on the ostra logistics rider app `;
+        notification.message = `Rider with the id ${Rider.id} has accepted the Task on the ostra logistics rider app`;
         await this.notificationripo.save(notification);
-
+  
         return task;
-      } else if (dto && dto.action === AcceptOrDeclineTask.DECLINE) {
-        //update the task table
+      } else if (dto.action === AcceptOrDeclineTask.DECLINE) {
+        if (!dto.reason) {
+          throw new BadRequestException('A reason must be provided when declining a task');
+        }
+  
         task.rider = Rider;
+        task.reason_for_cancelling_declining = dto.reason;
         task.declinedAT = new Date();
         await this.taskRepo.save(task);
-
-        //save notification
+  
         const notification = new Notifications();
         notification.account = Rider.id;
-        notification.subject = 'Rider Delined a Task !';
-        notification.message = `Rider with the  id ${Rider} has declined the Task on the ostra logistics rider app `;
+        notification.subject = 'Rider Declined a Task !';
+        notification.message = `Rider with the id ${Rider.id} has declined the Task on the ostra logistics rider app`;
         await this.notificationripo.save(notification);
+  
+        return task;
       }
-
-      return task;
+  
+      
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
       } else {
         console.log(error);
         throw new InternalServerErrorException(

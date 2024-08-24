@@ -1498,7 +1498,7 @@ export class AdminService {
   async AllNotifications() {
     try {
       const notification = await this.notificationripo.findAndCount({
-        order: {},
+        order:{date:'DESC'},
       });
       if (notification[1] === 0)
         throw new NotFoundException(
