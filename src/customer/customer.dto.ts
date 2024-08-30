@@ -113,9 +113,6 @@ export class UpdateCustomerDto{
     @IsOptional()
     LGA_of_Home_Address: string
 
-    @IsString()
-    @IsOptional()
-    profile_picture: string 
 
     @IsEnum(Gender)
     @IsOptional()

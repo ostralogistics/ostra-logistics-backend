@@ -487,6 +487,15 @@ export class CustomerAuthService {
           'Your account has not been verified. Please verify your account by requesting a verification code.',
         );
       }
+
+    //       // Check if there's an existing session
+    // if (findcustomer.currentSessionToken) {
+    //   // Optionally, you can forcibly log out the previous session here
+    //   // await this.logoutPreviousSession(findcustomer.currentSessionToken);
+      
+    //   // Or, you can throw an error
+    //   throw new ConflictException('Account is already logged in on another device');
+    // }
     
 
       findcustomer.isLoggedIn = true;
@@ -511,7 +520,8 @@ export class CustomerAuthService {
       if (
         error instanceof NotFoundException ||
         error instanceof UnauthorizedException ||
-        error instanceof ForbiddenException
+        error instanceof ForbiddenException 
+        //error instanceof ConflictException
       ) {
         throw error; // Re-throw specific exceptions
       } else {

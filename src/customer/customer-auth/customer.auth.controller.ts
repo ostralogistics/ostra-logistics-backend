@@ -36,9 +36,8 @@ export class CustomerAuthController{
 
  
     @Post('/resend-otp')
-    async resendVerificationLink(@Req()req:Request):Promise<{message:string}>{
-        const email = req.headers.email
-        console.log(email)
+    async resendVerificationLink(@Body()email:string):Promise<{message:string}>{
+       
         return await this.customerauthservice.ResendExpiredOtp(email)
 
     }

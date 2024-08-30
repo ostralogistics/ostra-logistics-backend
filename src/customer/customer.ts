@@ -10,6 +10,7 @@ export interface ICustomer {
     firstname:string
     lastname:string
     home_address:string 
+    currentSessionToken: string;
     gender: Gender
     profile_picture: string
     LGA_of_Home_Address: string

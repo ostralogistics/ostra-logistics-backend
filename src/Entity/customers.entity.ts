@@ -33,6 +33,9 @@ export class CustomerEntity implements ICustomer{
     @Column({nullable:true})
     mobile: string;
 
+    @Column({ nullable: true })
+    currentSessionToken: string;
+
     @UpdateDateColumn({nullable:true,default:null})
     UpdatedAt:Date
 
