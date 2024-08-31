@@ -20,7 +20,7 @@ export interface ICustomer {
     isLoggedIn:boolean
     isVerified:boolean
     isRegistered:boolean 
-    deviceToken:string[]
+    deviceToken:string
     my_orders: OrderEntity[]
     my_cards :CardEntity[]
     my_complains:ComplaintEntity[]

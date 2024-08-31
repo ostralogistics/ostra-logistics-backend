@@ -54,8 +54,8 @@ export class CustomerEntity implements ICustomer{
     @Column({nullable:true})
     gender: Gender;
 
-    @Column({nullable:true,type:'simple-array'})
-    deviceToken:string[]
+    @Column({nullable:true})
+    deviceToken:string
 
 
     @Column({nullable:false,default:false})

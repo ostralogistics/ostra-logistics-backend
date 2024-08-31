@@ -112,8 +112,8 @@ export class RiderEntity implements IRider{
     isLocked: boolean;
 
 
-    @Column({nullable:true,type:'simple-array'})
-    deviceToken:string[]
+    @Column({nullable:true})
+    deviceToken:string
 
     @Column({nullable:true,  type:'enum', enum:RiderStatus})
     status :RiderStatus

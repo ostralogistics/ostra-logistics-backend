@@ -62,7 +62,7 @@ export class CustomerAuthService {
       if (!customer) {
         throw new NotFoundException('Customer not found');
       }
-     
+
       return customer;
     } catch (error) {
       console.log(error);
@@ -73,46 +73,30 @@ export class CustomerAuthService {
     }
   }
 
-
-  async deviceToken(customer: CustomerEntity,dto:GetDeviceTokenDto): Promise<ICustomer> {
+  async deviceToken(
+    customer: CustomerEntity,
+    dto: GetDeviceTokenDto,
+  ): Promise<ICustomer> {
     try {
       if (!customer) {
         throw new NotFoundException('Customer not found');
       }
 
-        // Handle device tokens
-        const devicetoken = dto.deviceToken;
+      // Handle device tokens
+      customer.deviceToken = dto.deviceToken;
 
-        if (devicetoken) {
-          // Ensure the deviceToken array is initialized
-          if (!customer.deviceToken) {
-            customer.deviceToken = [];
-          }
-    
-          // Check if the token already exists
-          if (!customer.deviceToken.includes(devicetoken)) {
-            // Add the new token
-            customer.deviceToken.push(devicetoken);
-    
-            // If there are more than 3 tokens, remove the oldest one
-            if (customer.deviceToken.length > 3) {
-              customer.deviceToken.shift();
-            }
-               // Save the updated rider entity
-          await this.customerrepo.save(customer)
-          }
-        }
+      // Save the updated rider entity
+      await this.customerrepo.save(customer);
 
       return customer;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'something went wrong while trying to fetch rider profile',
+        'something went wrong',
         error.message,
       );
     }
   }
-
 
   //sign up customer
 
@@ -130,7 +114,7 @@ export class CustomerAuthService {
         dto.password,
       );
 
-      const devicetoken = dto.deviceToken
+      const devicetoken = dto.deviceToken;
 
       const customer = new CustomerEntity();
       customer.customerID = `#OslC-${await this.generatorservice.generateUserID()}`;
@@ -139,7 +123,7 @@ export class CustomerAuthService {
       customer.password = hashedpassword;
       customer.firstname = dto.firstname;
       customer.lastname = dto.lastname;
-      customer.mobile = dto.mobile
+      customer.mobile = dto.mobile;
       customer.role = Role.CUSTOMER;
       customer.RegisteredAt = new Date();
       customer.isRegistered = true;
@@ -148,9 +132,6 @@ export class CustomerAuthService {
       //2fa authentication
       const emiailverificationcode =
         await this.generatorservice.generateEmailToken();
-
-    
-
 
       //otp
       const otp = new UserOtp();
@@ -170,10 +151,10 @@ export class CustomerAuthService {
         twominuteslater,
       );
 
-        // //sms verification
-        // const text = `Hello ${customer.firstname}, your one time password (OTP) for verification is ${emiailverificationcode}. This OTP is valid for a single use and expires in the next 2 minutes. If you did not request this OTP from OSTRA LOGISTICS, please ignore this SMS`
-        // const formatNumber = await this.generatorservice.formatPhoneNumber(customer.mobile)
-        // await this.smsservice.sendSms(formatNumber,text)
+      // //sms verification
+      // const text = `Hello ${customer.firstname}, your one time password (OTP) for verification is ${emiailverificationcode}. This OTP is valid for a single use and expires in the next 2 minutes. If you did not request this OTP from OSTRA LOGISTICS, please ignore this SMS`
+      // const formatNumber = await this.generatorservice.formatPhoneNumber(customer.mobile)
+      // await this.smsservice.sendSms(formatNumber,text)
 
       //save the notification
       const notification = new Notifications();
@@ -240,11 +221,7 @@ export class CustomerAuthService {
       await this.customerrepo.save(customer);
 
       //send welcome email
-      await this.mailerservice.WelcomeMail(
-        customer.email,
-        customer.firstname,
-       
-      );
+      await this.mailerservice.WelcomeMail(customer.email, customer.firstname);
 
       const accessToken = await this.generatorservice.signToken(
         customer.id,
@@ -270,7 +247,7 @@ export class CustomerAuthService {
   }
 
   // resend email verification otp when the one sent is expired
-  async ResendExpiredOtp(dto:ResendOtpDto): Promise<{ message: string }> {
+  async ResendExpiredOtp(dto: ResendOtpDto): Promise<{ message: string }> {
     try {
       const emailexsist = await this.customerrepo.findOne({
         where: { email: dto.email },
@@ -434,7 +411,7 @@ export class CustomerAuthService {
   ): Promise<{ message: string }> {
     try {
       const checkcustomer = await this.customerrepo.findOne({
-        where: { email:dto.email },
+        where: { email: dto.email },
       });
       if (!checkcustomer.isVerified)
         throw new UnauthorizedException(
@@ -489,15 +466,14 @@ export class CustomerAuthService {
         );
       }
 
-    //       // Check if there's an existing session
-    // if (findcustomer.currentSessionToken) {
-    //   // Optionally, you can forcibly log out the previous session here
-    //   // await this.logoutPreviousSession(findcustomer.currentSessionToken);
-      
-    //   // Or, you can throw an error
-    //   throw new ConflictException('Account is already logged in on another device');
-    // }
-    
+      //       // Check if there's an existing session
+      // if (findcustomer.currentSessionToken) {
+      //   // Optionally, you can forcibly log out the previous session here
+      //   // await this.logoutPreviousSession(findcustomer.currentSessionToken);
+
+      //   // Or, you can throw an error
+      //   throw new ConflictException('Account is already logged in on another device');
+      // }
 
       findcustomer.isLoggedIn = true;
       findcustomer.isLocked = false;
@@ -521,7 +497,7 @@ export class CustomerAuthService {
       if (
         error instanceof NotFoundException ||
         error instanceof UnauthorizedException ||
-        error instanceof ForbiddenException 
+        error instanceof ForbiddenException
         //error instanceof ConflictException
       ) {
         throw error; // Re-throw specific exceptions

@@ -701,7 +701,7 @@ export class AdminRiderDashboardService {
      
              // Push notification
              await this.fcmService.sendNotification(
-              rider.deviceToken[rider.deviceToken.length - 1],
+              rider.deviceToken,
               ' New Task Assigned!',
               `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
               {

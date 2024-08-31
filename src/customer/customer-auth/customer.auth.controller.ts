@@ -18,7 +18,7 @@ export class CustomerAuthController{
     }
 
     @UseGuards(JwtGuard)
-    @Post('deviceToken')
+    @Patch('deviceToken')
     async getdeviceToken(@Req()req,@Body()dto:GetDeviceTokenDto): Promise<any> {
       
       return this.customerauthservice.deviceToken(req.user,dto);

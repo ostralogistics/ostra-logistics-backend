@@ -150,7 +150,7 @@ export class AdminCustomerDashBoardService {
 
          // Push notification
          await this.fcmService.sendNotification(
-          order.customer.deviceToken[order.customer.deviceToken.length - 1],
+          order.customer.deviceToken,
           'Opening Bid Sent!',
           `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
           {
@@ -240,7 +240,7 @@ export class AdminCustomerDashBoardService {
 
            // Push notification
       await this.fcmService.sendNotification(
-        bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1],
+        bid.order.customer.deviceToken,
         'Counter Bid Accepted!',
         `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
         {
@@ -313,7 +313,7 @@ export class AdminCustomerDashBoardService {
 
            // Push notification
       await this.fcmService.sendNotification(
-        bid.order.customer.deviceToken[bid.order.customer.deviceToken.length - 1],
+        bid.order.customer.deviceToken,
         ' Bid Countered!',
         `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
         {

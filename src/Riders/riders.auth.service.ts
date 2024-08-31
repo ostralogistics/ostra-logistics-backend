@@ -61,46 +61,30 @@ export class RiderAuthService {
     }
   }
 
-
-  async deviceToken(rider: RiderEntity,dto:GetDeviceTokenDto): Promise<IRider> {
+  async deviceToken(
+    rider: RiderEntity,
+    dto: GetDeviceTokenDto,
+  ): Promise<IRider> {
     try {
       if (!rider) {
         throw new NotFoundException('Rider not found');
       }
 
-        // Handle device tokens
-        const devicetoken = dto.deviceToken;
+      // Handle device tokens
+      rider.deviceToken = dto.deviceToken;
 
-        if (devicetoken) {
-          // Ensure the deviceToken array is initialized
-          if (!rider.deviceToken) {
-            rider.deviceToken = [];
-          }
-    
-          // Check if the token already exists
-          if (!rider.deviceToken.includes(devicetoken)) {
-            // Add the new token
-            rider.deviceToken.push(devicetoken);
-    
-            // If there are more than 3 tokens, remove the oldest one
-            if (rider.deviceToken.length > 3) {
-              rider.deviceToken.shift();
-            }
-               // Save the updated rider entity
-          await this.riderrepo.save(rider)
-          }
-        }
+      // Save the updated rider entity
+      await this.riderrepo.save(rider);
 
       return rider;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'something went wrong while trying to fetch rider profile',
+        'something went wrong',
         error.message,
       );
     }
   }
-
 
   //login rider
 
@@ -122,8 +106,6 @@ export class RiderAuthService {
           `Your account has not been verified. Please verify your account by sending a request to the admin.`,
         );
       }
-
-     
 
       //If the password matches
 

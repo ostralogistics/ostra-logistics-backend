@@ -35,7 +35,7 @@ export interface IRider{
     isLoggedIn:boolean
     isVerified:boolean
     isRegistered:boolean
-    deviceToken:string[]
+    deviceToken:string
     tasks : TaskEntity[]
     my_requests: RequestEntity[];
     vehicle_for_the_day:VehicleEntity
