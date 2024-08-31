@@ -1,5 +1,5 @@
 import { Controller,Post,Patch,Body, Req,Get, UseGuards, Param } from "@nestjs/common";
-import {  GetDeviceTokenDto, Logindto, RequestOtpResendDto, SendPasswordResetLinkDto, VerifyOtpDto, VerifyOtpForResetPasswordDto } from "src/common/common.dto";
+import {  GetDeviceTokenDto, Logindto, RequestOtpResendDto, ResendOtpDto, SendPasswordResetLinkDto, VerifyOtpDto, VerifyOtpForResetPasswordDto } from "src/common/common.dto";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { CustomerAuthService } from "./customer.auth.service";
 import { RegisterCustomerDto, addPasswordDto } from "../customer.dto";
@@ -36,9 +36,9 @@ export class CustomerAuthController{
 
  
     @Post('/resend-otp')
-    async resendVerificationLink(@Body()email:string):Promise<{message:string}>{
+    async resendVerificationLink(@Body()dto:ResendOtpDto):Promise<{message:string}>{
        
-        return await this.customerauthservice.ResendExpiredOtp(email)
+        return await this.customerauthservice.ResendExpiredOtp(dto)
 
     }
 

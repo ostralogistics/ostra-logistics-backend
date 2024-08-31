@@ -53,6 +53,13 @@ export class VerifyOtpDto{
     otp:string
 }
 
+export class ResendOtpDto{
+    
+    @IsEmail()
+    @IsNotEmpty()
+    email:string
+}
+
 export class  VerifyOtpForResetPasswordDto{
     
 
