@@ -831,7 +831,7 @@ export class RiderService {
 
       // Push notification
       await this.fcmService.sendNotification(
-        isOrder.customer.deviceToken[isOrder.customer.deviceToken.length - 1],
+        isOrder.customer.deviceToken,
         ' Parcel Successfully DroppedOff!',
         `Order with ID:  ${isOrder.orderID} belonging to  ${isOrder.customer.firstname} has been droppedOff to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`,
         {
