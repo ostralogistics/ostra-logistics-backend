@@ -562,6 +562,7 @@ export class AdminService {
     try {
       const vehicles = await this.vehiclerepo.findAndCount({
         relations: ['assigned_Rider'],
+        order:{RegisteredAt:'DESC'}
       });
       if (vehicles[1] === 0)
         throw new NotFoundException('there are currently no vehicle records ');
@@ -737,6 +738,7 @@ export class AdminService {
     try {
       const complaint = await this.complaintripo.findAndCount({
         relations: ['customer', 'replies', 'admin', 'assigned_staff'],
+        order:{createdAt:'DESC'}
       });
 
       if (complaint[1] === 0)
@@ -1347,6 +1349,7 @@ export class AdminService {
       const pricelist = await this.pricelistripo.findAndCount({
         take: limit,
         skip: skip,
+        order:{createdAT:'DESC'}
       });
       if (pricelist[1] === 0)
         throw new NotFoundException(
@@ -1473,6 +1476,7 @@ export class AdminService {
       const subscribers = await this.newsletterripo.findAndCount({
         take: limit,
         skip: skip,
+        order:{SubscribedAt:'DESC'}
       });
 
       if (subscribers[1] === 0)

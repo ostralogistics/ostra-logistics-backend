@@ -42,6 +42,8 @@ import {
   OrderStatus,
   PaymentStatus,
   PriorityDeliveryType,
+  TransactionConfirmation,
+  TransactionType,
 } from 'src/Enums/all-enums';
 import {
   BadRequestException,
@@ -67,7 +69,10 @@ import { GeneatorService } from 'src/common/services/generator.service';
 import { DistanceService } from 'src/common/services/distance.service';
 import { GeoCodingService } from 'src/common/services/goecoding.service';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
-import { DiscountEntity, ExpressDeliveryFeeEntity } from 'src/Entity/discount.entity';
+import {
+  DiscountEntity,
+  ExpressDeliveryFeeEntity,
+} from 'src/Entity/discount.entity';
 import { VehicleTypeEntity } from 'src/Entity/vehicleType.entity';
 import { ReceiptEntity } from 'src/Entity/receipt.entity';
 import {
@@ -126,13 +131,12 @@ export class AdminCustomerDashBoardService {
     try {
       const order = await this.orderRepo.findOne({
         where: { id: orderID },
-        relations: [ 'customer', 'items', 'admin',],
+        relations: ['customer', 'items', 'admin'],
       });
       if (!order)
         throw new NotFoundException(
           `order with the id: ${orderID} is not found`,
         );
-
 
       // new bid
       const bid = new BidEntity();
@@ -141,35 +145,32 @@ export class AdminCustomerDashBoardService {
       bid.initialBidPlacedAt = new Date();
       bid.bidStatus = BidStatus.BID_PLACED;
       bid.madeby = admin;
-      bid.updatedAT = new Date()
+      bid.updatedAT = new Date();
       await this.bidRepo.save(bid);
 
       order.processingOrderAT = new Date();
       await this.orderRepo.save(order);
 
+      // Push notification
+      await this.fcmService.sendNotification(
+        order.customer.deviceToken,
+        'Opening Bid Sent!',
+        `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
+        {
+          orderID: order.orderID,
+          bidValue: bid.bid_value.toString(),
+          customerId: order.customer.id,
+        },
+      );
 
-         // Push notification
-         await this.fcmService.sendNotification(
-          order.customer.deviceToken,
-          'Opening Bid Sent!',
-          `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
-          {
-            orderID: order.orderID,
-            bidValue: bid.bid_value.toString(),
-            customerId: order.customer.id,
-          },
-        );
-
-
-
-       // Notify the customer via WebSocket
-    this.eventsGateway.notifyCustomer('openingBidMade', {
-      message:'openning bid made',
-      orderID: order.orderID,
-      bidValue: bid.bid_value,
-      adminName: admin.fullname,
-      customerId: order.customer.id,  // Add customer ID to the payload
-    });
+      // Notify the customer via WebSocket
+      this.eventsGateway.notifyCustomer('openingBidMade', {
+        message: 'openning bid made',
+        orderID: order.orderID,
+        bidValue: bid.bid_value,
+        adminName: admin.fullname,
+        customerId: order.customer.id, // Add customer ID to the payload
+      });
 
       //save the notification
       const notification = new Notifications();
@@ -180,10 +181,12 @@ export class AdminCustomerDashBoardService {
 
       return bid;
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ConflictException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) {
         throw error;
-      }
-      else {
+      } else {
         console.log(error);
         throw new InternalServerErrorException(
           'something went wrong while making opening bid, please try again later',
@@ -218,9 +221,9 @@ export class AdminCustomerDashBoardService {
       // Accept the counter offer
       bid.bidStatus = BidStatus.ACCEPTED;
       bid.BidAcceptedAt = new Date();
-      bid.counterOfferAcceptedAt = new Date()
-      bid.isCounterOfferAccepted = true
-      bid.updatedAT = new Date()
+      bid.counterOfferAcceptedAt = new Date();
+      bid.isCounterOfferAccepted = true;
+      bid.updatedAT = new Date();
       // Record which admin accepted i
       await this.bidRepo.save(bid);
 
@@ -236,9 +239,7 @@ export class AdminCustomerDashBoardService {
         order: bid.order,
       });
 
-     
-
-           // Push notification
+      // Push notification
       await this.fcmService.sendNotification(
         bid.order.customer.deviceToken,
         'Counter Bid Accepted!',
@@ -247,9 +248,8 @@ export class AdminCustomerDashBoardService {
           orderID: bid.order.orderID,
           counterbidValue: bid.counter_bid_offer.toString(),
           customerId: bid.order.customer.id,
-        }
+        },
       );
-  
 
       // Save notification for admin
       const notification = new Notifications();
@@ -304,14 +304,12 @@ export class AdminCustomerDashBoardService {
       bid.counter_bid_offer = dto.counter_bid;
       bid.bidStatus = BidStatus.COUNTERED;
       bid.isCounterOffer = true;
-      bid.updatedAT = new Date()
+      bid.updatedAT = new Date();
       bid.counteredAt = new Date();
 
       await this.bidRepo.save(bid);
 
-
-
-           // Push notification
+      // Push notification
       await this.fcmService.sendNotification(
         bid.order.customer.deviceToken,
         ' Bid Countered!',
@@ -321,10 +319,7 @@ export class AdminCustomerDashBoardService {
           counterbidValue: bid.counter_bid_offer.toString(),
           customerId: bid.order.customer.id,
         },
-        
       );
-  
-      
 
       // Notify the customer via WebSocket
       this.eventsGateway.notifyCustomer('bidCountered', {
@@ -358,18 +353,16 @@ export class AdminCustomerDashBoardService {
   async FetchAllBids() {
     try {
       const [bids, count] = await this.bidRepo.findAndCount({
-        relations: ['order','order.customer', 'order.items', 'madeby'],
-        order:{
-          bidStatus:"DESC"
-        }
+        relations: ['order', 'order.customer', 'order.items', 'madeby'],
+        order: {
+          bidStatus: 'DESC',
+        },
       });
-  
+
       if (count === 0) {
         throw new NotFoundException('Oops! No bids have been placed yet');
       }
 
-  
-     
       return { bids, count };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -384,20 +377,18 @@ export class AdminCustomerDashBoardService {
     }
   }
 
-  async FetchOneBid(bidID:number) {
+  async FetchOneBid(bidID: number) {
     try {
       const bid = await this.bidRepo.findOne({
-        where:{id:bidID},
-        relations: ['order', 'order.customer','order.items', 'madeby'],
-       
+        where: { id: bidID },
+        relations: ['order', 'order.customer', 'order.items', 'madeby'],
       });
-  
+
       if (!bid) {
         throw new NotFoundException('Oops! No bid found with this ID');
       }
 
-
-      return bid
+      return bid;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
@@ -410,16 +401,16 @@ export class AdminCustomerDashBoardService {
       }
     }
   }
-  
 
   //fetch all customers
   async GetAllCustomers(page: number = 1, limit: number = 30) {
     try {
       const skip = (page - 1) * limit;
       const customers = await this.customerRepo.findAndCount({
-        relations: [ 'my_cards', 'my_orders', 'my_orders.items'],
+        relations: ['my_cards', 'my_orders', 'my_orders.items'],
         skip: skip,
         take: limit,
+        order: { RegisteredAt: 'DESC' },
       });
       if (customers[1] === 0)
         throw new NotFoundException('there are no customers found');
@@ -976,7 +967,7 @@ export class AdminCustomerDashBoardService {
     try {
       const checkbarcode = await this.orderRepo.findOne({
         where: { barcodeDigits: barcodeDigit },
-        relations: ['customer', 'receipt', 'items',],
+        relations: ['customer', 'receipt', 'items'],
       });
       if (!checkbarcode) throw new NotFoundException('trackingID not found');
 
@@ -1271,35 +1262,41 @@ export class AdminCustomerDashBoardService {
         );
       }
 
-           
       let baseAmount = Number(order.accepted_cost_of_delivery);
       let expressDeliveryCharge = 0;
       let discountAmount = 0;
       const vatPercentage = 0.07;
-  
+
       // Calculate express delivery charge if applicable
-      const hasExpressDelivery = order.isExpressDelivery
+      const hasExpressDelivery = order.isExpressDelivery;
       if (hasExpressDelivery) {
-        const expressDeliveryFeePercentage = await this.getExpressDeliveryFeePercentage();
-        expressDeliveryCharge = Number((baseAmount * (expressDeliveryFeePercentage / 100)).toFixed(2));
+        const expressDeliveryFeePercentage =
+          await this.getExpressDeliveryFeePercentage();
+        expressDeliveryCharge = Number(
+          (baseAmount * (expressDeliveryFeePercentage / 100)).toFixed(2),
+        );
       }
-  
+
       // Calculate discount if applicable
       if (order.IsDiscountApplied && order.discount) {
-        discountAmount = Number(((baseAmount * order.discount) / 100).toFixed(2));
+        discountAmount = Number(
+          ((baseAmount * order.discount) / 100).toFixed(2),
+        );
       }
-  
+
       // Calculate subtotal (base amount + express delivery charge - discount)
-      const subtotal = Number((baseAmount + expressDeliveryCharge - discountAmount).toFixed(2));
-  
+      const subtotal = Number(
+        (baseAmount + expressDeliveryCharge - discountAmount).toFixed(2),
+      );
+
       // Calculate VAT
       const vatAmount = Number((subtotal * vatPercentage).toFixed(2));
-  
+
       // Calculate total amount including VAT
       const totalAmountWithVAT = Number((subtotal + vatAmount).toFixed(2));
 
-        // Generate a unique reference for the transaction
-    const paymentReference = `order_${order.orderID}_${uuidv4()}`;
+      // Generate a unique reference for the transaction
+      const paymentReference = `order_${order.orderID}_${uuidv4()}`;
       // Paystack payment integration
       const response = await axios.post(
         'https://api.paystack.co/transaction/initialize',
@@ -1310,7 +1307,7 @@ export class AdminCustomerDashBoardService {
           currency: 'NGN',
         },
         {
-          headers: {    
+          headers: {
             Authorization: `Bearer ${process.env.PAYSTACK_TEST_SECRET}`,
             'Content-Type': 'application/json',
           },
@@ -1320,13 +1317,11 @@ export class AdminCustomerDashBoardService {
       if (response.data.status === true) {
         console.log('payment successfully initiated');
 
-      // Save the mapping of orderID to paymentReference for webhook handling
-      const paymentMapping = new PaymentMappingEntity();
-      paymentMapping.orderID = order.orderID;
-      paymentMapping.reference = paymentReference;
-      await this.paymentMappingRepo.save(paymentMapping);
-
-        
+        // Save the mapping of orderID to paymentReference for webhook handling
+        const paymentMapping = new PaymentMappingEntity();
+        paymentMapping.orderID = order.orderID;
+        paymentMapping.reference = paymentReference;
+        await this.paymentMappingRepo.save(paymentMapping);
       } else {
         throw new InternalServerErrorException(
           'Payment initialization failed. Please try again later',
@@ -1489,8 +1484,8 @@ export class AdminCustomerDashBoardService {
       }
 
       item.delivery_type = dto.delivery_type;
-      if (dto.delivery_type === PriorityDeliveryType.EXPRESS_DELIVERY){
-        item.isExpressDelivery = true
+      if (dto.delivery_type === PriorityDeliveryType.EXPRESS_DELIVERY) {
+        item.isExpressDelivery = true;
       }
       item.schedule_date = dto.schedule_date;
       item.pickupLat = pickupCoordinates.lat;
@@ -1676,7 +1671,7 @@ export class AdminCustomerDashBoardService {
           Recipient_name: cartItem.Recipient_name,
           Recipient_phone_number: cartItem.Recipient_phone_number,
           delivery_type: cartItem.delivery_type,
-          weight_of_parcel:cartItem.weight_of_parcel,
+          weight_of_parcel: cartItem.weight_of_parcel,
           describe_weight_of_parcel: cartItem.describe_weight_of_parcel,
           distance: cartItem.distance,
           dropOffLat: cartItem.dropOffLat,
@@ -1686,7 +1681,7 @@ export class AdminCustomerDashBoardService {
           landmark_of_dropoff: cartItem.landmark_of_dropoff,
           landmark_of_pickup: cartItem.landmark_of_pickup,
           note_for_rider: cartItem.note_for_rider,
-          
+
           parcelWorth: cartItem.parcelWorth,
           parcel_name: cartItem.parcel_name,
           pickup_address: cartItem.pickup_address,
@@ -1707,7 +1702,7 @@ export class AdminCustomerDashBoardService {
         return orderItem;
       });
 
-      order.isExpressDelivery = hasExpressDelivery
+      order.isExpressDelivery = hasExpressDelivery;
       // Save the new order
       await this.orderRepo.save(order);
 
@@ -1811,49 +1806,12 @@ export class AdminCustomerDashBoardService {
     }
   }
 
-  async getTotalRevenueByCustomer(customerID: string): Promise<number> {
-    try {
-      const customer = await this.customerRepo.findOne({
-        where: { id: customerID },
-      });
-
-      if (!customer) {
-        throw new NotFoundException(`Customer with ID ${customerID} not found`);
-      }
-
-      const orders = await this.orderRepo.find({
-        where: { customer: customer, bidStatus: BidStatus.ACCEPTED },
-      });
-
-      const totalRevenue = orders.reduce((total, order) => {
-        let orderAmount = order.accepted_cost_of_delivery;
-
-        if (order.IsDiscountApplied && order.discount) {
-          const discountAmount =
-            (order.accepted_cost_of_delivery * order.discount) / 100;
-          orderAmount -= discountAmount;
-        }
-
-        const vatPercentage = 0.07; // Adjust VAT percentage if needed
-        const vatAmount = orderAmount * vatPercentage;
-
-        return total + orderAmount + vatAmount;
-      }, 0);
-
-      return totalRevenue;
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException(
-        'An error occurred while fetching the total revenue by the customer',
-      );
-    }
-  }
-
   async getPaymenthistoryOfOneCustomer(customerID: string) {
     try {
       const transaction = await this.transactionRepo.findAndCount({
         where: { customer: { id: customerID } },
         relations: ['customer'],
+        order:{transactedAT:'DESC'}
       });
       if (!transaction)
         throw new NotFoundException(
@@ -1869,6 +1827,31 @@ export class AdminCustomerDashBoardService {
           error.message,
         );
       }
+    }
+  }
+
+  async getTotalRevenueByCustomer(customerID: string) {
+    try {
+      const transaction = await this.transactionRepo.find({
+        where: {
+          customer: { id: customerID },
+          transactionType: TransactionType.ORDER_PAYMENT,
+          status: TransactionConfirmation.CONFIRMED,
+        },
+      });
+
+      const totalRevenue = transaction.reduce(
+        (sum, transaction) => sum + Number(transaction.amount || 0),
+        0,
+      );
+
+      return totalRevenue;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'something went wrong',
+        error.message,
+      );
     }
   }
 }

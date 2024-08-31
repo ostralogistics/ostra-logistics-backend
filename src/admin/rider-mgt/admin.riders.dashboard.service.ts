@@ -942,6 +942,7 @@ export class AdminRiderDashboardService {
       const mytransactions = await this.transactionRepo.findAndCount({
         where: { Rider: { id: riderID } },
         relations: ['Rider', 'bankInfo'],
+        order:{transactedAT:'DESC'}
       });
       if (mytransactions[1] == 0)
         throw new NotFoundException(
@@ -967,6 +968,7 @@ export class AdminRiderDashboardService {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         relations: ['rider','rider.vehicle_for_the_day', 'assigned_order', 'assigned_order.customer'],
+        order:{acceptedAt:"DESC"}
       });
       if (alltasks[1] === 0)
         throw new NotFoundException('there are no Rider tasks at the moment');
@@ -984,13 +986,13 @@ export class AdminRiderDashboardService {
       }
     }
   }
-
   //get one rider tasks or rides
   async getOneriderTask(riderID: string) {
     try {
       const alltasks = await this.taskRepo.findAndCount({
         where: { rider: { id: riderID } },
         relations: ['rider','rider.vehicle_for_the_day', 'assigned_order', 'assigned_order.customer'],
+        order:{acceptedAt:'DESC'}
       });
       if (alltasks[1] === 0)
         throw new NotFoundException(
