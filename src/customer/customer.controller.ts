@@ -218,7 +218,7 @@ export class CustomerController{
       return await this.customerservice.CheckComplaintStatus(keyword)
      }
 
-     @Post('rate-review/:orderId')
+     @Patch('rate-review/:orderId')
      async rateOrder(
        @Param('orderId') orderId: number,
        @Body() ratingReviewDto: RatingReviewDto,

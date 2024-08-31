@@ -1677,15 +1677,15 @@ export class CustomerService {
   }
 
   async rateOrder(orderId: number, ratingReviewDto: RatingReviewDto): Promise<OrderEntity> {
-    const { rating, review } = ratingReviewDto;
+    
 
     const order = await this.orderRepo.findOne({where:{id:orderId}});
     if (!order) {
       throw new NotFoundException(`Order with ID ${orderId} not found`);
     }
 
-    order.rating = rating;
-    order.review = review;
+    order.rating = ratingReviewDto.rating;
+    order.review = ratingReviewDto.review;
 
     await this.orderRepo.save(order);
 
