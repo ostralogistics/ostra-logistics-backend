@@ -1835,8 +1835,6 @@ export class AdminCustomerDashBoardService {
       const transaction = await this.transactionRepo.find({
         where: {
           customer: { id: customerID },
-          transactionType: TransactionType.ORDER_PAYMENT,
-          status: TransactionConfirmation.CONFIRMED,
         },
       });
 
