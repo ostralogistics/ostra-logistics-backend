@@ -957,7 +957,7 @@ export class CustomerService {
   async scanBarcode(barcode: string) {
     try {
       const order = await this.orderRepo.findOne({
-        where: { barcodeDigits: barcode },
+        where: { trackingID: barcode },
         comment: 'finding order with the trackingID scanned from the barcode',
       });
       if (!order)

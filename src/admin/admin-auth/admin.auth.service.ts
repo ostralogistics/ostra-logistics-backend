@@ -30,6 +30,7 @@ import {
 import {
   Logindto,
   RequestOtpResendDto,
+  ResendOtpDto,
   SendPasswordResetLinkDto,
   VerifyOtpDto,
   VerifyOtpForResetPasswordDto,
@@ -279,19 +280,19 @@ export class AdminAuthService {
 
   // resend email verification otp
 
-  async ResendExpiredOtp(email: string | any): Promise<{ message: string }> {
+  async ResendExpiredOtp(dto:ResendOtpDto): Promise<{ message: string }> {
     try {
       const emailexsist = await this.adminrepo.findOne({
-        where: { email: email },
+        where: { email: dto.email },
       });
       if (!emailexsist)
         throw new ConflictException(
-          `customer with email: ${email}doesn't exists, please use an already registered email`,
+          `customer with email: ${dto.email}doesn't exists, please use an already registered email`,
         );
 
       // Check if there is an expired OTP for the user
       const expiredOtp = await this.otprepo.findOne({
-        where: { email: email, expiration_time: LessThan(new Date()) },
+        where: { email: dto.email, expiration_time: LessThan(new Date()) },
       });
       if (!expiredOtp) {
         throw new NotFoundException('No expired OTP found for this user.');
@@ -306,7 +307,7 @@ export class AdminAuthService {
 
       //save the token
       const newOtp = this.otprepo.create({
-        email: email,
+        email: dto.email,
         otp: emiailverificationcode,
         expiration_time: twominuteslater,
         role: emailexsist.role,

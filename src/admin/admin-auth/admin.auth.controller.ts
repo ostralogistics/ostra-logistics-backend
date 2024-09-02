@@ -1,5 +1,5 @@
 import { Controller,Post,Patch,Body, Req,Get, UseGuards, Param } from "@nestjs/common";
-import {  Logindto, RequestOtpResendDto, SendPasswordResetLinkDto, VerifyOtpDto, VerifyOtpForResetPasswordDto } from "src/common/common.dto";
+import {  Logindto, RequestOtpResendDto, ResendOtpDto, SendPasswordResetLinkDto, VerifyOtpDto, VerifyOtpForResetPasswordDto } from "src/common/common.dto";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { AdminAuthService } from "./admin.auth.service";
 import { PasscodeDto, RegisterAdminDto } from "../admin.dto";
@@ -48,10 +48,8 @@ export class AdminAuthController{
  
 
     @Post('/resend-otp')
-    async resendVerificationLink(@Req()req:Request):Promise<{message:string}>{
-        const email = req.headers.email
-        console.log(email)
-        return await this.adminauthservice.ResendExpiredOtp(email)
+    async resendVerificationLink(@Body()dto:ResendOtpDto):Promise<{message:string}>{
+        return await this.adminauthservice.ResendExpiredOtp(dto)
 
     }
 

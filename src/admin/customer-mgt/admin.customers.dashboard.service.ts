@@ -963,18 +963,18 @@ export class AdminCustomerDashBoardService {
     }
   }
 
-  async createAirWaybill(barcodeDigit: string) {
+  async createAirWaybill(trackingID: string) {
     try {
-      const checkbarcode = await this.orderRepo.findOne({
-        where: { barcodeDigits: barcodeDigit },
+      const checkorder = await this.orderRepo.findOne({
+        where: {trackingID: trackingID },
         relations: ['customer', 'receipt', 'items'],
       });
-      if (!checkbarcode) throw new NotFoundException('trackingID not found');
+      if (!checkorder) throw new NotFoundException('trackingID not found');
 
       // Generate barcode as base64 image
-      const barcode = await this.genratorservice.generateBarcode(barcodeDigit);
+      const barcode = await this.genratorservice.generateBarcode(trackingID);
 
-      return { order: checkbarcode, barcodeUrl: barcode };
+      return { order: checkorder, barcodeUrl: barcode };
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);

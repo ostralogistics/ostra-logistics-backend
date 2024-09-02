@@ -154,12 +154,12 @@ export class GeneatorService{
   // }
 
 
- async generateBarcode(barcodeDigit: string): Promise<string> {
+ async generateBarcode(trackingID: string): Promise<string> {
     return new Promise((resolve, reject) => {
       bwipjs.toBuffer(
         {
-          bcid: 'code39',       // Barcode type
-          text: barcodeDigit,     // Text to encode
+          bcid: 'code128',       // Barcode type
+          text: trackingID,     // Text to encode
           scale: 3,             // 3x scaling factor
           height: 10,           // Bar height, in millimeters
           includetext: true,    // Show human-readable text
