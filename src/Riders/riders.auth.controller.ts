@@ -17,7 +17,7 @@ export class RiderAuthController{
     }
 
     @UseGuards(JwtGuard)
-    @Post('deviceToken')
+    @Patch('deviceToken')
     async getdeviceToken(@Req()req,@Body()dto:GetDeviceTokenDto): Promise<any> {
       
       return this.riderauthsrvice.deviceToken(req.user,dto);
