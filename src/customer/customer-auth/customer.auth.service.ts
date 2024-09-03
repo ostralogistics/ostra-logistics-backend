@@ -139,7 +139,7 @@ export class CustomerAuthService {
       otp.otp = emiailverificationcode;
       otp.role = customer.role;
       const twominuteslater = new Date();
-      await twominuteslater.setMinutes(twominuteslater.getMinutes() + 10);
+      await twominuteslater.setMinutes(twominuteslater.getMinutes() + 2);
       otp.expiration_time = twominuteslater;
       await this.otprepo.save(otp);
 
@@ -270,7 +270,7 @@ export class CustomerAuthService {
 
       // Save the token with expiration time
       const twominuteslater = new Date();
-      await twominuteslater.setMinutes(twominuteslater.getMinutes() + 10);
+      await twominuteslater.setMinutes(twominuteslater.getMinutes() + 2);
 
       //save the token
       const newOtp = this.otprepo.create({
