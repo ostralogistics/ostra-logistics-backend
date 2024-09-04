@@ -1338,10 +1338,11 @@ export class RiderService {
 
   async AllNotificationsRelatedToRider(rider: RiderEntity) {
     try {
-      const notification = await this.notificationripo.findAndCount({
+      const [notification,count] = await this.notificationripo.findAndCount({
         where: { account: rider.id },
+        order:{date:'DESC'}
       });
-      if (notification[1] === 0)
+      if (count[1] === 0)
         throw new NotFoundException(
           'oops! you have no notifications at this time',
         );

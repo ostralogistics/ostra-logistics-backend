@@ -1443,10 +1443,11 @@ export class CustomerService {
 
   async AllNotificationsRelatedTocustomer(customer: CustomerEntity) {
     try {
-      const notification = await this.notificationripo.findAndCount({
+      const [notification,count] = await this.notificationripo.findAndCount({
         where: { account: customer.id },
+        order:{date:'DESC'}
       });
-      if (notification[1] === 0)
+      if (count[1] === 0)
         throw new NotFoundException(
           'oops! you have no notifications at this time',
         );
