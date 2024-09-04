@@ -85,6 +85,7 @@ import { Socket } from 'socket.io';
 import { FcmService } from 'src/firebase/fcm-node.service';
 import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { PushNotificationsService } from 'src/firebase/firebase-admin.provider';
 
 @Injectable()
 export class AdminCustomerDashBoardService {
@@ -117,7 +118,7 @@ export class AdminCustomerDashBoardService {
     private genratorservice: GeneatorService,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
-    private readonly fcmService: FcmService,
+    private readonly fcmService: PushNotificationsService,
     @InjectRepository(ReceiptEntity)
     private readonly receiptrepo: ReceiptRespository,
   ) {}
@@ -153,9 +154,10 @@ export class AdminCustomerDashBoardService {
 
       // Push notification
       await this.fcmService.sendNotification(
-        order.customer.deviceToken,
+       
         'Opening Bid Sent!',
         `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
+        order.customer.deviceToken,
         {
           orderID: order.orderID,
           bidValue: bid.bid_value.toString(),
@@ -241,9 +243,10 @@ export class AdminCustomerDashBoardService {
 
       // Push notification
       await this.fcmService.sendNotification(
-        bid.order.customer.deviceToken,
+       
         'Counter Bid Accepted!',
         `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
+        bid.order.customer.deviceToken,
         {
           orderID: bid.order.orderID,
           counterbidValue: bid.counter_bid_offer.toString(),
@@ -311,9 +314,10 @@ export class AdminCustomerDashBoardService {
 
       // Push notification
       await this.fcmService.sendNotification(
-        bid.order.customer.deviceToken,
+        
         ' Bid Countered!',
         `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
+        bid.order.customer.deviceToken,
         {
           orderID: bid.order.orderID,
           counterbidValue: bid.counter_bid_offer.toString(),

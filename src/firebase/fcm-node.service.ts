@@ -1,14 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as FCM from 'fcm-node';
 
 
 
 @Injectable()
 export class FcmService {
+  
   private readonly logger = new Logger(FcmService.name);
   private fcm: FCM;
 
   constructor() {
+    
     this.fcm = new FCM(process.env.FCM_SERVER_KEY);
   }
 
