@@ -551,7 +551,7 @@ export class Mailer {
 <p>Drop-off Code: ${dropoffcode}</p>
 <p>Thank you for choosing Ostra Logistics. Happy delivering!</p>
           
-          <p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
+          <p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">info@ostralogistics.com</a></p>
           
         </div>
         <div class="footer">
@@ -570,6 +570,114 @@ export class Mailer {
     await this.mailerservice.sendMail({ to: email, subject, html: content });
   }
 
+  async OrderRecipientDropOffMail(
+    email: string,
+    name: string,
+    dropoffcode: string,
+    ORDER_ID: string,
+  ): Promise<void> {
+    const subject = 'Order Details From Ostra Logistics';
+    const content = `<!DOCTYPE html>
+  <html>
+    <head>
+      <title>order accepted and payment made</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f2f2f2;
+          color: #333333;
+          line-height: 1.6;
+        }
+        .container {
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          border-radius: 10px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+          text-align: center;
+          margin-bottom: 10px;
+        }
+        .verification-heading {
+          text-align: center;
+          color: #0293D2;
+          font-size: 20px;
+          margin-bottom: 10px;
+        }
+        .message {
+          text-align: center;
+          font-size: 16px;
+          margin-bottom: 20px;
+        }
+        .otp {
+          text-align: center;
+          font-size: 30px;
+          color: #0293D2;
+          font-weight: bold;
+          margin-bottom: 20px;
+        }
+        .instructions {
+          font-size: 16px;
+          line-height: 1.4;
+        }
+        .button {
+          display: inline-block;
+          padding: 10px 20px;
+          background-color: #0293D2;
+          color: #ffffff;
+          text-decoration: none;
+          border-radius: 5px;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 20px;
+          color: #777777;
+        }
+        .social-icons {
+          margin-top: 10px;
+        }
+        .social-icons img {
+          width: 30px;
+          margin: 0 5px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="logo">
+        <img src="https://res.cloudinary.com/dma3njgsr/image/upload/v1720577913/oppc1paydigfmzkgdgc8.png" alt="Ostra Logistics">
+        </div>
+          
+        <h1 class="verification-heading">Order Details!</h1>
+        <p class="message"><span class="username">HI ${name}</span>,</p>
+        
+        <div class="instructions">
+        <p>We are excited to inform you that your bid has been accepted and payment has been successfully made for order ID: ${ORDER_ID}.</p>
+<p> A drop-off code has been provided. Please use the following details:</p>
+
+<p>Drop-off Code: ${dropoffcode}</p>
+<p>Thank you for choosing Ostra Logistics. Happy delivering!</p>
+          
+          <p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">info@ostralogistics.com</a></p>
+          
+        </div>
+        <div class="footer">
+        <p>Ostra Logistics</p>
+        <div class="social-icons">
+          <a href="https://facebook.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/facebook-new.png" alt="Facebook"></a>
+          <a href="https://twitter.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/twitter.png" alt="Twitter"></a>
+          <a href="https://instagram.com/ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/instagram-new.png" alt="Instagram"></a>
+          <a href="https://tiktok.com/@ostralogistics"><img src="https://img.icons8.com/fluent/48/000000/tiktok.png" alt="TikTok"></a>
+        </div>
+      </div>
+    </body>
+  </html>
+  `;
+
+    await this.mailerservice.sendMail({ to: email, subject, html: content });
+  }
   async ParcelDroppedOfMail(
     email: string,
     name: string,
@@ -657,7 +765,7 @@ export class Mailer {
 <p>If you have any feedback or concerns regarding your delivery experience, please don't hesitate to reach out to us.</p>
 <p>Thank you for choosing Ostra Logistics.</p>
 
-<p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">support@ostralogistics.com</a></p>
+<p>For any questions or assistance, contact our support team at <a href="mailto:ostralogistics@gmail.com">info@ostralogistics.com</a></p>
         </div>
         <div class="footer">
         <p>Ostra Logistics</p>

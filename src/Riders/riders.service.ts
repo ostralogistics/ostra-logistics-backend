@@ -180,7 +180,7 @@ export class RiderService {
         const notification = new Notifications();
         notification.account = Rider.id;
         notification.subject = 'Rider Declined a Task !';
-        notification.message = `Rider with the id ${Rider.id} has declined the Task on the ostra logistics rider app`;
+        notification.message = `Rider  ${Rider.firstname} has declined the Task on the ostra logistics rider app`;
         await this.notificationripo.save(notification);
   
         return task;
@@ -257,7 +257,7 @@ export class RiderService {
       const notification = new Notifications();
       notification.account = rider.id;
       notification.subject = 'Ride Cancelled';
-      notification.message = `Rider with ID ${rider.id} has cancelled a ride.`;
+      notification.message = `Rider ${rider.firstname} has cancelled a ride.`;
       await this.notificationripo.save(notification);
 
       return { message: 'Ride has been successfully cancelled', task };
@@ -352,7 +352,7 @@ export class RiderService {
       const notification = new Notifications();
       notification.account = Rider.id;
       notification.subject = 'Rider Reached a MileStone !';
-      notification.message = `Rider with the  id ${Rider} is on is way to the pickup location `;
+      notification.message = `Rider  ${Rider.firstname} is on is way to the pickup location `;
       await this.notificationripo.save(notification);
 
       return task;
@@ -414,7 +414,7 @@ export class RiderService {
       const notification = new Notifications();
       notification.account = Rider.id;
       notification.subject = 'Rider Reached a MileStone !';
-      notification.message = `Rider with the  id ${Rider} has gotten to the pickup location `;
+      notification.message = `Rider  ${Rider.firstname} has gotten to the pickup location `;
       await this.notificationripo.save(notification);
 
       return task;
@@ -476,7 +476,7 @@ export class RiderService {
       const notification = new Notifications();
       notification.account = Rider.id;
       notification.subject = 'Rider Reached a MileStone !';
-      notification.message = `Rider with the  id ${Rider} has picked up the parcel from the pick up location `;
+      notification.message = `Rider ${Rider.firstname} has picked up the parcel from the pick up location `;
       await this.notificationripo.save(notification);
 
       return task;
@@ -540,7 +540,7 @@ export class RiderService {
       const notification = new Notifications();
       notification.account = Rider.id;
       notification.subject = 'Rider Reached a MileStone !';
-      notification.message = `Rider with the  id ${Rider} has picked up the parcel and is now on his way to the office for rebranding of the picked up parcel `;
+      notification.message = `Rider  ${Rider.firstname} has picked up the parcel and is now on his way to the office for rebranding of the picked up parcel `;
       await this.notificationripo.save(notification);
 
       return task;
@@ -610,7 +610,7 @@ export class RiderService {
       const notification = new Notifications();
       notification.account = Rider.id;
       notification.subject = 'Rider Reached a MileStone !';
-      notification.message = `Rider with the  id ${Rider} has arived the office for rebranding of the picked up parcel `;
+      notification.message = `Rider ${Rider.firstname} has arived the office for rebranding of the picked up parcel `;
       await this.notificationripo.save(notification);
 
       return task;
@@ -673,7 +673,7 @@ export class RiderService {
       const notification = new Notifications();
       notification.account = Rider.id;
       notification.subject = 'Rider Reached a MileStone !';
-      notification.message = `Rider with the  id ${Rider} is enroute to the drop off location `;
+      notification.message = `Rider ${Rider.firstname} is enroute to the drop off location `;
       await this.notificationripo.save(notification);
 
       return task;
@@ -736,7 +736,7 @@ export class RiderService {
       const notification = new Notifications();
       notification.account = Rider.id;
       notification.subject = 'Rider Reached a MileStone !';
-      notification.message = `Rider with the  id ${Rider} has gotten to the drop off location `;
+      notification.message = `Rider ${Rider.firstname} has gotten to the drop off location `;
       await this.notificationripo.save(notification);
 
       return task;
@@ -846,7 +846,7 @@ export class RiderService {
       const notification = new Notifications();
       notification.account = Rider.id;
       notification.subject = 'Rider Reached a MileStone !';
-      notification.message = `Rider with the  id ${Rider} has dropped off the prcel and has finally completed that task `;
+      notification.message = `Rider ${Rider.firstname} has dropped off the prcel and has finally completed that task `;
       await this.notificationripo.save(notification);
 
       return task;
@@ -946,7 +946,7 @@ export class RiderService {
         const notification = new Notifications();
         notification.account = Rider.id;
         notification.subject = 'Rider Reached a MileStone!';
-        notification.message = `Rider with the id ${Rider.id} has dropped off one of the parcels for a multiple order dropoff points and has finally completed the task.`;
+        notification.message = `Rider  ${Rider.firstname} has dropped off one of the parcels for a multiple order dropoff points.`;
         await this.notificationripo.save(notification);
       } else {
         task.status = TaskStatus.CONCLUDED;
@@ -962,7 +962,7 @@ export class RiderService {
         const notification = new Notifications();
         notification.account = Rider.id;
         notification.subject = 'Rider Reached a MileStone!';
-        notification.message = `Rider with the id ${Rider.id} has dropped off the parcel and has finally completed the task.`;
+        notification.message = `Rider ${Rider.firstname} has dropped off the parcel and has finally completed the task.`;
         await this.notificationripo.save(notification);
       }
   

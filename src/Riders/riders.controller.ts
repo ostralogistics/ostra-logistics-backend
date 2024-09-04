@@ -41,8 +41,6 @@ export class RiderController{
         return await this.riderservice.fetchAllCanceledRides(req.user)   
     }
 
-       
-
 
     @Patch('checkin-enroute-to-pickup-location/:taskID/:orderID')
     async RiderChecksINEnrouteToPickupLocInWhenHeGetation (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
@@ -77,7 +75,7 @@ export class RiderController{
 
     @Patch('checkin-dropoff-location/:taskID/:orderID')
     async RiderChecksinWhenHegetsToDropOffLocation (@Param('taskID')taskID:number, @Param('orderID')orderID:number, @Req()req){
-        return await this.riderservice.RiderCheckInWhenHeISEnrouteToDropoffLocation(taskID,orderID,req.user)
+        return await this.riderservice.RiderCheckInWhenHeGetsToDropoffLocation(taskID,orderID,req.user)
     }
 
     @Patch('checkin-dropoff-parcel/:taskID/:orderID')

@@ -1304,6 +1304,7 @@ export class AdminCustomerDashBoardService {
           amount: Math.round(totalAmountWithVAT * 100), // Convert to kobo (Paystack currency)
           email: email, // Customer email for reference
           reference: paymentReference, // Order ID as payment reference
+          callback_url:`https://admin.ostralogistics.com/dashboard/orders/${orderID}`,
           currency: 'NGN',
         },
         {
