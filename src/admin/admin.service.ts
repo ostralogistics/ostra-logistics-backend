@@ -168,7 +168,7 @@ export class AdminService {
       const notification = new Notifications();
       notification.account = 'super admin';
       notification.subject = 'ceo updated Record!';
-      notification.message = `ceo with id ${admin.id} has updated their record on Ostra Logistics.`;
+      notification.message = `ceo  ${admin.firstname} has updated their record on Ostra Logistics.`;
       await this.notificationripo.save(notification);
 
       return {
@@ -213,7 +213,7 @@ export class AdminService {
       const notification = new Notifications();
       notification.account = admin.id;
       notification.subject = 'CEO Uploaded Profile Pics!';
-      notification.message = `CEO with id ${admin.id} have uploaded a profile picture in the admin app of ostra logistics `;
+      notification.message = `CEO  ${admin.firstname} have uploaded a profile picture in the admin app of ostra logistics `;
       await this.notificationripo.save(notification);
 
       return { message: 'your profile picture has been uploaded successully ' };
@@ -257,7 +257,7 @@ export class AdminService {
       const notification = new Notifications();
       notification.account = customer.id;
       notification.subject = 'CEO Changed Password!';
-      notification.message = `the ceo with id ${customer.id} have made changes to his existing record in the admin dashboard of ostra logistics `;
+      notification.message = `the ceo ${customer.firstname} have made changes to his existing record in the admin dashboard of ostra logistics `;
       await this.notificationripo.save(notification);
 
       return { message: 'password changed successfully' };
@@ -640,7 +640,7 @@ export class AdminService {
       const notification = new Notifications();
       notification.account = rider.id;
       notification.subject = 'vehicle Assigned For The Day !';
-      notification.message = ` vehicle with id ${vehicle.vehicleID} have been assigned to rider ${rider.id} on the admin portal of ostra ogistics by superadmin  `;
+      notification.message = ` vehicle with id ${vehicle.vehicleID} have been assigned to rider ${rider.firstname} on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
 
       return vehicle;
@@ -700,7 +700,7 @@ export class AdminService {
         const notification = new Notifications();
         notification.account = rider.id;
         notification.subject = 'Assigned Vehicle Returned !';
-        notification.message = ` vehicle with id ${vehicle.vehicleID} initially assigned to rider ${rider.id} has been returned  on the admin portal of ostra ogistics by superadmin  `;
+        notification.message = ` vehicle with id ${vehicle.vehicleID} initially assigned to rider ${rider.firstname} has been returned  on the admin portal of ostra ogistics by superadmin  `;
         await this.notificationripo.save(notification);
 
         //update the rider db too
@@ -806,7 +806,7 @@ export class AdminService {
       const notification = new Notifications();
       notification.account = 'admin';
       notification.subject = 'Replied a complaint!';
-      notification.message = ` complaint with ticket ${complaint.ticket} has been replied by admin with id ${Admin.id}   on the admin portal of ostra ogistics by superadmin  `;
+      notification.message = ` complaint with ticket ${complaint.ticket} has been replied by admin ${Admin.firstname}   on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
 
       return reply;
@@ -1049,7 +1049,7 @@ export class AdminService {
       const notification = new Notifications();
       notification.account = findadmin.id;
       notification.subject = 'complaint filed and ticket created!';
-      notification.message = `the admin with id ${admin.id} have filed a complaint on behalf of a customer on ostra logistics `;
+      notification.message = `the admin  ${admin.firstname} have filed a complaint on behalf of a customer on ostra logistics `;
       await this.notificationripo.save(notification);
 
       return {
@@ -1094,7 +1094,7 @@ export class AdminService {
       const notification = new Notifications();
       notification.account = staff.id;
       notification.subject = 'complaint Assigned to a staff !';
-      notification.message = ` ticket with id ${complaint.ticket} have been assigned to staff ${staff.adminID} on the admin portal of ostra ogistics by superadmin  `;
+      notification.message = ` ticket with id ${complaint.ticket} have been assigned to staff ${staff.firstname} on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
 
       return complaint;
@@ -1257,6 +1257,15 @@ export class AdminService {
 
       //remove the discount
       await this.discountripo.remove(discount);
+
+        //notifiction
+        const notification = new Notifications();
+        notification.account = 'super admin';
+        notification.subject = 'Discount deleted!';
+        notification.message = `the Admin have deleted a promo discount  on ostra logistics `;
+        await this.notificationripo.save(notification);
+
+      return {message:"promo code successfully deleted"}
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -1453,7 +1462,7 @@ export class AdminService {
       const notification = new Notifications();
       notification.account = 'super admin';
       notification.subject = 'Pricelist deleted!';
-      notification.message = `the Admin have a pricelist  the price list  on ostra logistics `;
+      notification.message = `the Admin have deleted a pricelist  on ostra logistics `;
       await this.notificationripo.save(notification);
 
       return { message: 'price list successfully deleted' };
@@ -1787,11 +1796,16 @@ export class AdminService {
         );
       }
 
-     
-
-      
+    
 
       await this.expressDeliveryFeeRepo.remove(express);
+
+       // Notification
+       const notification = new Notifications();
+       notification.account = 'super admin';
+       notification.subject = 'Express Delivery Charge Percentage Deleted!';
+       notification.message = `The admin has deleted an existing Charge Express Delivery Charge Percentage on Ostra Logistics.`;
+       await this.notificationripo.save(notification);
 
     
 

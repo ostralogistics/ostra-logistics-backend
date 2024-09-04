@@ -240,7 +240,7 @@ export class AdminStaffDasboardService {
       const notification = new Notifications();
       notification.account = findotheradmin.id;
       notification.subject = 'Staff deleted !';
-      notification.message = `the staff with id ${adminID}  has been deleted from the ostra logistics application by superAdmin `;
+      notification.message = `the staff  ${findotheradmin.firstname}  has been deleted from the ostra logistics application by superAdmin `;
       await this.notificationripo.save(notification);
 
       return {
@@ -285,7 +285,7 @@ export class AdminStaffDasboardService {
       const notification = new Notifications();
       notification.account = findstaff.id;
       notification.subject = 'Staff password changed !';
-      notification.message = `the Staff with id ${staffID} password has been changed on the admin portal of ostra ogistics by superadmin  `;
+      notification.message = `the Staff ${findstaff.firstname} password has been changed on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
 
       // customised response
@@ -466,7 +466,7 @@ export class AdminStaffDasboardService {
       const notification = new Notifications();
       notification.account = staff.id;
       notification.subject = 'Staff accesslevel changed !';
-      notification.message = `the Staff with id ${staffID} accesslevel have been changed on the admin portal of ostra ogistics by CEO  `;
+      notification.message = `the Staff ${staff.firstname} accesslevel have been changed on the admin portal of ostra ogistics by CEO  `;
       await this.notificationripo.save(notification);
 
       return {

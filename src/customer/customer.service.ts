@@ -664,7 +664,7 @@ export class CustomerService {
     await this.sendNotification(
       order.customer.id,
       'Customer accepted the counter bid offer!',
-      `The customer with ID ${order.customer.id} has accepted a conter  bid offer.`,
+      `The customer  ${order.customer.firstname} has accepted a conter  bid offer.`,
     );
   }
 
@@ -792,7 +792,7 @@ export class CustomerService {
       const notification = new Notifications();
       notification.account = bid.order.customer.id;
       notification.subject = 'Customer countered a bid!';
-      notification.message = `the customer with id ${bid.order.customer.id} have countered a bid from the admin in the app of ostra logistics with a new offer of ${bid.counter_bid_offer} `;
+      notification.message = `the customer  ${bid.order.customer.firstname} have countered a bid from the admin in the app of ostra logistics with a new offer of ${bid.counter_bid_offer} `;
       await this.notificationripo.save(notification);
 
       //update ordertable
@@ -898,9 +898,9 @@ export class CustomerService {
       }
       //save the notification
       const notification = new Notifications();
-      notification.account = 'customer';
+      notification.account = order.customer.id;
       notification.subject = 'Payment Order initiated!';
-      notification.message = `the customer  have initiated payment `;
+      notification.message = `this customer  have initiated payment `;
       await this.notificationripo.save(notification);
 
       return response.data;
@@ -1172,7 +1172,7 @@ export class CustomerService {
       const notification = new Notifications();
       notification.account = customer.id;
       notification.subject = 'Customer Added a card!';
-      notification.message = `the customer with id ${customer.id} have added a card from the admin in the app of ostra logistics `;
+      notification.message = `the customer  ${customer.firstname} have added a card from the admin in the app of ostra logistics `;
       await this.notificationripo.save(notification);
 
       return card;
@@ -1264,7 +1264,7 @@ export class CustomerService {
       const notification = new Notifications();
       notification.account = customer.id;
       notification.subject = 'Customer Deleted a card!';
-      notification.message = `the customer with id ${customer.id} have added a card with id: ${cardID}  in the customer app of ostra logistics `;
+      notification.message = `the customer  ${customer.firstname} have added a card with id: ${cardID}  in the customer app of ostra logistics `;
       await this.notificationripo.save(notification);
 
       return { message: 'card successfully deleted' };
@@ -1315,7 +1315,7 @@ export class CustomerService {
       const notification = new Notifications();
       notification.account = customer.id;
       notification.subject = 'Customer Updated Record!';
-      notification.message = `the customer with id ${customer.id} have updated their record in the customer app of ostra logistics `;
+      notification.message = `the customer  ${customer.firstname} have updated their record in the customer app of ostra logistics `;
       await this.notificationripo.save(notification);
 
       return { message: 'changes to record made successfully' };
@@ -1359,7 +1359,7 @@ export class CustomerService {
       const notification = new Notifications();
       notification.account = customer.id;
       notification.subject = 'Customer Changed Password!';
-      notification.message = `the customer with id ${customer.id} have made changes to his existing record in the customer app of ostra logistics `;
+      notification.message = `the customer ${customer.firstname} have made changes to his existing record in the customer app of ostra logistics `;
       await this.notificationripo.save(notification);
 
       return { message: 'password changed successfully' };
@@ -1396,7 +1396,7 @@ export class CustomerService {
       const notification = new Notifications();
       notification.account = customer.id;
       notification.subject = 'Customer Uploaded Profile Pics!';
-      notification.message = `the customer with id ${customer.id} have uploaded a profile picture in the customer app of ostra logistics `;
+      notification.message = `the customer  ${customer.firstname} have uploaded a profile picture in the customer app of ostra logistics `;
       await this.notificationripo.save(notification);
 
       return { message: 'your profile picture has been uploaded successully ' };

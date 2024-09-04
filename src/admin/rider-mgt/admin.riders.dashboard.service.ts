@@ -139,6 +139,7 @@ export class AdminRiderDashboardService {
       rider.profile_picture = profilepicsUrl;
       rider.guarantor1_picture = firstgurantorpicsurl;
       rider.guarantor2_picture = secondguarantorpicsurl;
+      rider.gurantor2_mobile = dto.gurantor2_mobile
       rider.guarantor2_relatioship_with_rider =
         dto.guarantor2_relatioship_with_rider;
 
@@ -221,6 +222,7 @@ export class AdminRiderDashboardService {
         dto.guarantor1_relatioship_with_rider;
       rider.gurantor1_mobile = dto.mobile;
       rider.guarantor2_name = dto.guarantor2_name;
+      rider.gurantor2_mobile = dto.gurantor2_mobile
       rider.guarantor2_relatioship_with_rider =
         dto.guarantor2_relatioship_with_rider;
       rider.UpdatedAt = new Date();
@@ -230,7 +232,7 @@ export class AdminRiderDashboardService {
       const notification = new Notifications();
       notification.account = rider.id;
       notification.subject = 'Admin Updated The Record of a Rider!';
-      notification.message = `The record of the rider with the id ${riderId} has been updated on Ostra Logistics platform`;
+      notification.message = `The record of the rider ${rider.firstname} has been updated on Ostra Logistics platform`;
       await this.notificationripo.save(notification);
 
       return {
@@ -275,7 +277,7 @@ export class AdminRiderDashboardService {
       const notification = new Notifications();
       notification.account = 'super admin';
       notification.subject = 'Rider deleted !';
-      notification.message = `the rider with id ${riderID}  has been deleted from the ostra logistics application by superAdmin  `;
+      notification.message = `the rider ${findriderbyid.firstname}  has been deleted from the ostra logistics application by superAdmin  `;
       await this.notificationripo.save(notification);
 
       return {
@@ -319,7 +321,7 @@ export class AdminRiderDashboardService {
       const notification = new Notifications();
       notification.account = findriderbyid.id;
       notification.subject = 'Rider password changed !';
-      notification.message = `the rider with id ${riderID} password has been changed on the admin portal of ostra ogistics by superadmin `;
+      notification.message = `the rider ${findriderbyid.firstname} password has been changed on the admin portal of ostra ogistics by superadmin `;
       await this.notificationripo.save(notification);
 
       // customised response
@@ -415,7 +417,7 @@ export class AdminRiderDashboardService {
       const notification = new Notifications();
       notification.account = findriderbyid.id;
       notification.subject = 'Rider password changed !';
-      notification.message = `the rider with id ${riderID} password has been changed on the admin portal of ostra ogistics by superadmin `;
+      notification.message = `the rider ${findriderbyid.firstname} password has been changed on the admin portal of ostra ogistics by superadmin `;
       await this.notificationripo.save(notification);
 
       // customised response
@@ -509,6 +511,7 @@ export class AdminRiderDashboardService {
       }
     }
   }
+
 
   async GetAllRidersWithStatusIntransit(page: number = 1, limit: number = 15) {
     try {
@@ -717,7 +720,7 @@ export class AdminRiderDashboardService {
       const notification = new Notifications();
       notification.account = rider.id;
       notification.subject = 'Rider Assigned Task!';
-      notification.message = `the Rider with id ${riderID} have been assigned a task on the admin portal of ostra ogistics by superadmin  `;
+      notification.message = `the Rider  ${rider.firstname} have been assigned a task on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
 
       return task;
@@ -760,7 +763,7 @@ export class AdminRiderDashboardService {
       const notification = new Notifications();
       notification.account = findriderbyid.id;
       notification.subject = 'Rider bank details added !';
-      notification.message = `the Rider with id ${riderID} bank details have been added  on the admin portal of ostra ogistics by superadmin  `;
+      notification.message = `the Rider ${findriderbyid.firstname} bank details have been added  on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
 
       return {
@@ -816,8 +819,8 @@ export class AdminRiderDashboardService {
       //save the notification
       const notification = new Notifications();
       notification.account = findriderbyid.id;
-      notification.subject = 'Rider bank details added !';
-      notification.message = `the Rider with id ${riderID} bank details have been updated based on request  on the admin portal of ostra ogistics by superadmin  `;
+      notification.subject = 'Rider bank details Updated !';
+      notification.message = `the Rider  ${findriderbyid.firstname} bank details have been updated based on request  on the admin portal of ostra ogistics by superadmin  `;
       await this.notificationripo.save(notification);
 
       return {
@@ -865,8 +868,8 @@ export class AdminRiderDashboardService {
       //save the notification
       const notification = new Notifications();
       notification.account = findriderbyid.id;
-      notification.subject = 'Rider bank details added !';
-      notification.message = `the Rider with id ${riderID} bank details have been updated based on request  on the admin portal of ostra ogistics by superadmin  `;
+      notification.subject = 'Rider bank details deleted !';
+      notification.message = `the Rider ${findriderbyid.firstname} bank details have been deleted on the admin portal of ostralogistics  `;
       await this.notificationripo.save(notification);
 
       return {
@@ -920,7 +923,7 @@ export class AdminRiderDashboardService {
       const notification = new Notifications();
       notification.account = bankDetails.owner.id;
       notification.subject = 'Admin Logs payment !';
-      notification.message = `the Rider with id ${riderID}  a payment as been logged in realtionsions to your account  `;
+      notification.message = `the Rider ${bankDetails.owner.firstname}  a payment as been logged in realtionsions to your account  `;
       await this.notificationripo.save(notification);
 
       return transaction;

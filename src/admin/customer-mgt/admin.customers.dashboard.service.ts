@@ -1715,7 +1715,7 @@ export class AdminCustomerDashBoardService {
       const notification = new Notifications();
       notification.account = admin.id;
       notification.subject = 'Admin checked out!';
-      notification.message = `The admin with ID ${admin.id} has checked out and proceeded to making payment after successfully completing an in-office order.`;
+      notification.message = `The admin  ${admin.firstname} has checked out and proceeded to making payment after successfully completing an in-office order.`;
       await this.notificationripo.save(notification);
 
       return {
