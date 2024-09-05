@@ -85,7 +85,8 @@ import { Socket } from 'socket.io';
 import { FcmService } from 'src/firebase/fcm-node.service';
 import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { PushNotificationsService } from 'src/firebase/firebase-admin.provider';
+import { PushNotificationsService } from 'src/pushnotification.service';
+
 
 @Injectable()
 export class AdminCustomerDashBoardService {

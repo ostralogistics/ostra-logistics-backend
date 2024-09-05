@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { FcmService } from './fcm-node.service';
-import { FirebaseAdminProvider, PushNotificationsService } from './firebase-admin.provider';
+import { PushNotificationsService } from 'src/pushnotification.service';
+
 
 
 @Module({
-  providers: [FcmService,PushNotificationsService,FirebaseAdminProvider],
-  exports: [FcmService],
+  providers: [FcmService,PushNotificationsService],
+  exports: [FcmService,PushNotificationsService],
 })
 export class FcmModule {}

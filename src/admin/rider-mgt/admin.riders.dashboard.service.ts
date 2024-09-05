@@ -56,7 +56,8 @@ import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 //import * as firebase from 'firebase-admin';
 import { FcmService } from 'src/firebase/fcm-node.service';
-import { PushNotificationsService } from 'src/firebase/firebase-admin.provider';
+import { PushNotificationsService } from 'src/pushnotification.service';
+
 
 @Injectable()
 export class AdminRiderDashboardService {

@@ -13,6 +13,7 @@ import { WebHookModule } from './Payment/webhook.module';
 import { AuthModule } from './auth/auth.module';
 //import { firebaseAdminProvider } from './firebase/firebase-admin.provider';
 import { FcmModule } from './firebase/fcm-node.module';
+import { PushNotificationsService } from './pushnotification.service';
 //import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
@@ -23,6 +24,7 @@ import { FcmModule } from './firebase/fcm-node.module';
     WebHookModule,
     AuthModule,
     FcmModule,
+
     //FirebaseModule,
     
     ConfigModule.forRoot({ isGlobal: true }),
@@ -42,6 +44,6 @@ import { FcmModule } from './firebase/fcm-node.module';
     })
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,PushNotificationsService],
 })
 export class AppModule {}

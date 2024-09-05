@@ -19,7 +19,8 @@ import { GeneatorService } from 'src/common/services/generator.service';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { FcmService } from 'src/firebase/fcm-node.service';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
-import { FirebaseAdminProvider, PushNotificationsService } from 'src/firebase/firebase-admin.provider';
+import { PushNotificationsService } from 'src/pushnotification.service';
+
 
 
  @Module({
@@ -47,7 +48,7 @@ import { FirebaseAdminProvider, PushNotificationsService } from 'src/firebase/fi
     EventsGateway,
     FcmService,
     PushNotificationsService,
-    FirebaseAdminProvider
+    //FirebaseAdminProvider
     
   ],
   controllers: [RiderAuthController, RiderController],

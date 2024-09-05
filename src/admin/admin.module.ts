@@ -43,7 +43,8 @@ import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 //import { firebaseAdminProvider } from 'src/firebase/firebase-admin.provider';
 import { FcmService } from 'src/firebase/fcm-node.service';
 import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
-import { FirebaseAdminProvider, PushNotificationsService } from 'src/firebase/firebase-admin.provider';
+import { PushNotificationsService } from 'src/pushnotification.service';
+
 
 
 
@@ -102,7 +103,7 @@ import { FirebaseAdminProvider, PushNotificationsService } from 'src/firebase/fi
     EventsGateway,
     FcmService,
     PushNotificationsService,
-    FirebaseAdminProvider
+    //FirebaseAdminProvider
   ],
 })
 export class AdminModule {}
