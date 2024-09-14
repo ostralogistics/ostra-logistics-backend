@@ -954,7 +954,7 @@ export class AdminService {
 
         //notification
         const notification = new Notifications();
-        notification.account = complaint.customer.id;
+        notification.account = 'admin';
         notification.subject = 'changed the resolution status';
         notification.message = ` the resolution status for the  complaint with ticket ${complaint.ticket} has been updated to resolved  `;
         await this.notificationripo.save(notification);
