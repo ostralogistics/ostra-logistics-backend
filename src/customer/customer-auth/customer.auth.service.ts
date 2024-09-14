@@ -41,6 +41,7 @@ import { Mailer } from 'src/common/mailer/mailer.service';
 import exp from 'constants';
 import { CustomerService } from '../customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
+//import { PushNotificationsService } from 'src/pushnotification.service';
 //import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 
 @Injectable()
@@ -53,6 +54,7 @@ export class CustomerAuthService {
     private readonly notificationrepo: NotificationRepository,
     private mailerservice: Mailer,
     private generatorservice: GeneatorService,
+    //private readonly fcmService: PushNotificationsService,
     //private smsservice:SmsSenderService
   ) {}
 
@@ -162,6 +164,8 @@ export class CustomerAuthService {
       notification.subject = 'New Customer Created!';
       notification.message = `new admin created successfully `;
       await this.notificationrepo.save(notification);
+
+         
 
       return {
         message:
@@ -479,6 +483,8 @@ export class CustomerAuthService {
       findcustomer.isLocked = false;
       await this.customerrepo.save(findcustomer);
 
+      console.log(findcustomer.deviceToken)
+
       // Save the notification
       const notification = new Notifications();
       notification.account = findcustomer.firstname;
@@ -486,12 +492,44 @@ export class CustomerAuthService {
       notification.message = `Hello ${findcustomer.firstname}, just logged in `;
       await this.notificationrepo.save(notification);
 
+        //  // Push notification
+        // const push = await this.fcmService.sendNotification(
+        //   findcustomer.deviceToken,
+        //   'Customer Successfully Logged In!',
+        //   `hello ${findcustomer.firstname} you have successfully logged in. Thank you.`,
+          
+        //   {
+         
+        // }
+           
+        // );
+
+        // const push = await this.fcmService.sendNotification(
+      
+        //   'dgzV_I-tTberyStu4W_YHE:APA91bGC4-Rbqoo_kW2IO2SAX4YXpkENw3ryL-5YmUPGXxG3s4WVsKMSRyfxEpeQjQuJ2xMx5Aat7jOS_hTIY91IFj8Cno-k-AiRB-lgU6F5PSGssG3nZgxWQ_ND_W84nGm5UETfWSdw',
+          
+        //   ' User Logged In!',
+        //   `you have successfully logged in. Thank you `,
+        
+        //   {
+        //     task: 'pickup',
+        //     orderID: 'osl-123456',
+        //     customerId: 'toyib',
+        //   },
+        // );
+  
+
       // Generate and return JWT token
-      return await this.generatorservice.signToken(
+      const token = await this.generatorservice.signToken(
         findcustomer.id,
         findcustomer.email,
         findcustomer.role,
       );
+
+      return {
+        //push,
+        token
+      }
     } catch (error) {
       console.log(error);
       if (

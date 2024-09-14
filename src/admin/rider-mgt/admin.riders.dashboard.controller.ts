@@ -405,8 +405,8 @@ export class AdminRiderDashBoardController {
     return await this.adminriderservice.getOneriderCompletedTaskCount(riderID);
   }
 
-  @Post('push')
-  async PushNotification(){
-    return await this.adminriderservice.testPushNotification()
-  }
+  // @Post('push')
+  // async PushNotification(){
+  //   return await this.adminriderservice.testPushNotification()
+  // }
 }

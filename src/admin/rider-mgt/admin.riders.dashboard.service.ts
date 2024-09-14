@@ -56,7 +56,7 @@ import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 //import * as firebase from 'firebase-admin';
 import { FcmService } from 'src/firebase/fcm-node.service';
-import { PushNotificationsService } from 'src/pushnotification.service';
+//import { PushNotificationsService } from 'src/pushnotification.service';
 
 
 @Injectable()
@@ -81,8 +81,8 @@ export class AdminRiderDashboardService {
     private cloudinaryservice: CloudinaryService,
     private mailer: Mailer,
     private genratorservice: GeneatorService,
-    private readonly fcmService: PushNotificationsService,
-    private readonly pushnotificationService: PushNotificationsService,
+    //private readonly fcmService: PushNotificationsService,
+    //private readonly pushnotificationService: PushNotificationsService,
   ) {}
 
   //admin register rider
@@ -704,17 +704,17 @@ export class AdminRiderDashboardService {
       await this.taskRepo.save(task);
 
       // Push notification
-      await this.fcmService.sendNotification(
-       
-        ' New Task Assigned!',
-        `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
-        rider.deviceToken,
-        {
-          task: task.task,
-          orderID: order.orderID,
-          customerId: order.customer.id,
-        },
-      );
+      // await this.fcmService.sendNotification(
+      //   rider.deviceToken,
+      //   ' New Task Assigned!',
+      //   `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
+        
+      //   {
+      //     task: task.task,
+      //     orderID: order.orderID,
+      //     customerId: order.customer.id,
+      //   },
+      // );
 
       //save the notification
       const notification = new Notifications();
@@ -739,27 +739,28 @@ export class AdminRiderDashboardService {
     }
   }
 
-  async testPushNotification() {
-    try {
-      // Push notification
-      const push = await this.pushnotificationService.sendNotification(
+  // async testPushNotification() {
+  //   try {
+  //     // Push notification
+  //     const push = await this.pushnotificationService.sendNotification(
       
-        ' New Task Assigned!',
-        `A new task, Please accept this task or decline it with a solid reason for your decline. Thank you `,
-        'eO-8CVRq00_PqwFG5kBmeK:APA91bGIeCRlI9Ghit6NovBACifPXDWNJ7e_MHJJ76TxSx5p_V7TuGJZWOY_WQVSrz43E-nJNOt74YcaypWm9wXrTDFqNd5ySRoOgNatC8Wu40bdtZw-CZERoIhdn7wwjmhKfTBJfFfU',
+  //       'dgzV_I-tTberyStu4W_YHE:APA91bGC4-Rbqoo_kW2IO2SAX4YXpkENw3ryL-5YmUPGXxG3s4WVsKMSRyfxEpeQjQuJ2xMx5Aat7jOS_hTIY91IFj8Cno-k-AiRB-lgU6F5PSGssG3nZgxWQ_ND_W84nGm5UETfWSdw',
         
-        {
-          task: 'pickup',
-          orderID: 'osl-123456',
-          customerId: 'toyib',
-        },
-      );
+  //       ' New Task Assigned!',
+  //       `A new task, Please accept this task or decline it with a solid reason for your decline. Thank you `,
+      
+  //       {
+  //         task: 'pickup',
+  //         orderID: 'osl-123456',
+  //         customerId: 'toyib',
+  //       },
+  //     );
 
-      return push;
-    } catch (error) {
-      throw error;
-    }
-  }
+  //     return push;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   //add rider bank details
   async addRiderBankDetails(dto: BankDetailsDto, riderID: string) {

@@ -28,6 +28,7 @@ import { customAlphabet } from 'nanoid';
 import { Mailer } from 'src/common/mailer/mailer.service';
 import { RequestEntity } from 'src/Entity/requests.entity';
 import { GeneatorService } from 'src/common/services/generator.service';
+//import { PushNotificationsService } from 'src/pushnotification.service';
 
 @Injectable()
 export class RiderAuthService {
@@ -41,6 +42,7 @@ export class RiderAuthService {
     private readonly requestrepo: RequestRepository,
     @InjectRepository(Notifications)
     private readonly notificationripo: NotificationRepository,
+    //private readonly fcmService: PushNotificationsService,
     private mailer: Mailer,
   ) {}
 
@@ -118,6 +120,18 @@ export class RiderAuthService {
       notification.subject = ' login!';
       notification.message = `Hello ${findrider.firstname}, just logged in `;
       await this.notificationripo.save(notification);
+
+      //   // Push notification
+      //   const push = await this.fcmService.sendNotification(
+      //     findrider.deviceToken,
+      //     'Rider Successfully Logged In!',
+      //     `hello ${findrider.firstname} you have successfully logged in. Thank you.`,
+          
+      //     {
+         
+      //   }
+      // )
+
 
       return await this.genratorservice.signToken(
         findrider.id,

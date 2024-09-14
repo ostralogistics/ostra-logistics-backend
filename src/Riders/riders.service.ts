@@ -1,4 +1,4 @@
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { RiderBankDetailsEntity, RiderEntity } from 'src/Entity/riders.entity';
 import {
   RidersRepository,
@@ -42,7 +42,7 @@ import {
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
 import { IOrder } from 'src/order/order';
-import { ILike } from 'typeorm';
+import { DataSource, ILike, QueryRunner } from 'typeorm';
 import { markNotificationAsReadDto } from 'src/customer/customer.dto';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { FcmService } from 'src/firebase/fcm-node.service';
@@ -66,6 +66,7 @@ export class RiderService {
     private readonly fcmService: FcmService,
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
+    @InjectDataSource() private readonly dataSource: DataSource,
    
     
   ) {}
@@ -753,281 +754,350 @@ export class RiderService {
   }
 
   //confirm drop off code when he gets to the drop off and also cirfim drop off
-  async RiderCheckInWhenHeDropsOff(
+  // async RiderCheckInWhenHeDropsOffnew(
+  //   taskID: number,
+  //   orderID: number,
+  //   Rider: RiderEntity,
+  //   dto: DropOffCodeDto,
+  // ) {
+  //   try {
+  //     // Fetch the task
+  //     const task = await this.taskRepo.findOne({
+  //       where: {
+  //         id: taskID,
+  //         rider: { id: Rider.id },
+  //       },
+  //       relations: [
+  //         'rider',
+  //         'assigned_order',
+  //         'assigned_order.items',
+  //         'assigned_order.customer',
+  //         'assigned_order.admin',
+  //       ],
+  //     });
+  
+  //     if (!task)
+  //       throw new NotFoundException(
+  //         `Task with the id: ${taskID} is not assigned to this rider`,
+  //       );
+  
+  //     // Check the order
+  //     const isOrder = await this.orderRepo.findOne({
+  //       where: {
+  //         id: orderID,
+  //         assigned_task: { id: taskID, rider: { id: Rider.id } },
+  //       },
+  //       relations: ['Rider', 'assigned_task', 'customer', 'items'],
+  //     });
+  //     if (!isOrder)
+  //       throw new NotAcceptableException(
+  //         'This order you are about to drop off was not assigned to you',
+  //       );
+  
+  //     // Confirm dropoff code
+  //     if (dto && dto.dropOff_code !== isOrder.dropoffCode)
+  //       throw new ConflictException(
+  //         'The dropoff code does not match, please try again ',
+  //       );
+  
+  //     // Get the number of items in the order
+  //     const itemsInOrder = isOrder.items.length;
+  
+  //     if (dto.itemsDroppedOff > itemsInOrder || dto.itemsDroppedOff < 1) {
+  //       throw new NotAcceptableException(
+  //         `Invalid number of items dropped off. Please select a number between 1 and ${itemsInOrder}`,
+  //       );
+  //     }
+  
+  //     // Update item statuses with individual timestamps
+  //     const currentTime = new Date();
+  //     for (let i = 0; i < dto.itemsDroppedOff; i++) {
+  //       const item = isOrder.items[i];
+  //       item.isdroppedOff = true;
+  //       item.droppedOffAt = currentTime; // Assign the current time to each item
+  //       await this.orderRepo.save(item); // Save the updated item
+  //     }
+  
+  //     // Update task milestone and status
+  //     task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
+  //     task.dropped_off_parcelAT = currentTime; // Assign the current time to the task dropoff
+  //     task.checkpointStatus = {
+  //       ...task.checkpointStatus,
+  //       'dropped_off-parcel': true,
+  //     };
+  
+  //     // Check if all items are dropped off
+  //     if (dto.itemsDroppedOff < itemsInOrder) {
+  //       task.status = TaskStatus.ONGOING;
+  //       isOrder.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+  
+  //       // Save notification
+  //       const notification = new Notifications();
+  //       notification.account = Rider.id;
+  //       notification.subject = 'Rider Reached a MileStone!';
+  //       notification.message = `Rider  ${Rider.firstname} has dropped off one of the parcels for a multiple order dropoff points.`;
+  //       await this.notificationripo.save(notification);
+  //     } else {
+  //       task.status = TaskStatus.CONCLUDED;
+  //       isOrder.order_status = OrderStatus.DELIVERED;
+  //       isOrder.order_display_status = OrderDisplayStatus.COMPLETED;
+  //       isOrder.DeliveredAT = currentTime; // Assign the current time to the order delivery
+  
+  //       // Update the rider entity status
+  //       Rider.status = RiderStatus.AVAILABLE;
+  //       await this.riderRepo.save(Rider);
+  
+  //       // Save notification
+  //       const notification = new Notifications();
+  //       notification.account = Rider.id;
+  //       notification.subject = 'Rider Reached a MileStone!';
+  //       notification.message = `Rider ${Rider.firstname} has dropped off the parcel and has finally completed the task.`;
+  //       await this.notificationripo.save(notification);
+  //     }
+  
+  //     await this.taskRepo.save(task);
+  //     await this.orderRepo.save(isOrder);
+  
+  //     // Log the drop-off
+  //     // const dropOffLog = new DropOffLogEntity();
+  //     // dropOffLog.order = isOrder;
+  //     // dropOffLog.rider = Rider;
+  //     // dropOffLog.droppedOffAt = currentTime; // Log the current time
+  //     // dropOffLog.location = dto.location; // Assuming location is part of the DTO
+  //     // await this.dropOffLogRepo.save(dropOffLog);
+  
+  //     // Determine the email recipient
+  //     const email = isOrder.customer?.email || isOrder.items[0]?.email;
+  //     const firstName = isOrder.customer?.firstname || isOrder.items[0]?.name;
+  
+  //     console.log(email, firstName);
+  
+  //     if (email && firstName) {
+  //       // Send mail
+  //       try {
+  //         await this.mailer.ParcelDroppedOfMail(
+  //           email,
+  //           firstName,
+  //           isOrder.trackingID,
+  //         );
+  //         console.log(`Email sent successfully to ${email}`);
+  //       } catch (mailError) {
+  //         console.error(`Failed to send email to ${email}`, mailError);
+  //       }
+  //     } else {
+  //       console.warn('Email or first name not found for sending mail');
+  //     }
+  
+  //     // Send push notification
+  //     await this.fcmService.sendNotification(
+  //       isOrder.customer.deviceToken,
+  //       'Parcel Successfully DroppedOff!',
+  //       `Order with ID: ${isOrder.orderID} belonging to ${isOrder.customer.firstname} has been dropped off to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`,
+  //       {
+  //         order: isOrder,
+  //         orderID: isOrder.orderID,
+  //         customerId: isOrder.customer.id,
+  //       },
+  //     );
+  
+  //     return task;
+  //   } catch (error) {
+  //     if (error instanceof NotFoundException) {
+  //       throw new NotFoundException(error.message);
+  //     } else if (error instanceof NotAcceptableException) {
+  //       throw new NotAcceptableException(error.message);
+  //     } else if (error instanceof ConflictException) {
+  //       throw new ConflictException(error.message);
+  //     } else {
+  //       console.log(error);
+  //       throw new InternalServerErrorException(
+  //         'Something went wrong while trying to update the milestone status for dropping off the parcel and concluding your trip. Please try again later.',
+  //         error.message,
+  //       );
+  //     }
+  //   }
+  // }
+
+
+  async RiderCheckInWhenHeDropsOffnew5(
     taskID: number,
     orderID: number,
     Rider: RiderEntity,
     dto: DropOffCodeDto,
   ) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+  
     try {
-      const task = await this.taskRepo.findOne({
-        where: {
-          id: taskID,
-          rider: { id: Rider.id },
-        },
-        relations: [
-          'rider',
-          'assigned_order',
-          'assigned_order.items',
-          'assigned_order.customer',
-          'assigned_order.admin',
-        ],
-      });
-
-      if (!task)
-        throw new NotFoundException(
-          `task with the id: ${taskID} is not assigned to this rider`,
-        );
-
-      //check the order
-      const isOrder = await this.orderRepo.findOne({
-        where: {
-          id: orderID,
-          assigned_task: { id: taskID, rider: { id: Rider.id } },
-        },
-        relations: ['Rider', 'asssigned_task', 'customer'],
-      });
-      if (!isOrder)
-        throw new NotAcceptableException(
-          'this order you are about to pickup was not assigned to you',
-        );
-
-      //confirm dropoff code
-      if (dto && dto.dropOff_code !== isOrder.dropoffCode)
-        throw new ConflictException(
-          'the dropoff code does not match, please try again ',
-        );
-
-      //updtae pickup milestone
-      task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
-      task.dropped_off_parcelAT = new Date();
-      task.checkpointStatus = {
-        ...task.checkpointStatus,
-        'dropped_off-parcel': true,
-      };
-      task.status = TaskStatus.CONCLUDED;
-      await this.taskRepo.save(task);
-      //update order table
-      task.assigned_order.order_status = OrderStatus.ENROUTE_TO_OFFICE;
-      await this.orderRepo.save(task.assigned_order);
-      //update the order table
-      isOrder.order_status = OrderStatus.DELIVERED;
-      isOrder.order_display_status = OrderDisplayStatus.COMPLETED;
-      isOrder.DeliveredAT = new Date();
-      await this.orderRepo.save(isOrder);
-
-      //update the rider entity
-      Rider.status = RiderStatus.AVAILABLE;
-      await this.riderRepo.save(Rider);
-
-      //send mail
-      await this.mailer.ParcelDroppedOfMail(
-        isOrder.customer.email,
-        isOrder.customer.firstname,
-        isOrder.trackingID,
-      );
-
-     
-
-      // Push notification
-      await this.fcmService.sendNotification(
-        isOrder.customer.deviceToken,
-        ' Parcel Successfully DroppedOff!',
-        `Order with ID:  ${isOrder.orderID} belonging to  ${isOrder.customer.firstname} has been droppedOff to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`,
-        {
-          order: isOrder,
-          orderID: isOrder.orderID,
-          customerId: isOrder.customer.id,
-        },
-        
-      );
-
-      //save notification
-      const notification = new Notifications();
-      notification.account = Rider.id;
-      notification.subject = 'Rider Reached a MileStone !';
-      notification.message = `Rider ${Rider.firstname} has dropped off the prcel and has finally completed that task `;
-      await this.notificationripo.save(notification);
-
-      return task;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else if (error instanceof NotAcceptableException) {
-        throw new NotAcceptableException(error.message);
-      } else if (error instanceof ConflictException) {
-        throw new ConflictException(error.message);
-      } else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying to update the milestone status for dropping off parcel and concluding your trip, please try again later',error.message
-        );
-      }
-    }
-  }
-  async RiderCheckInWhenHeDropsOffnew(
-    taskID: number,
-    orderID: number,
-    Rider: RiderEntity,
-    dto: DropOffCodeDto,
-  ) {
-    try {
-      // Fetch the task
-      const task = await this.taskRepo.findOne({
-        where: {
-          id: taskID,
-          rider: { id: Rider.id },
-        },
-        relations: [
-          'rider',
-          'assigned_order',
-          'assigned_order.items',
-          'assigned_order.customer',
-          'assigned_order.admin',
-        ],
-      });
+      const task = await this.getTask(queryRunner, taskID, Rider.id);
+      const isOrder = await this.getOrder(queryRunner, orderID, taskID, Rider.id);
   
-      if (!task)
-        throw new NotFoundException(
-          `Task with the id: ${taskID} is not assigned to this rider`,
-        );
+      this.validateDropOffCode(dto.dropOff_code, isOrder.dropoffCode);
+      this.validateItemCount(dto.itemsDroppedOff, isOrder.items.length);
   
-      // Check the order
-      const isOrder = await this.orderRepo.findOne({
-        where: {
-          id: orderID,
-          assigned_task: { id: taskID, rider: { id: Rider.id } },
-        },
-        relations: ['Rider', 'assigned_task', 'customer', 'items'],
-      });
-      if (!isOrder)
-        throw new NotAcceptableException(
-          'This order you are about to drop off was not assigned to you',
-        );
-  
-      // Confirm dropoff code
-      if (dto && dto.dropOff_code !== isOrder.dropoffCode)
-        throw new ConflictException(
-          'The dropoff code does not match, please try again ',
-        );
-  
-      // Get the number of items in the order
-      const itemsInOrder = isOrder.items.length;
-  
-      if (dto.itemsDroppedOff > itemsInOrder || dto.itemsDroppedOff < 1) {
-        throw new NotAcceptableException(
-          `Invalid number of items dropped off. Please select a number between 1 and ${itemsInOrder}`,
-        );
-      }
-  
-      // Update item statuses with individual timestamps
       const currentTime = new Date();
-      for (let i = 0; i < dto.itemsDroppedOff; i++) {
-        const item = isOrder.items[i];
-        item.isdroppedOff = true;
-        item.droppedOffAt = currentTime; // Assign the current time to each item
-        await this.orderRepo.save(item); // Save the updated item
-      }
+      await this.updateItemStatuses(queryRunner, isOrder, dto.itemsDroppedOff, currentTime);
+      await this.updateTaskAndOrderStatus(queryRunner, task, isOrder, dto.itemsDroppedOff, currentTime, Rider);
   
-      // Update task milestone and status
-      task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
-      task.dropped_off_parcelAT = currentTime; // Assign the current time to the task dropoff
-      task.checkpointStatus = {
-        ...task.checkpointStatus,
-        'dropped_off-parcel': true,
-      };
+      await this.saveNotification(queryRunner, Rider, isOrder, dto.itemsDroppedOff === isOrder.items.length);
+      await this.sendEmailNotification(isOrder, currentTime);
+      //await this.sendPushNotification(isOrder);
   
-      // Check if all items are dropped off
-      if (dto.itemsDroppedOff < itemsInOrder) {
-        task.status = TaskStatus.ONGOING;
-        isOrder.order_display_status = OrderDisplayStatus.IN_TRANSIT;
-  
-        // Save notification
-        const notification = new Notifications();
-        notification.account = Rider.id;
-        notification.subject = 'Rider Reached a MileStone!';
-        notification.message = `Rider  ${Rider.firstname} has dropped off one of the parcels for a multiple order dropoff points.`;
-        await this.notificationripo.save(notification);
-      } else {
-        task.status = TaskStatus.CONCLUDED;
-        isOrder.order_status = OrderStatus.DELIVERED;
-        isOrder.order_display_status = OrderDisplayStatus.COMPLETED;
-        isOrder.DeliveredAT = currentTime; // Assign the current time to the order delivery
-  
-        // Update the rider entity status
-        Rider.status = RiderStatus.AVAILABLE;
-        await this.riderRepo.save(Rider);
-  
-        // Save notification
-        const notification = new Notifications();
-        notification.account = Rider.id;
-        notification.subject = 'Rider Reached a MileStone!';
-        notification.message = `Rider ${Rider.firstname} has dropped off the parcel and has finally completed the task.`;
-        await this.notificationripo.save(notification);
-      }
-  
-      await this.taskRepo.save(task);
-      await this.orderRepo.save(isOrder);
-  
-      // Log the drop-off
-      // const dropOffLog = new DropOffLogEntity();
-      // dropOffLog.order = isOrder;
-      // dropOffLog.rider = Rider;
-      // dropOffLog.droppedOffAt = currentTime; // Log the current time
-      // dropOffLog.location = dto.location; // Assuming location is part of the DTO
-      // await this.dropOffLogRepo.save(dropOffLog);
-  
-      // Determine the email recipient
-      const email = isOrder.customer?.email || isOrder.items[0]?.email;
-      const firstName = isOrder.customer?.firstname || isOrder.items[0]?.name;
-  
-      console.log(email, firstName);
-  
-      if (email && firstName) {
-        // Send mail
-        try {
-          await this.mailer.ParcelDroppedOfMail(
-            email,
-            firstName,
-            isOrder.trackingID,
-          );
-          console.log(`Email sent successfully to ${email}`);
-        } catch (mailError) {
-          console.error(`Failed to send email to ${email}`, mailError);
-        }
-      } else {
-        console.warn('Email or first name not found for sending mail');
-      }
-  
-      // Send push notification
-      await this.fcmService.sendNotification(
-        isOrder.customer.deviceToken,
-        'Parcel Successfully DroppedOff!',
-        `Order with ID: ${isOrder.orderID} belonging to ${isOrder.customer.firstname} has been dropped off to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`,
-        {
-          order: isOrder,
-          orderID: isOrder.orderID,
-          customerId: isOrder.customer.id,
-        },
-      );
-  
+      await queryRunner.commitTransaction();
       return task;
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else if (error instanceof NotAcceptableException) {
-        throw new NotAcceptableException(error.message);
-      } else if (error instanceof ConflictException) {
-        throw new ConflictException(error.message);
-      } else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'Something went wrong while trying to update the milestone status for dropping off the parcel and concluding your trip. Please try again later.',
-          error.message,
-        );
-      }
+      await queryRunner.rollbackTransaction();
+      this.handleError(error);
+    } finally {
+      await queryRunner.release();
     }
   }
+  
+  private async getTask(queryRunner: QueryRunner, taskID: number, riderID: string) {
+    const task = await queryRunner.manager.findOne(TaskEntity, {
+      where: { id: taskID, rider: { id: riderID } },
+      relations: ['rider', 'assigned_order', 'assigned_order.items', 'assigned_order.customer', 'assigned_order.admin'],
+    });
+    if (!task) throw new NotFoundException(`Task with the id: ${taskID} is not assigned to this rider`);
+    return task;
+  }
+  
+  private async getOrder(queryRunner: QueryRunner, orderID: number, taskID: number, riderID: string) {
+    const isOrder = await queryRunner.manager.findOne(OrderEntity, {
+      where: { id: orderID, assigned_task: { id: taskID, rider: { id: riderID } } },
+      relations: ['Rider', 'assigned_task', 'customer', 'items'],
+    });
+    if (!isOrder) throw new NotAcceptableException('This order you are about to drop off was not assigned to you');
+    return isOrder;
+  }
+  
+  private validateDropOffCode(providedCode: string, actualCode: string) {
+    if (providedCode !== actualCode) {
+      throw new ConflictException('The dropoff code does not match, please try again');
+    }
+  }
+  
+  private validateItemCount(itemsDroppedOff: number, totalItems: number) {
+    if (itemsDroppedOff > totalItems || itemsDroppedOff < 1) {
+      throw new NotAcceptableException(`Invalid number of items dropped off. Please select a number between 1 and ${totalItems}`);
+    }
+  }
+  
+  private async updateItemStatuses(queryRunner: QueryRunner, order: OrderEntity, itemsDroppedOff: number, currentTime: Date) {
+    for (let i = 0; i < itemsDroppedOff; i++) {
+      const item = order.items[i];
+      item.isdroppedOff = true;
+      item.droppedOffAt = currentTime;
+      await queryRunner.manager.save(item);
+    }
+  }
+  
+  private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, itemsDroppedOff: number, currentTime: Date, Rider: RiderEntity) {
+    task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
+    task.dropped_off_parcelAT = currentTime;
+    task.checkpointStatus = { ...task.checkpointStatus, 'dropped_off-parcel': true };
+  
+    if (itemsDroppedOff < order.items.length) {
+      task.status = TaskStatus.ONGOING;
+      order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+      console.log(`Updating task ${task.id} to ONGOING and order ${order.id} to IN_TRANSIT`);
+    } else {
+      task.status = TaskStatus.CONCLUDED;
+      order.order_status = OrderStatus.DELIVERED;
+      order.order_display_status = OrderDisplayStatus.COMPLETED;
+      order.DeliveredAT = currentTime;
+      Rider.status = RiderStatus.AVAILABLE;
+      await queryRunner.manager.save(Rider);
+      console.log(`Updating task ${task.id} to CONCLUDED and order ${order.id} to COMPLETED`);
+    }
+  
+    await queryRunner.manager.save(task);
+    await queryRunner.manager.save(order);
+    console.log(`Successfully saved updates for task ${task.id} and order ${order.id}`);
+
+  }
+  
+  private async saveNotification(queryRunner: QueryRunner, Rider: RiderEntity, order: OrderEntity, isFullyDroppedOff: boolean) {
+    const notification = new Notifications();
+    notification.account = Rider.id;
+    notification.subject = 'Rider Reached a MileStone!';
+    notification.message = isFullyDroppedOff
+      ? `Rider ${Rider.firstname} has dropped off the parcel and has finally completed the task.`
+      : `Rider ${Rider.firstname} has dropped off one of the parcels for a multiple order dropoff points.`;
+    await queryRunner.manager.save(notification);
+  }
+  
+  private async sendEmailNotification(order: OrderEntity, currentTime: Date) {
+    const email = order.customer?.email || order.items[0]?.email;
+    const firstName = order.customer?.firstname || order.items[0]?.name;
+  
+    if (email && firstName) {
+      try {
+        await this.mailer.ParcelDroppedOfMail(email, firstName, order.trackingID);
+        console.log(`Email sent successfully to ${email}`);
+      } catch (mailError) {
+        console.error(`Failed to send email to ${email}`, mailError);
+      }
+    } else {
+      console.warn('Email or first name not found for sending mail');
+    }
+  }
+  
+  // private async sendPushNotification(order: OrderEntity) {
+  //   if (order.customer?.deviceToken) {
+  //     await this.fcmService.sendNotification(
+  //       order.customer.deviceToken,
+  //       'Parcel Successfully DroppedOff!',
+  //       `Order with ID: ${order.orderID} belonging to ${order.customer.firstname} has been dropped off to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`,
+  //       {
+  //         order: order,
+  //         orderID: order.orderID,
+  //         customerId: order.customer.id,
+  //       },
+  //     );
+  //   }
+  // }
+  
+  private handleError(error: any) {
+    if (error instanceof NotFoundException || error instanceof NotAcceptableException || error instanceof ConflictException) {
+      throw error;
+    } else {
+      console.error(error);
+      throw new InternalServerErrorException('Something went wrong while processing the drop-off. Please try again later.');
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
   //see tasks asssigned to the rider
   async fetchAssignedTask(Rider: RiderEntity) {

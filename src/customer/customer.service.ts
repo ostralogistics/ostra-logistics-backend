@@ -1632,27 +1632,32 @@ export class CustomerService {
     }
   }
 
-  //get discount
-  async GetDiscount() {
-    try {
-      const discounts = await this.discountripo.findAndCount();
-      if (discounts[1] === 0)
-        throw new NotFoundException(
-          'oops! no discount has been set at the moment',
-        );
-      return discounts;
-    } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'something went wrong while trying to fetch promocode ',
-          error.message,
-        );
-      }
+ //get discount
+ async GetDiscount() {
+  try {
+    const now = new Date();
+    const discounts = await this.discountripo.findAndCount({
+      where: { isActive: true },
+    });
+
+    if (discounts[1] === 0)
+      throw new NotFoundException(
+        'Oops! No discount has been set at the moment',
+      );
+
+    return discounts;
+  } catch (error) {
+    if (error instanceof NotFoundException)
+      throw new NotFoundException(error.message);
+    else {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'Something went wrong while trying to fetch the promo code.',
+        error.message,
+      );
     }
   }
+}
 
   async getPaymenthistoryOfOneCustomer(Customer: CustomerEntity) {
     try {

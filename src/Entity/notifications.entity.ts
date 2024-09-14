@@ -6,7 +6,7 @@ export class Notifications implements INotification{
     id:number
 
     @CreateDateColumn()
-    date:Date
+    date:Date 
 
     @Column('varchar',{nullable:false})
     account:string

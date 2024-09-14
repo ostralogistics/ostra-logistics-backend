@@ -30,6 +30,7 @@ import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
+//import { PushNotificationsService } from 'src/pushnotification.service';
 //import { SmsSenderService } from 'src/common/twilioSmsSender/sms';
 //import { FirebaseService } from 'src/firebase/firebase.service';
 
@@ -69,7 +70,8 @@ import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
     UploadService,
     GeneatorService,
     CloudinaryService,
-    EventsGateway
+    EventsGateway,
+    //PushNotificationsService
     //SmsSenderService,
     //FirebaseService
   ],
