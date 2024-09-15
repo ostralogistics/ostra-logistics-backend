@@ -1492,7 +1492,9 @@ export class RiderService {
     try {
       const mytransactions = await this.transactionRepo.findAndCount({
         where: { Rider: { id: rider.id } },
-        relations: ['bankInfo'],
+        relations: ['Rider', 'bankInfo'],
+        order: { transactedAT: 'DESC' },
+      
       });
       if (mytransactions[1] == 0)
         throw new NotFoundException(
