@@ -936,10 +936,11 @@ export class RiderService {
       this.validateDropOffCode(dto.dropOff_code, isOrder.dropoffCode);
       this.validateItemCount(dto.itemsDroppedOff, isOrder.items.length);
   
-      const currentTime = new Date();
-      await this.updateItemStatuses(queryRunner, isOrder, dto.itemsDroppedOff, currentTime);
-      await this.updateTaskAndOrderStatus(queryRunner, task, isOrder, dto.itemsDroppedOff, currentTime, Rider);
-  
+     
+    const currentTime = new Date();
+    await this.updateItemStatus(queryRunner, isOrder, dto.itemsDroppedOff, currentTime);
+    await this.updateTaskAndOrderStatus(queryRunner, task, isOrder, Rider);
+
       await this.saveNotification(queryRunner, Rider, isOrder, dto.itemsDroppedOff === isOrder.items.length);
       await this.sendEmailNotification(isOrder, currentTime);
       //await this.sendPushNotification(isOrder);
@@ -984,46 +985,46 @@ export class RiderService {
     }
   }
   
-  private async updateItemStatuses(queryRunner: QueryRunner, order: OrderEntity, selectedIndex: number, currentTime: Date) {
-    order.items = order.items.map((item, index) => {
-      if (index <= selectedIndex) {
-        item.isdroppedOff = true;
-        item.droppedOffAt = currentTime;
-      }
-      return item;
-    });
+  private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, selectedIndex: number, currentTime: Date) {
+    const selectedItem = order.items[selectedIndex];
+    if (!selectedItem) {
+      throw new NotFoundException(`Item at index ${selectedIndex} not found in the order`);
+    }
   
-    await queryRunner.manager.save(order.items);
+    selectedItem.isdroppedOff = true;
+    selectedItem.droppedOffAt = currentTime;
   
+    await queryRunner.manager.save(selectedItem);
   }
   
-  private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, selectedIndex: number, currentTime: Date, Rider: RiderEntity) {
+  private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, Rider: RiderEntity) {
     task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
-    task.dropped_off_parcelAT = currentTime;
-    task.checkpointStatus = { ...task.checkpointStatus, 'dropped_off-parcel': true };
-
-  const totalItemsDroppedOff = order.items.filter(item => item.isdroppedOff).length;
-  const allItemsDroppedOff = totalItemsDroppedOff === order.items.length;
-
+    task.dropped_off_parcelAT = new Date(); // This is the latest drop-off time
   
-  if (allItemsDroppedOff) {
-    task.status = TaskStatus.CONCLUDED;
-    order.order_status = OrderStatus.DELIVERED;
-    order.order_display_status = OrderDisplayStatus.COMPLETED;
-    order.DeliveredAT = currentTime;
-    Rider.status = RiderStatus.AVAILABLE;
-    await queryRunner.manager.save(Rider);
-    console.log(`Updating task ${task.id} to CONCLUDED and order ${order.id} to COMPLETED`);
-  } else {
-    task.status = TaskStatus.ONGOING;
-    order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
-    console.log(`Updating task ${task.id} to ONGOING and order ${order.id} to IN_TRANSIT`);
+    const allItemsDroppedOff = order.items.every(item => item.isdroppedOff);
+  
+    if (allItemsDroppedOff) {
+      task.status = TaskStatus.CONCLUDED;
+      order.order_status = OrderStatus.DELIVERED;
+      order.order_display_status = OrderDisplayStatus.COMPLETED;
+      order.DeliveredAT = new Date();
+      Rider.status = RiderStatus.AVAILABLE;
+      await queryRunner.manager.save(Rider);
+      console.log(`Updating task ${task.id} to CONCLUDED and order ${order.id} to COMPLETED`);
+    } else {
+      task.status = TaskStatus.ONGOING;
+      order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+      console.log(`Updating task ${task.id} to ONGOING and order ${order.id} to IN_TRANSIT`);
+    }
+  
+    task.checkpointStatus = { ...task.checkpointStatus, 'dropped_off-parcel': true };
+  
+    await queryRunner.manager.save(task);
+    await queryRunner.manager.save(order);
+    console.log(`Successfully saved updates for task ${task.id} and order ${order.id}`);
   }
 
-  await queryRunner.manager.save(task);
-  await queryRunner.manager.save(order);
-  console.log(`Successfully saved updates for task ${task.id} and order ${order.id}`);
-}
+
   
   private async saveNotification(queryRunner: QueryRunner, Rider: RiderEntity, order: OrderEntity, isFullyDroppedOff: boolean) {
     const notification = new Notifications();
