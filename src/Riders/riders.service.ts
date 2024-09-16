@@ -978,14 +978,14 @@ export class RiderService {
     }
   }
   
-  private validateItemCount(itemsDroppedOff: number, totalItems: number) {
-    if (itemsDroppedOff > totalItems || itemsDroppedOff < 1) {
-      throw new NotAcceptableException(`Invalid number of items dropped off. Please select a number between 1 and ${totalItems}`);
+  private validateItemCount(selectedIndex: number, totalItems: number) {
+    if (selectedIndex < 0 || selectedIndex >= totalItems) {
+      throw new NotAcceptableException(`Invalid item index selected. Please select an index between 0 and ${totalItems - 1}`);
     }
   }
   
-  private async updateItemStatuses(queryRunner: QueryRunner, order: OrderEntity, itemsDroppedOff: number, currentTime: Date) {
-    for (let i = 0; i < itemsDroppedOff; i++) {
+  private async updateItemStatuses(queryRunner: QueryRunner, order: OrderEntity, selectedIndex: number, currentTime: Date) {
+    for (let i = 0; i <= selectedIndex; i++) {
       const item = order.items[i];
       item.isdroppedOff = true;
       item.droppedOffAt = currentTime;
@@ -993,12 +993,12 @@ export class RiderService {
     }
   }
   
-  private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, itemsDroppedOff: number, currentTime: Date, Rider: RiderEntity) {
+  private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, selectedIndex: number, currentTime: Date, Rider: RiderEntity) {
     task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
     task.dropped_off_parcelAT = currentTime;
     task.checkpointStatus = { ...task.checkpointStatus, 'dropped_off-parcel': true };
   
-    if (itemsDroppedOff < order.items.length) {
+    if (selectedIndex < order.items.length -1) {
       task.status = TaskStatus.ONGOING;
       order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
       console.log(`Updating task ${task.id} to ONGOING and order ${order.id} to IN_TRANSIT`);
