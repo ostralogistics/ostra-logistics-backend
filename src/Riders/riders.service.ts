@@ -1001,7 +1001,8 @@ export class RiderService {
     task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
     task.dropped_off_parcelAT = new Date(); // This is the latest drop-off time
   
-    const allItemsDroppedOff = order.items.every(item => item.isdroppedOff);
+    const remainingItems = order.items.filter(item => !item.isdroppedOff).length;
+    const allItemsDroppedOff = remainingItems === 0;
   
     if (allItemsDroppedOff) {
       task.status = TaskStatus.CONCLUDED;
