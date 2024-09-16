@@ -244,6 +244,7 @@ export class CustomerService {
       const item = new CartItemEntity();
       item.id = `${await this.genratorservice.generateUUID()}`;
       item.parcel_name = dto.parcel_name;
+      item.index = cart.items.length;
       item.product_category = dto.product_category;
       item.quantity = dto.quantity;
       item.parcelWorth = dto.parcelWorth;
@@ -445,11 +446,15 @@ export class CustomerService {
 
 
       let hasExpressDelivery = false;
+
+       // Sort cart items by index before mapping to order items
+      cart.items.sort((a, b) => a.index - b.index);
       // Add items to the order
       order.items = cart.items.map((cartItem) => {
         const orderItem = new OrderItemEntity();
         Object.assign(orderItem, {
           isExpressDelivery:cartItem.isExpressDelivery,
+          index:cartItem.index,
           Area_of_dropoff: cartItem.Area_of_dropoff,
           Area_of_pickup: cartItem.Area_of_pickup,
           Recipient_name: cartItem.Recipient_name,
@@ -996,6 +1001,7 @@ export class CustomerService {
         },
         relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
         comment: 'fetching orders that are in transit ',
+        order:{RiderAssignedAT:'DESC'}
       });
 
       if (findorder[1] === 0)
@@ -1025,6 +1031,7 @@ export class CustomerService {
         },
         relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
         comment: 'fetching orders that are just placed ',
+        order:{processingOrderAT:'DESC'}
       });
 
       if (findorder[1] === 0)
@@ -1083,6 +1090,7 @@ export class CustomerService {
         },
         relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
         comment: 'fetching orders that have been dropped off ',
+        order:{DeliveredAT:'DESC'}
       });
 
       if (findorder[1] === 0)

@@ -168,6 +168,9 @@ export class OrderItemEntity {
   @Column({nullable:true, type:'boolean', default:false})
   isExpressDelivery : boolean
 
+  @Column({ nullable: true })
+  index:number
+
   //in office order user details 
 
   @Column({nullable:true})
@@ -313,6 +316,9 @@ export class CartItemEntity {
 
   @ManyToOne(() => OrderCartEntity, (cart) => cart.items)
   cart: OrderCartEntity;
+
+  @Column({ nullable: true })
+  index:number
 
   @Column({nullable:true, type:'boolean', default:false})
   isExpressDelivery : boolean

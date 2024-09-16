@@ -181,7 +181,7 @@ export class RiderService {
         const notification = new Notifications();
         notification.account = Rider.id;
         notification.subject = 'Rider Declined a Task !';
-        notification.message = `Rider  ${Rider.firstname} has declined the Task on the ostra logistics rider app`;
+        notification.message = `Rider  ${Rider.firstname} has declined the Task on the ostra logistics rider app due to this reason ${dto.reason}`;
         await this.notificationripo.save(notification);
   
         return task;
@@ -1111,6 +1111,7 @@ export class RiderService {
           'assigned_order.customer',
           'assigned_order.admin',
         ],
+        order:{assignedAT:'DESC'}
       });
 
       if (mytasks[1] === 0)
@@ -1168,6 +1169,7 @@ export class RiderService {
           'assigned_order.admin',
           'rider',
         ],
+        order:{acceptedAt:'DESC'}
       });
 
       if (mytasks[1] === 0)
@@ -1196,6 +1198,7 @@ export class RiderService {
           'assigned_order.admin',
           'rider',
         ],
+        order:{acceptedAt:'DESC'}
       });
 
       if (mytasks[1] === 0)
