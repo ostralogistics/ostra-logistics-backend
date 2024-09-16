@@ -985,38 +985,45 @@ export class RiderService {
   }
   
   private async updateItemStatuses(queryRunner: QueryRunner, order: OrderEntity, selectedIndex: number, currentTime: Date) {
-    for (let i = 0; i <= selectedIndex; i++) {
-      const item = order.items[i];
-      item.isdroppedOff = true;
-      item.droppedOffAt = currentTime;
-      await queryRunner.manager.save(item);
-    }
+    order.items = order.items.map((item, index) => {
+      if (index <= selectedIndex) {
+        item.isdroppedOff = true;
+        item.droppedOffAt = currentTime;
+      }
+      return item;
+    });
+  
+    await queryRunner.manager.save(order.items);
+  
   }
   
   private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, selectedIndex: number, currentTime: Date, Rider: RiderEntity) {
     task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
     task.dropped_off_parcelAT = currentTime;
     task.checkpointStatus = { ...task.checkpointStatus, 'dropped_off-parcel': true };
-  
-    if (selectedIndex < order.items.length -1) {
-      task.status = TaskStatus.ONGOING;
-      order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
-      console.log(`Updating task ${task.id} to ONGOING and order ${order.id} to IN_TRANSIT`);
-    } else {
-      task.status = TaskStatus.CONCLUDED;
-      order.order_status = OrderStatus.DELIVERED;
-      order.order_display_status = OrderDisplayStatus.COMPLETED;
-      order.DeliveredAT = currentTime;
-      Rider.status = RiderStatus.AVAILABLE;
-      await queryRunner.manager.save(Rider);
-      console.log(`Updating task ${task.id} to CONCLUDED and order ${order.id} to COMPLETED`);
-    }
-  
-    await queryRunner.manager.save(task);
-    await queryRunner.manager.save(order);
-    console.log(`Successfully saved updates for task ${task.id} and order ${order.id}`);
 
+  const totalItemsDroppedOff = order.items.filter(item => item.isdroppedOff).length;
+  const allItemsDroppedOff = totalItemsDroppedOff === order.items.length;
+
+  
+  if (allItemsDroppedOff) {
+    task.status = TaskStatus.CONCLUDED;
+    order.order_status = OrderStatus.DELIVERED;
+    order.order_display_status = OrderDisplayStatus.COMPLETED;
+    order.DeliveredAT = currentTime;
+    Rider.status = RiderStatus.AVAILABLE;
+    await queryRunner.manager.save(Rider);
+    console.log(`Updating task ${task.id} to CONCLUDED and order ${order.id} to COMPLETED`);
+  } else {
+    task.status = TaskStatus.ONGOING;
+    order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
+    console.log(`Updating task ${task.id} to ONGOING and order ${order.id} to IN_TRANSIT`);
   }
+
+  await queryRunner.manager.save(task);
+  await queryRunner.manager.save(order);
+  console.log(`Successfully saved updates for task ${task.id} and order ${order.id}`);
+}
   
   private async saveNotification(queryRunner: QueryRunner, Rider: RiderEntity, order: OrderEntity, isFullyDroppedOff: boolean) {
     const notification = new Notifications();
