@@ -1031,7 +1031,7 @@ export class CustomerService {
         },
         relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
         comment: 'fetching orders that are just placed ',
-        order:{paymentVerifiedAT:'DESC'}
+        order:{orderPlacedAt:'DESC'}
       });
 
       if (findorder[1] === 0)

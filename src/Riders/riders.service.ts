@@ -985,16 +985,13 @@ export class RiderService {
     }
   }
   
-  private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, selectedIndex: number, currentTime: Date) {
-    const selectedItem = order.items[selectedIndex];
-    if (!selectedItem) {
-      throw new NotFoundException(`Item at index ${selectedIndex} not found in the order`);
+  private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, itemsDroppedOff: number, currentTime: Date) {
+    const itemsToUpdate = order.items.slice(0, itemsDroppedOff);
+    for (const item of itemsToUpdate) {
+      item.isdroppedOff = true;
+      item.droppedOffAt = currentTime;
+      await queryRunner.manager.save(item);
     }
-  
-    selectedItem.isdroppedOff = true;
-    selectedItem.droppedOffAt = currentTime;
-  
-    await queryRunner.manager.save(selectedItem);
   }
   
   private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, Rider: RiderEntity) {
