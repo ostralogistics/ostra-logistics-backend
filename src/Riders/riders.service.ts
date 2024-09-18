@@ -986,7 +986,7 @@ export class RiderService {
   }
   
   private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, itemsDroppedOff: number, currentTime: Date) {
-    const itemsToUpdate = order.items.slice(0, itemsDroppedOff);
+    const itemsToUpdate = order.items.slice(0, itemsDroppedOff+ 1);
     for (const item of itemsToUpdate) {
       item.isdroppedOff = true;
       item.droppedOffAt = currentTime;
