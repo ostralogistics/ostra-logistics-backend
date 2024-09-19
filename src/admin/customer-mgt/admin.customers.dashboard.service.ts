@@ -1323,6 +1323,21 @@ export class AdminCustomerDashBoardService {
       if (response.data.status === true) {
         console.log('payment successfully initiated');
 
+        const receipt = new ReceiptEntity();
+        receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
+        receipt.issuedAt = new Date();
+        receipt.order = order;
+        receipt.subtotal = order.accepted_cost_of_delivery;
+        receipt.expressDeliveryCharge = expressDeliveryCharge;
+        receipt.VAT = vatAmount;
+        receipt.total = totalAmountWithVAT;
+        receipt.discount = discountAmount;
+        await this.receiptrepo.save(receipt);
+
+
+      // Create transaction
+      await this.createTransaction(order);
+
         // Save the mapping of orderID to paymentReference for webhook handling
         const paymentMapping = new PaymentMappingEntity();
         paymentMapping.orderID = order.orderID;
@@ -1352,6 +1367,19 @@ export class AdminCustomerDashBoardService {
 
       throw new InternalServerErrorException(errorMessage);
     }
+  }
+
+  private async createTransaction(order: OrderEntity): Promise<void> {
+    const transaction = new TransactionEntity();
+    transaction.transactedAT = new Date();
+    transaction.amount = order.accepted_cost_of_delivery;
+    transaction.transactionID = `#osl-${this.genratorservice.generateTransactionCode()}`;
+    transaction.transactionType = TransactionType.ORDER_PAYMENT;
+    transaction.customer = null;
+    transaction.paymentMethod = "paystack";
+    transaction.order = order
+    transaction.paymentStatus = order.payment_status;
+    await this.transactionRepo.save(transaction);
   }
 
   //generate receipt and

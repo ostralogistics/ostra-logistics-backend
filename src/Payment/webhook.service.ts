@@ -93,48 +93,6 @@ export class PaystackWebhookService {
   
       await this.updateOrderPaymentStatus(order);
   
-     
-            
-      let baseAmount = Number(order.accepted_cost_of_delivery);
-      let expressDeliveryCharge = 0;
-      let discountAmount = 0;
-      const vatPercentage = 0.07;
-  
-      // Calculate express delivery charge if applicable
-      const hasExpressDelivery = order.isExpressDelivery
-      if (hasExpressDelivery) {
-        const expressDeliveryFeePercentage = await this.getExpressDeliveryFeePercentage();
-        expressDeliveryCharge = Number((baseAmount * (expressDeliveryFeePercentage / 100)).toFixed(2));
-      }
-  
-      // Calculate discount if applicable
-      if (order.IsDiscountApplied && order.discount) {
-        discountAmount = Number(((baseAmount * order.discount) / 100).toFixed(2));
-      }
-  
-      // Calculate subtotal (base amount + express delivery charge - discount)
-      const subtotal = Number((baseAmount + expressDeliveryCharge - discountAmount).toFixed(2));
-  
-      // Calculate VAT
-      const vatAmount = Number((subtotal * vatPercentage).toFixed(2));
-  
-      // Calculate total amount including VAT
-      const totalAmountWithVAT = Number((subtotal + vatAmount).toFixed(2));
-  
-      const receipt = new ReceiptEntity();
-      receipt.ReceiptID = `#${this.genservice.generatereceiptID()}`;
-      receipt.issuedAt = new Date();
-      receipt.order = order;
-      receipt.subtotal = order.accepted_cost_of_delivery;
-      receipt.expressDeliveryCharge = expressDeliveryCharge;
-      receipt.VAT = vatAmount;
-      receipt.total = totalAmountWithVAT;
-      receipt.discount = discountAmount;
-      await this.receiptrepo.save(receipt);
-  
-      // Create transaction
-      await this.createTransaction(order);
-  
       // Send email
       let email: string | undefined;
       let name: string | undefined;
@@ -186,24 +144,7 @@ export class PaystackWebhookService {
     await this.orderRepo.save(order);
   }
 
-  private async createTransaction(order: OrderEntity): Promise<void> {
-    const transaction = new TransactionEntity();
-    transaction.transactedAT = new Date();
-    transaction.amount = order.accepted_cost_of_delivery;
-    transaction.transactionID = `#osl-${this.genservice.generateTransactionCode()}`;
-    transaction.transactionType = TransactionType.ORDER_PAYMENT;
-    transaction.customer = order.customer;
-    transaction.paymentMethod = "paystack";
-    transaction.order = order
-    transaction.paymentStatus = order.payment_status;
-    await this.transactionRepo.save(transaction);
-  }
 
-  async getExpressDeliveryFeePercentage(): Promise<number> {
-    const expressDeliveryFee = await this.expressDeliveryFeeRepo.findOne({
-      where: { isSet: true },
-      order: { updatedAT: 'DESC' },
-    });
-    return expressDeliveryFee ? expressDeliveryFee.addedPercentage : 0;
-  }
+
+
 }

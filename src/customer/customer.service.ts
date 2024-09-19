@@ -44,6 +44,7 @@ import {
   OrderStatus,
   PaymentStatus,
   PriorityDeliveryType,
+  TransactionType,
   channelforconversation,
   complainResolutionStatus,
 } from 'src/Enums/all-enums';
@@ -889,6 +890,21 @@ export class CustomerService {
       );
 
       if (response.data.status === true) {
+        
+        const receipt = new ReceiptEntity();
+      receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
+      receipt.issuedAt = new Date();
+      receipt.order = order;
+      receipt.subtotal = order.accepted_cost_of_delivery;
+      receipt.expressDeliveryCharge = expressDeliveryCharge;
+      receipt.VAT = vatAmount;
+      receipt.total = totalAmountWithVAT;
+      receipt.discount = discountAmount;
+      await this.receiptrepo.save(receipt);
+
+      // Create transaction
+      await this.createTransaction(order);
+
         console.log('payment successful');
 
          // Save the mapping of orderID to paymentReference for webhook handling
@@ -920,6 +936,19 @@ export class CustomerService {
 
       throw new InternalServerErrorException(errorMessage);
     }
+  }
+
+  private async createTransaction(order: OrderEntity): Promise<void> {
+    const transaction = new TransactionEntity();
+    transaction.transactedAT = new Date();
+    transaction.amount = order.accepted_cost_of_delivery;
+    transaction.transactionID = `#osl-${this.genratorservice.generateTransactionCode()}`;
+    transaction.transactionType = TransactionType.ORDER_PAYMENT;
+    transaction.customer = order.customer;
+    transaction.paymentMethod = "paystack";
+    transaction.order = order
+    transaction.paymentStatus = order.payment_status;
+    await this.transactionRepo.save(transaction);
   }
 
   // track order
