@@ -28,20 +28,20 @@ export class ReceiptEntity implements IReceipt{
     @Column({nullable:true, type:'timestamp'})
     dueAt: Date
 
-    @Column({nullable:true})
-    discount?: number
-
-    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    @Column('decimal', { precision: 10, scale: 2,nullable:true,  })
     expressDeliveryCharge: number;
-
-    @Column({nullable:true})
-    VAT: number
-
-    @Column({nullable:true})
-    subtotal: number
-
-    @Column({nullable:true})
-    total: number
+  
+    @Column('decimal', { precision: 10, scale: 2,nullable:true,  })
+    VAT: number;
+  
+    @Column('decimal', { precision: 10, scale: 2 ,nullable:true, })
+    subtotal: number;
+  
+    @Column('decimal', { precision: 10, scale: 2,nullable:true,  })
+    total: number;
+  
+    @Column('decimal', { precision: 10, scale: 2,nullable:true,  })
+    discount?: number;
 
     @OneToOne(()=>OrderEntity)
     @JoinColumn()

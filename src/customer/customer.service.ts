@@ -895,7 +895,7 @@ export class CustomerService {
       receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
       receipt.issuedAt = new Date();
       receipt.order = order;
-      receipt.subtotal = order.accepted_cost_of_delivery;
+      receipt.subtotal = Number(order.accepted_cost_of_delivery);
       receipt.expressDeliveryCharge = expressDeliveryCharge;
       receipt.VAT = vatAmount;
       receipt.total = totalAmountWithVAT;
