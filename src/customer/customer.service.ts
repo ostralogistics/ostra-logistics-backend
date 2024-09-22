@@ -891,16 +891,30 @@ export class CustomerService {
 
       if (response.data.status === true) {
         
-        const receipt = new ReceiptEntity();
+         // Find existing receipt or create a new one
+    let receipt = await this.receiptrepo.findOne({ where: { order: { id: orderID } } });
+    if (receipt) {
+      // Update existing receipt
+      receipt.issuedAt = new Date();
+      receipt.expressDeliveryCharge = expressDeliveryCharge;
+      receipt.VAT = vatAmount;
+      receipt.subtotal = subtotal;
+      receipt.total = totalAmountWithVAT;
+      receipt.discount = discountAmount;
+    } else {
+      // Create new receipt
+      receipt = new ReceiptEntity();
       receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
       receipt.issuedAt = new Date();
       receipt.order = order;
-      receipt.subtotal = Number(order.accepted_cost_of_delivery);
       receipt.expressDeliveryCharge = expressDeliveryCharge;
       receipt.VAT = vatAmount;
+      receipt.subtotal = subtotal;
       receipt.total = totalAmountWithVAT;
       receipt.discount = discountAmount;
-      await this.receiptrepo.save(receipt);
+    }
+
+    await this.receiptrepo.save(receipt);
 
       // Create transaction
       await this.createTransaction(order);
@@ -1477,27 +1491,28 @@ export class CustomerService {
   }
 
   //get all notifications related to the customer
-
   async AllNotificationsRelatedTocustomer(customer: CustomerEntity) {
     try {
-      const [notification,count] = await this.notificationripo.findAndCount({
-        where: { account: customer.id },
-        order:{date:'DESC'}
+      const [notifications, count] = await this.notificationripo.findAndCount({
+        where: { account: customer.id }, // Convert id to string if necessary
+        order: { date: 'DESC' }
       });
-      if (count[1] === 0)
+  
+      if (count === 0) {
         throw new NotFoundException(
-          'oops! you have no notifications at this time',
+          'Oops! You have no notifications at this time.'
         );
-
-      return notification;
+      }
+  
+      return notifications;
     } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else {
-        console.log(error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        console.error(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to fetch notifications',
-          error.message,
+          'Something went wrong while trying to fetch notifications.',
+          error.message
         );
       }
     }

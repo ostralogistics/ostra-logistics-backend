@@ -1323,16 +1323,30 @@ export class AdminCustomerDashBoardService {
       if (response.data.status === true) {
         console.log('payment successfully initiated');
 
-        const receipt = new ReceiptEntity();
-        receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
-        receipt.issuedAt = new Date();
-        receipt.order = order;
-        receipt.subtotal = Number(order.accepted_cost_of_delivery);
-        receipt.expressDeliveryCharge = expressDeliveryCharge;
-        receipt.VAT = vatAmount;
-        receipt.total = totalAmountWithVAT;
-        receipt.discount = discountAmount;
-        await this.receiptrepo.save(receipt);
+          // Find existing receipt or create a new one
+    let receipt = await this.receiptrepo.findOne({ where: { order: { id: orderID } } });
+    if (receipt) {
+      // Update existing receipt
+      receipt.issuedAt = new Date();
+      receipt.expressDeliveryCharge = expressDeliveryCharge;
+      receipt.VAT = vatAmount;
+      receipt.subtotal = subtotal;
+      receipt.total = totalAmountWithVAT;
+      receipt.discount = discountAmount;
+    } else {
+      // Create new receipt
+      receipt = new ReceiptEntity();
+      receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
+      receipt.issuedAt = new Date();
+      receipt.order = order;
+      receipt.expressDeliveryCharge = expressDeliveryCharge;
+      receipt.VAT = vatAmount;
+      receipt.subtotal = subtotal;
+      receipt.total = totalAmountWithVAT;
+      receipt.discount = discountAmount;
+    }
+
+    await this.receiptrepo.save(receipt);
 
 
       // Create transaction
