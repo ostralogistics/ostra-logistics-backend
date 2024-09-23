@@ -934,14 +934,14 @@ export class RiderService {
       const isOrder = await this.getOrder(queryRunner, orderID, taskID, Rider.id);
   
       this.validateDropOffCode(dto.dropOff_code, isOrder.dropoffCode);
-      this.validateItemCount(dto.itemsDroppedOff, isOrder.items.length);
+      //this.validateItemCount(dto.itemsDroppedOff, isOrder.items.length);
   
      
     const currentTime = new Date();
     await this.updateItemStatus(queryRunner, isOrder, dto.itemsDroppedOff, currentTime);
     await this.updateTaskAndOrderStatus(queryRunner, task, isOrder, Rider);
 
-      await this.saveNotification(queryRunner, Rider, isOrder, dto.itemsDroppedOff.length === isOrder.items.length);
+      await this.saveNotification(queryRunner, Rider, isOrder,true);
       await this.sendEmailNotification(isOrder, currentTime);
       //await this.sendPushNotification(isOrder);
   
@@ -979,31 +979,30 @@ export class RiderService {
     }
   }
   
-  private validateItemCount(selectedIndices: number[], totalItems: number) {
-    for (const index of selectedIndices) {
-      if (index < 0 || index >= totalItems) {
-        throw new NotAcceptableException(`Invalid item index selected. Please select an index between 0 and ${totalItems - 1}`);
-      }
-  }
-}
+  // private validateItemCount(selectedIndices: number[], totalItems: number) {
+  //   for (const index of selectedIndices) {
+  //     if (index < 0 || index >= totalItems) {
+  //       throw new NotAcceptableException(`Invalid item index selected. Please select an index between 0 and ${totalItems - 1}`);
+  //     }
+  // }
+//}
   
-  private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, itemsDroppedOff: number[], currentTime: Date) {
-    // const itemsToUpdate = order.items.slice(0, itemsDroppedOff+ 1);
-    // for (const item of itemsToUpdate) {
-    //   item.isdroppedOff = true;
-    //   item.droppedOffAt = currentTime;
-    //   await queryRunner.manager.save(item);
-    // }
-      // Loop through the specific items the rider selected to drop off
-  for (const itemIndex of itemsDroppedOff) {
-    const item = order.items[itemIndex];
-    
-    if (!item.isdroppedOff) { // Only update if the item hasn't been dropped off
-      item.isdroppedOff = true;
-      item.droppedOffAt = new Date(); // Unique timestamp for each dropped-off item
-      await queryRunner.manager.save(item);
+  private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, itemId: number, currentTime: Date) {
+    const itemToUpdate = order.items.find(item => item.id === itemId);
+
+    if (!itemToUpdate) {
+      throw new NotAcceptableException('Item not found in this order.');
     }
-  }
+  
+    if (itemToUpdate.isdroppedOff) {
+      throw new NotAcceptableException('This item has already been dropped off.');
+    }
+  
+    // Update the item as dropped off
+    itemToUpdate.isdroppedOff = true;
+    itemToUpdate.droppedOffAt = currentTime;
+  
+    await queryRunner.manager.save(itemToUpdate);
   }
   
   private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, Rider: RiderEntity) {

@@ -454,6 +454,7 @@ export class CustomerService {
       order.items = cart.items.map((cartItem) => {
         const orderItem = new OrderItemEntity();
         Object.assign(orderItem, {
+          //id:`${uuidv4()}`,
           isExpressDelivery:cartItem.isExpressDelivery,
           index:cartItem.index,
           Area_of_dropoff: cartItem.Area_of_dropoff,

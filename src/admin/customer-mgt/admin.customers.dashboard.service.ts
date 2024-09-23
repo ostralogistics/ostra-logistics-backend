@@ -1711,7 +1711,7 @@ export class AdminCustomerDashBoardService {
       order.items = cart.items.map((cartItem) => {
         const orderItem = new OrderItemEntity();
         Object.assign(orderItem, {
-         
+          //id:`${uuidv4()}`,
           index:cartItem.index,
           name: cartItem.name,
           landmark: cartItem.landmark,
