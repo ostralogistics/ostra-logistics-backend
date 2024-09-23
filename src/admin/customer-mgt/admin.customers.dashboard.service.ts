@@ -1497,6 +1497,7 @@ export class AdminCustomerDashBoardService {
       const item = new CartItemEntity();
       item.id = `${await this.genratorservice.generateUUID()}`;
       item.name = dto.name;
+      item.index = cart.items.length;
       item.address = dto.address;
       item.area = dto.area;
       item.landmark = dto.landmark;
@@ -1703,10 +1704,15 @@ export class AdminCustomerDashBoardService {
       order.order_display_status = OrderDisplayStatus.ORDER_PLACED;
 
       let hasExpressDelivery = false;
+
+        // Sort cart items by index before mapping to order items
+        cart.items.sort((a, b) => a.index - b.index);
       // Add items to the order
       order.items = cart.items.map((cartItem) => {
         const orderItem = new OrderItemEntity();
         Object.assign(orderItem, {
+         
+          index:cartItem.index,
           name: cartItem.name,
           landmark: cartItem.landmark,
           area: cartItem.area,

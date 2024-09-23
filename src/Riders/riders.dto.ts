@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { ArrayMinSize, ArrayNotEmpty, IsArray, IsEmail, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
 import { AcceptOrDeclineTask, BankDetailsStatus, RiderMileStones } from "src/Enums/all-enums";
 
 export class RequestResetPasswordDto{
@@ -11,9 +11,13 @@ export class DropOffCodeDto{
     @IsNotEmpty()
     dropOff_code:string
 
-    @IsInt()
-    @Min(0)
-    itemsDroppedOff:number
+    // An array of item indices to allow dropping off multiple items
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayMinSize(1)
+  @IsInt({ each: true })  // Ensure each element in the array is an integer
+  @Min(0, { each: true }) // Ensure each element is greater than or equal to 0
+  itemsDroppedOff: number[];  
 }
 
 export class AcceptOrDeclineTaskDto{
