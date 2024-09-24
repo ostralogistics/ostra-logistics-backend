@@ -979,13 +979,6 @@ export class RiderService {
     }
   }
   
-  // private validateItemCount(selectedIndices: number[], totalItems: number) {
-  //   for (const index of selectedIndices) {
-  //     if (index < 0 || index >= totalItems) {
-  //       throw new NotAcceptableException(`Invalid item index selected. Please select an index between 0 and ${totalItems - 1}`);
-  //     }
-  // }
-//}
   
   private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, itemId: number, currentTime: Date) {
     const itemToUpdate = order.items.find(item => item.id === itemId);
@@ -1124,6 +1117,7 @@ export class RiderService {
         relations: [
           'assigned_order',
           'assigned_order.items',
+          'assigned_order.items.vehicleType',
           'rider',
           'assigned_order.customer',
           'assigned_order.admin',
@@ -1154,6 +1148,7 @@ export class RiderService {
         relations: [
           'assigned_order',
           'assigned_order.items',
+          'assigned_order.items.vehicleType',
           'assigned_order.customer',
           'assigned_order.admin',
           'rider',
@@ -1182,6 +1177,7 @@ export class RiderService {
         relations: [
           'assigned_order',
           'assigned_order.items',
+          'assigned_order.items.vehicleType',
           'assigned_order.customer',
           'assigned_order.admin',
           'rider',
@@ -1211,6 +1207,7 @@ export class RiderService {
         relations: [
           'assigned_order',
           'assigned_order.items',
+          'assigned_order.items.vehicleType',
           'assigned_order.customer',
           'assigned_order.admin',
           'rider',
