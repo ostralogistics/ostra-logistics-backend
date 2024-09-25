@@ -1035,6 +1035,12 @@ export class CustomerService {
     }
   }
 
+
+
+
+
+
+
   //fetching all orders intransit
   async fetchallOngoingOrders(customer: CustomerEntity) {
     try {
