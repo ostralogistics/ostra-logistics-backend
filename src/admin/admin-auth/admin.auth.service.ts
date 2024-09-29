@@ -503,7 +503,7 @@ export class AdminAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = findadmin.adminID;
+      notification.account = 'admin';
       notification.subject = ' login!';
       notification.message = `Hello ${findadmin.fullname}, just logged in `;
       await this.notificationrepo.save(notification);

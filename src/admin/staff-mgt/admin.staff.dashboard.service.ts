@@ -114,6 +114,7 @@ export class AdminStaffDasboardService {
       const staff = new AdminEntity();
       (staff.firstname = dto.firstname), (staff.lastname = dto.lastname);
       staff.email = emailnow;
+      staff.adminID = `#OslSt-${await this.generatorservice.generateUserID()}`;
       staff.password = hashedpassword;
       staff.admintype = AdminType.STAFF;
       staff.RegisteredAt = new Date();
@@ -238,7 +239,7 @@ export class AdminStaffDasboardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = findotheradmin.id;
+      notification.account = 'admin';
       notification.subject = 'Staff deleted !';
       notification.message = `the staff  ${findotheradmin.firstname}  has been deleted from the ostra logistics application by superAdmin `;
       await this.notificationripo.save(notification);
