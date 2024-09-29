@@ -190,7 +190,7 @@ export class AdminAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = admin.id;
+      notification.account = admin.adminID;
       notification.subject = 'New Super Admin Created!';
       notification.message = `new admin created successfully `;
       await this.notificationrepo.save(notification);
@@ -316,7 +316,7 @@ export class AdminAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = emailexsist.id;
+      notification.account = emailexsist.adminID;
       notification.subject = 'Otp Resent!';
       notification.message = `Hello ${emailexsist.fullname}, a new verification Link has been resent to your mail `;
       await this.notificationrepo.save(notification);
@@ -376,7 +376,7 @@ export class AdminAuthService {
       await this.adminrepo.save(isEmailReistered);
 
       const notification = new Notifications();
-      (notification.account = isEmailReistered.id),
+      (notification.account = isEmailReistered.adminID),
         (notification.subject = 'password Reset link!');
       notification.message = `Hello ${isEmailReistered.fullname}, password resent link sent `;
       await this.notificationrepo.save(notification);
@@ -416,7 +416,7 @@ export class AdminAuthService {
         );
 
       const notification = new Notifications();
-      (notification.account = verifyuser.id),
+      (notification.account = verifyuser.adminID),
         (notification.subject = 'Verify Password Reset Token!');
       notification.message = `Hello ${verifyuser.fullname}, password reset link verified and the password has been recently reseted `;
       await this.adminrepo.save(verifyuser);
@@ -503,7 +503,7 @@ export class AdminAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = findadmin.id;
+      notification.account = findadmin.adminID;
       notification.subject = ' login!';
       notification.message = `Hello ${findadmin.fullname}, just logged in `;
       await this.notificationrepo.save(notification);

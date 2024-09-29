@@ -177,7 +177,7 @@ export class AdminCustomerDashBoardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = order.customer.id;
+      notification.account = order.customer.customerID;
       notification.subject = 'Openning Bid made !';
       notification.message = `starting bid for order ${order.orderID} made by ${order.customer} is ${bid.bid_value}. Please note that, you can only counter this bid once, we believe our bid is very reasonable. Thank you `;
       await this.notificationripo.save(notification);
@@ -257,7 +257,7 @@ export class AdminCustomerDashBoardService {
 
       // Save notification for admin
       const notification = new Notifications();
-      notification.account = bid.order.customer.id;
+      notification.account = bid.order.customer.customerID;
       notification.subject = 'Counter Offer Accepted!';
       notification.message = `Your counter offer for order ${bid.order.id} has been accepted. Thank you!`;
       await this.notificationripo.save(notification);
@@ -335,7 +335,7 @@ export class AdminCustomerDashBoardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = bid.order.customer.id;
+      notification.account = bid.order.customer.customerID;
       notification.subject = 'Counter Bid made !';
       notification.message = `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You  `;
       await this.notificationripo.save(notification);
@@ -1221,7 +1221,7 @@ export class AdminCustomerDashBoardService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = 'admin';
+      notification.account = order.customer.customerID;
       notification.subject = 'Order Price Set from the office!';
       notification.message = `the price for order wth orderID ${order.orderID} have being set and agreed on ostra logistics `;
       await this.notificationripo.save(notification);

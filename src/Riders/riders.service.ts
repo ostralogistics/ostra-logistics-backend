@@ -162,7 +162,7 @@ export class RiderService {
         await this.riderRepo.save(Rider);
   
         const notification = new Notifications();
-        notification.account = Rider.id;
+        notification.account = Rider.riderID;
         notification.subject = 'Rider Accepted a Task !';
         notification.message = `Rider with the id ${Rider.id} has accepted the Task on the ostra logistics rider app`;
         await this.notificationripo.save(notification);
@@ -179,7 +179,7 @@ export class RiderService {
         await this.taskRepo.save(task);
   
         const notification = new Notifications();
-        notification.account = Rider.id;
+        notification.account = Rider.riderID;
         notification.subject = 'Rider Declined a Task !';
         notification.message = `Rider  ${Rider.firstname} has declined the Task on the ostra logistics rider app due to this reason ${dto.reason}`;
         await this.notificationripo.save(notification);
@@ -256,7 +256,7 @@ export class RiderService {
 
       // Save notification
       const notification = new Notifications();
-      notification.account = rider.id;
+      notification.account = rider.riderID;
       notification.subject = 'Ride Cancelled';
       notification.message = `Rider ${rider.firstname} has cancelled a ride.`;
       await this.notificationripo.save(notification);
@@ -351,7 +351,7 @@ export class RiderService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = Rider.id;
+      notification.account = Rider.riderID;
       notification.subject = 'Rider Reached a MileStone !';
       notification.message = `Rider  ${Rider.firstname} is on is way to the pickup location `;
       await this.notificationripo.save(notification);
@@ -413,7 +413,7 @@ export class RiderService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = Rider.id;
+      notification.account = Rider.riderID;
       notification.subject = 'Rider Reached a MileStone !';
       notification.message = `Rider  ${Rider.firstname} has gotten to the pickup location `;
       await this.notificationripo.save(notification);
@@ -475,7 +475,7 @@ export class RiderService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = Rider.id;
+      notification.account = Rider.riderID;
       notification.subject = 'Rider Reached a MileStone !';
       notification.message = `Rider ${Rider.firstname} has picked up the parcel from the pick up location `;
       await this.notificationripo.save(notification);
@@ -539,7 +539,7 @@ export class RiderService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = Rider.id;
+      notification.account = Rider.riderID;
       notification.subject = 'Rider Reached a MileStone !';
       notification.message = `Rider  ${Rider.firstname} has picked up the parcel and is now on his way to the office for rebranding of the picked up parcel `;
       await this.notificationripo.save(notification);
@@ -609,7 +609,7 @@ export class RiderService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = Rider.id;
+      notification.account = Rider.riderID;
       notification.subject = 'Rider Reached a MileStone !';
       notification.message = `Rider ${Rider.firstname} has arived the office for rebranding of the picked up parcel `;
       await this.notificationripo.save(notification);
@@ -672,7 +672,7 @@ export class RiderService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = Rider.id;
+      notification.account = Rider.riderID;
       notification.subject = 'Rider Reached a MileStone !';
       notification.message = `Rider ${Rider.firstname} is enroute to the drop off location `;
       await this.notificationripo.save(notification);
@@ -735,7 +735,7 @@ export class RiderService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = Rider.id;
+      notification.account = Rider.riderID;
       notification.subject = 'Rider Reached a MileStone !';
       notification.message = `Rider ${Rider.firstname} has gotten to the drop off location `;
       await this.notificationripo.save(notification);
@@ -1030,7 +1030,7 @@ export class RiderService {
   
   private async saveNotification(queryRunner: QueryRunner, Rider: RiderEntity, order: OrderEntity, isFullyDroppedOff: boolean) {
     const notification = new Notifications();
-    notification.account = Rider.id;
+    notification.account = Rider.riderID;
     notification.subject = 'Rider Reached a MileStone!';
     notification.message = isFullyDroppedOff
       ? `Rider ${Rider.firstname} has dropped off the parcel and has finally completed the task.`
@@ -1080,35 +1080,6 @@ export class RiderService {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
   //see tasks asssigned to the rider
   async fetchAssignedTask(Rider: RiderEntity) {
     try {
@@ -1302,7 +1273,7 @@ export class RiderService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = Rider.id;
+      notification.account = Rider.riderID;
       notification.subject = `Rider Changed Bank Preference`;
       notification.message = `Rider with the  id ${Rider} has changed his bank payment preference status  to bank details with id ${detailsId} `;
       await this.notificationripo.save(notification);
@@ -1345,7 +1316,7 @@ export class RiderService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = rider.id;
+      notification.account = rider.riderID;
       notification.subject = 'Rider Requested for bank details change!';
       notification.message = `Rider with the  id ${rider.id} has requested for a bank details change `;
       await this.notificationripo.save(notification);
@@ -1426,7 +1397,7 @@ export class RiderService {
   async AllNotificationsRelatedToRider(rider: RiderEntity) {
     try {
       const [notification,count] = await this.notificationripo.findAndCount({
-        where: { account: rider.id },
+        where: { account: rider.riderID },
         order:{date:'DESC'}
       });
       if (count[1] === 0)
@@ -1456,7 +1427,7 @@ export class RiderService {
   ) {
     try {
       const notification = await this.notificationripo.findOne({
-        where: { id: notificationId, account: rider.id },
+        where: { id: notificationId, account: rider.riderID },
       });
       if (!notification) throw new NotFoundException('notification not found');
 
@@ -1486,7 +1457,7 @@ export class RiderService {
   ) {
     try {
       const notification = await this.notificationripo.findOne({
-        where: { id: notificationId, account: rider.id },
+        where: { id: notificationId, account: rider.riderID },
       });
       if (!notification) throw new NotFoundException('notification not found');
 

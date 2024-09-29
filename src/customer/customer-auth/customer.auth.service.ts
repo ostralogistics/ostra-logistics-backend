@@ -160,7 +160,7 @@ export class CustomerAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = customer.firstname;
+      notification.account = customer.customerID;
       notification.subject = 'New Customer Created!';
       notification.message = `new admin created successfully `;
       await this.notificationrepo.save(notification);
@@ -215,7 +215,7 @@ export class CustomerAuthService {
       await this.customerrepo.save(customer);
 
       const notification = new Notifications();
-      (notification.account = customer.firstname),
+      (notification.account = customer.customerID),
         (notification.subject = 'Customer Verified!');
       notification.message = `Hello ${customer.firstname}, your email has been successfully verified `;
       await this.notificationrepo.save(notification);
@@ -287,7 +287,7 @@ export class CustomerAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = emailexsist.firstname;
+      notification.account = emailexsist.customerID;
       notification.subject = 'Otp Resent!';
       notification.message = `Hello ${emailexsist.firstname}, a new verification Link has been resent to your mail `;
       await this.notificationrepo.save(notification);
@@ -348,7 +348,7 @@ export class CustomerAuthService {
       await this.customerrepo.save(isEmailReistered);
 
       const notification = new Notifications();
-      (notification.account = isEmailReistered.firstname),
+      (notification.account = isEmailReistered.customerID),
         (notification.subject = 'password Reset link!');
       notification.message = `Hello ${isEmailReistered.firstname}, password resent link sent `;
       await this.notificationrepo.save(notification);
@@ -388,7 +388,7 @@ export class CustomerAuthService {
         );
 
       const notification = new Notifications();
-      (notification.account = verifyuser.firstname),
+      (notification.account = verifyuser.customerID),
         (notification.subject = 'Verify Password Reset Token!');
       notification.message = `Hello ${verifyuser.firstname}, password reset link verified and the password has been recently reseted `;
       await this.customerrepo.save(verifyuser);
@@ -487,7 +487,7 @@ export class CustomerAuthService {
 
       // Save the notification
       const notification = new Notifications();
-      notification.account = findcustomer.firstname;
+      notification.account = findcustomer.customerID;
       notification.subject = 'Customer just logged in!';
       notification.message = `Hello ${findcustomer.firstname}, just logged in `;
       await this.notificationrepo.save(notification);

@@ -514,7 +514,7 @@ export class CustomerService {
 
       // Save a notification
       const notification = new Notifications();
-      notification.account = customer.id;
+      notification.account = customer.customerID;
       notification.subject = 'Customer checked out!';
       notification.message = `The customer with ID ${customer.id} has checked out and initiated the bidding process in the app of Ostra Logistics.`;
       await this.notificationripo.save(notification);
@@ -797,7 +797,7 @@ export class CustomerService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = bid.order.customer.id;
+      notification.account = bid.order.customer.customerID;
       notification.subject = 'Customer countered a bid!';
       notification.message = `the customer  ${bid.order.customer.firstname} have countered a bid from the admin in the app of ostra logistics with a new offer of ${bid.counter_bid_offer} `;
       await this.notificationripo.save(notification);
@@ -934,7 +934,7 @@ export class CustomerService {
       }
       //save the notification
       const notification = new Notifications();
-      notification.account = order.customer.id;
+      notification.account = order.customer.customerID;
       notification.subject = 'Payment Order initiated!';
       notification.message = `this customer  have initiated payment `;
       await this.notificationripo.save(notification);
@@ -1228,7 +1228,7 @@ export class CustomerService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = customer.id;
+      notification.account = customer.customerID;
       notification.subject = 'Customer Added a card!';
       notification.message = `the customer  ${customer.firstname} have added a card from the admin in the app of ostra logistics `;
       await this.notificationripo.save(notification);
@@ -1320,7 +1320,7 @@ export class CustomerService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = customer.id;
+      notification.account = customer.customerID;
       notification.subject = 'Customer Deleted a card!';
       notification.message = `the customer  ${customer.firstname} have added a card with id: ${cardID}  in the customer app of ostra logistics `;
       await this.notificationripo.save(notification);
@@ -1415,7 +1415,7 @@ export class CustomerService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = customer.id;
+      notification.account = customer.customerID;
       notification.subject = 'Customer Changed Password!';
       notification.message = `the customer ${customer.firstname} have made changes to his existing record in the customer app of ostra logistics `;
       await this.notificationripo.save(notification);
@@ -1452,7 +1452,7 @@ export class CustomerService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = customer.id;
+      notification.account = customer.customerID;
       notification.subject = 'Customer Uploaded Profile Pics!';
       notification.message = `the customer  ${customer.firstname} have uploaded a profile picture in the customer app of ostra logistics `;
       await this.notificationripo.save(notification);
@@ -1501,7 +1501,7 @@ export class CustomerService {
   async AllNotificationsRelatedTocustomer(customer: CustomerEntity) {
     try {
       const [notifications, count] = await this.notificationripo.findAndCount({
-        where: { account: customer.id }, // Convert id to string if necessary
+        where: { account: customer.customerID }, // Convert id to string if necessary
         order: { date: 'DESC' }
       });
   
@@ -1533,7 +1533,7 @@ export class CustomerService {
   ) {
     try {
       const notification = await this.notificationripo.findOne({
-        where: { id: notificationId, account: customer.id },
+        where: { id: notificationId, account: customer.customerID },
       });
       if (!notification) throw new NotFoundException('notification not found');
 
@@ -1563,7 +1563,7 @@ export class CustomerService {
   ) {
     try {
       const notification = await this.notificationripo.findOne({
-        where: { id: notificationId, account: customer.id },
+        where: { id: notificationId, account: customer.customerID },
       });
       if (!notification) throw new NotFoundException('notification not found');
 
@@ -1644,7 +1644,7 @@ export class CustomerService {
 
       //notifiction
       const notification = new Notifications();
-      notification.account = customer.id;
+      notification.account = customer.customerID;
       notification.subject = 'complaint filed!';
       notification.message = `the customer with id ${customer.id} have filed a complaint on ostra logistics customer app `;
       await this.notificationripo.save(notification);

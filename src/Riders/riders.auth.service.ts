@@ -116,7 +116,7 @@ export class RiderAuthService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = findrider.id;
+      notification.account = findrider.riderID;
       notification.subject = ' login!';
       notification.message = `Hello ${findrider.firstname}, just logged in `;
       await this.notificationripo.save(notification);
@@ -179,7 +179,7 @@ export class RiderAuthService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = rideremial.id;
+      notification.account = rideremial.riderID;
       notification.subject = 'Rider Requested for password change!';
       notification.message = `Rider with the  id ${rideremial.id} has requested for a pssword reset `;
       await this.notificationripo.save(notification);
