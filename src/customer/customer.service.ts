@@ -1371,7 +1371,7 @@ export class CustomerService {
 
       //save the notification
       const notification = new Notifications();
-      notification.account = customer.id;
+      notification.account = customer.customerID;
       notification.subject = 'Customer Updated Record!';
       notification.message = `the customer  ${customer.firstname} have updated their record in the customer app of ostra logistics `;
       await this.notificationripo.save(notification);
