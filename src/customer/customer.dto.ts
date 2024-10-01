@@ -111,6 +111,10 @@ export class UpdateCustomerDto{
 
     @IsString()
     @IsOptional()
+    mobile:string
+
+    @IsString()
+    @IsOptional()
     LGA_of_Home_Address: string
 
 

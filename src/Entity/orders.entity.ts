@@ -258,7 +258,7 @@ export class OrderItemEntity {
   @Column({ type: 'timestamp', nullable: true })
   schedule_date: Date;
 
-  @Column('numeric', { nullable: false })
+  @Column('numeric', { nullable: true })
   pickupLat: number;
 
   @Column('numeric', { nullable: true })
@@ -267,10 +267,10 @@ export class OrderItemEntity {
   @Column('numeric', { nullable: true })
   dropOffLat: number;
 
-  @Column('numeric', { nullable: false })
+  @Column('numeric', { nullable: true })
   dropOffLong: number;
 
-  @Column('numeric', { nullable: false })
+  @Column('numeric', { nullable: true })
   distance: number;
 
   @Column({ nullable: true, type:'boolean', default:false})
@@ -404,7 +404,7 @@ export class CartItemEntity {
   @Column({type:'timestamp',nullable:true})
   schedule_date: Date;
 
-  @Column('numeric', { nullable: false })
+  @Column('numeric', { nullable: true })
   pickupLat: number;
 
   @Column('numeric', { nullable: true })
@@ -413,10 +413,10 @@ export class CartItemEntity {
   @Column('numeric', { nullable: true })
   dropOffLat: number;
 
-  @Column('numeric', { nullable: false })
+  @Column('numeric', { nullable: true })
   dropOffLong: number;
 
-  @Column('numeric', { nullable: false })
+  @Column('numeric', { nullable: true })
   distance: number;
 
 }

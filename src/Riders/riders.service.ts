@@ -140,6 +140,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
   
@@ -219,6 +220,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
 
@@ -288,6 +290,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
   
@@ -326,6 +329,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
 
@@ -388,6 +392,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
 
@@ -449,6 +454,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
 
@@ -513,6 +519,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
 
@@ -577,6 +584,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
 
@@ -646,6 +654,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
 
@@ -709,6 +718,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
+          'assigned_order.items.vehicleType'
         ],
       });
 
@@ -958,7 +968,7 @@ export class RiderService {
   private async getTask(queryRunner: QueryRunner, taskID: number, riderID: string) {
     const task = await queryRunner.manager.findOne(TaskEntity, {
       where: { id: taskID, rider: { id: riderID } },
-      relations: ['rider', 'assigned_order', 'assigned_order.items', 'assigned_order.customer', 'assigned_order.admin'],
+      relations: ['rider', 'assigned_order', 'assigned_order.items', 'assigned_order.customer', 'assigned_order.admin','assigned_order.items.vehicleType']
     });
     if (!task) throw new NotFoundException(`Task with the id: ${taskID} is not assigned to this rider`);
     return task;

@@ -226,21 +226,21 @@ export class CustomerService {
         throw new NotAcceptableException('The limit for multiple orders is 3');
       }
 
-      const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
-        dto.pickup_address,
-      );
-      const dropOffCoordinates =
-        await this.geocodingservice.getYahooCoordinates(dto.dropOff_address);
+      // const pickupCoordinates = await this.geocodingservice.getYahooCoordinates(
+      //   dto.pickup_address,
+      // );
+      // const dropOffCoordinates =
+      //   await this.geocodingservice.getYahooCoordinates(dto.dropOff_address);
 
-      if (!pickupCoordinates || !dropOffCoordinates) {
-        throw new NotAcceptableException('cordinates not found');
-      }
+      // if (!pickupCoordinates || !dropOffCoordinates) {
+      //   throw new NotAcceptableException('cordinates not found');
+      // }
 
-      const distance = this.distanceservice.calculateDistance(
-        pickupCoordinates,
-        dropOffCoordinates,
-      );
-      const roundDistance = Math.round(distance);
+      // const distance = this.distanceservice.calculateDistance(
+      //   pickupCoordinates,
+      //   dropOffCoordinates,
+      // );
+      // const roundDistance = Math.round(distance);
 
       const item = new CartItemEntity();
       item.id = `${await this.genratorservice.generateUUID()}`;
@@ -278,11 +278,11 @@ export class CustomerService {
         item.isExpressDelivery = true
       }
       item.schedule_date = dto.schedule_date;
-      item.pickupLat = pickupCoordinates.lat;
-      item.pickupLong = pickupCoordinates.lon;
-      item.dropOffLat = dropOffCoordinates.lat;
-      item.dropOffLong = dropOffCoordinates.lon;
-      item.distance = roundDistance;
+      // item.pickupLat = pickupCoordinates.lat;
+      // item.pickupLong = pickupCoordinates.lon;
+      // item.dropOffLat = dropOffCoordinates.lat;
+      // item.dropOffLong = dropOffCoordinates.lon;
+      // item.distance = roundDistance;
 
       await this.cartItemRepo.save(item);
 
@@ -464,11 +464,11 @@ export class CustomerService {
           delivery_type: cartItem.delivery_type,
           weight_of_parcel :cartItem.weight_of_parcel,
           describe_weight_of_parcel: cartItem.describe_weight_of_parcel,
-          distance: cartItem.distance,
-          dropOffLat: cartItem.dropOffLat,
-          dropOffLong: cartItem.dropOffLong,
-          pickupLat: cartItem.pickupLat,
-          pickupLong: cartItem.pickupLong,
+          // distance: cartItem.distance,
+          // dropOffLat: cartItem.dropOffLat,
+          // dropOffLong: cartItem.dropOffLong,
+          // pickupLat: cartItem.pickupLat,
+          // pickupLong: cartItem.pickupLong,
           landmark_of_dropoff: cartItem.landmark_of_dropoff,
           landmark_of_pickup: cartItem.landmark_of_pickup,
           note_for_rider: cartItem.note_for_rider,
@@ -1365,6 +1365,7 @@ export class CustomerService {
       customer.home_address = dto.home_address;
       customer.firstname = dto.firstname;
       customer.lastname = dto.lastname;
+      customer.mobile = dto.mobile;
       customer.gender = dto.gender;
 
       await this.customerRepo.save(customer);
