@@ -1489,7 +1489,7 @@ export class RiderService {
   async fetchRiderPaymentTransactionHistory(rider:RiderEntity) {
     try {
       const mytransactions = await this.transactionRepo.findAndCount({
-        where: { Rider: { id: rider.id } },
+        where: { Rider: { riderID: rider.riderID } },
         relations: ['Rider', 'bankInfo'],
         order: { transactedAT: 'DESC' },
       

@@ -1722,7 +1722,7 @@ export class CustomerService {
   async getPaymenthistoryOfOneCustomer(Customer: CustomerEntity) {
     try {
       const transaction = await this.transactionRepo.findAndCount({
-        where: { customer: {id:Customer.id} },relations:['customer']
+        where: { customer: {customerID:Customer.customerID} },relations:['customer']
         
       });
       if (!transaction)
