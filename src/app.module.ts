@@ -39,8 +39,11 @@ import { FcmModule } from './firebase/fcm-node.module';
           user: process.env.AUTH_EMAIL,
           pass:process.env.AUTH_PASS
         },
+      },
+      defaults: {
+        from: '"Ostra Logistics" <' + process.env.AUTH_EMAIL + '>',
+      },
       
-      }
     })
   ],
   controllers: [AppController],
