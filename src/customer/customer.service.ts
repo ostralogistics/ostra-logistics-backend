@@ -87,7 +87,10 @@ import {
   VehicleRepository,
   VehicleTypeRepository,
 } from 'src/admin/admin.repository';
-import { DiscountEntity, ExpressDeliveryFeeEntity } from 'src/Entity/discount.entity';
+import {
+  DiscountEntity,
+  ExpressDeliveryFeeEntity,
+} from 'src/Entity/discount.entity';
 import { DiscountUsageEntity } from 'src/Entity/discountUsage.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { plainToInstance } from 'class-transformer';
@@ -149,7 +152,6 @@ export class CustomerService {
     private cloudinaryservice: CloudinaryService,
   ) {}
 
-
   //get the vehicle types
   async GetAllVehicleType() {
     try {
@@ -197,7 +199,6 @@ export class CustomerService {
       }
     }
   }
-
 
   // add to cart
   async addToOrderCart(
@@ -252,8 +253,7 @@ export class CustomerService {
       item.weight_of_parcel = dto.weight_of_parcel;
       item.describe_weight_of_parcel = dto.describe_weight_of_parcel;
       item.note_for_rider = dto.note_for_rider;
-      item.name = customer.firstname,
-      item.phoneNumber = customer.mobile
+      (item.name = customer.firstname), (item.phoneNumber = customer.mobile);
       item.pickup_address = dto.pickup_address;
       item.pickup_phone_number = dto.pickup_phone_number;
       item.Area_of_pickup = dto.Area_of_pickup;
@@ -274,8 +274,8 @@ export class CustomerService {
         item.vehicleType = vehicle;
       }
       item.delivery_type = dto.delivery_type;
-      if (dto.delivery_type === PriorityDeliveryType.EXPRESS_DELIVERY){
-        item.isExpressDelivery = true
+      if (dto.delivery_type === PriorityDeliveryType.EXPRESS_DELIVERY) {
+        item.isExpressDelivery = true;
       }
       item.schedule_date = dto.schedule_date;
       // item.pickupLat = pickupCoordinates.lat;
@@ -420,8 +420,6 @@ export class CustomerService {
           );
         }
 
-
-
         const promoCode = await this.discountRepo.findOne({
           where: { OneTime_discountCode: dto.code },
         });
@@ -445,24 +443,23 @@ export class CustomerService {
       order.order_status = OrderStatus.ORDER_PLACED;
       order.order_display_status = OrderDisplayStatus.ORDER_PLACED;
 
-
       let hasExpressDelivery = false;
 
-       // Sort cart items by index before mapping to order items
+      // Sort cart items by index before mapping to order items
       cart.items.sort((a, b) => a.index - b.index);
       // Add items to the order
       order.items = cart.items.map((cartItem) => {
         const orderItem = new OrderItemEntity();
         Object.assign(orderItem, {
           //id:`${uuidv4()}`,
-          isExpressDelivery:cartItem.isExpressDelivery,
-          index:cartItem.index,
+          isExpressDelivery: cartItem.isExpressDelivery,
+          index: cartItem.index,
           Area_of_dropoff: cartItem.Area_of_dropoff,
           Area_of_pickup: cartItem.Area_of_pickup,
           Recipient_name: cartItem.Recipient_name,
           Recipient_phone_number: cartItem.Recipient_phone_number,
           delivery_type: cartItem.delivery_type,
-          weight_of_parcel :cartItem.weight_of_parcel,
+          weight_of_parcel: cartItem.weight_of_parcel,
           describe_weight_of_parcel: cartItem.describe_weight_of_parcel,
           // distance: cartItem.distance,
           // dropOffLat: cartItem.dropOffLat,
@@ -483,7 +480,6 @@ export class CustomerService {
           vehicleType: cartItem.vehicleType,
           house_apartment_number_of_dropoff:
             cartItem.house_apartment_number_of_dropoff,
-            
         });
 
         if (cartItem.isExpressDelivery) {
@@ -492,20 +488,17 @@ export class CustomerService {
         return orderItem;
       });
 
-
-      order.isExpressDelivery = hasExpressDelivery
-
-   
+      order.isExpressDelivery = hasExpressDelivery;
 
       // Save the new order
       await this.orderRepo.save(order);
 
-        // Notify admin about the new order
-    this.eventsGateway.notifyAdmin('newOrder', {
-      message: 'A new order has been placed',
-      orderId: order.id,
-      customerId: customer.id,
-    });
+      // Notify admin about the new order
+      this.eventsGateway.notifyAdmin('newOrder', {
+        message: 'A new order has been placed',
+        orderId: order.id,
+        customerId: customer.id,
+      });
 
       // Clear the cart and reset the checkedOut flag
       cart.checkedOut = false;
@@ -561,9 +554,9 @@ export class CustomerService {
     try {
       const order = await this.validateOrder(orderID, customer);
       const bid = await this.validateBid(bidID);
-  
+
       await this.checkCustomerAuthorization(order, customer);
-  
+
       if (dto.action === BiddingAction.ACCEPT) {
         if (bid.isCounterOffer) {
           await this.processCounterBidOfferAcceptance(order, bid);
@@ -573,7 +566,7 @@ export class CustomerService {
       } else if (dto.action === BiddingAction.DECLINE) {
         await this.processBidDecline(order, bid);
       }
-  
+
       // Notify admin about the bid acceptance/decline
       this.eventsGateway.notifyAdmin('bidAction', {
         message: `A bid has been ${dto.action}ed`,
@@ -582,15 +575,13 @@ export class CustomerService {
         bidId: bidID,
       });
 
-      //notification 
-      
-  
+      //notification
+
       return bid;
     } catch (error) {
       this.handleError(error);
     }
   }
-  
 
   private async validateOrder(
     orderID: number,
@@ -642,7 +633,7 @@ export class CustomerService {
     bid.bidStatus = BidStatus.ACCEPTED;
     bid.order = order;
     bid.BidAcceptedAt = new Date();
-    bid.updatedAT = new Date()
+    bid.updatedAT = new Date();
     await this.bidRepo.save(bid);
 
     await this.sendNotification(
@@ -663,9 +654,9 @@ export class CustomerService {
     bid.bidStatus = BidStatus.ACCEPTED;
     bid.order = order;
     bid.BidAcceptedAt = new Date();
-    bid.counterOfferAcceptedAt = new Date()
-    bid.isCounterOfferAccepted = true
-    bid.updatedAT = new Date()
+    bid.counterOfferAcceptedAt = new Date();
+    bid.isCounterOfferAccepted = true;
+    bid.updatedAT = new Date();
     await this.bidRepo.save(bid);
 
     await this.sendNotification(
@@ -686,7 +677,7 @@ export class CustomerService {
     bid.bidStatus = BidStatus.DECLINED;
     bid.order = order;
     bid.BidDeclinedAt = new Date();
-    bid.updatedAT = new Date()
+    bid.updatedAT = new Date();
     await this.bidRepo.save(bid);
 
     await this.sendNotification(
@@ -695,8 +686,6 @@ export class CustomerService {
       `The customer with ID ${order.customer.id} has declined a bid.`,
     );
   }
-
-
 
   private async sendNotification(
     accountId: string,
@@ -727,17 +716,16 @@ export class CustomerService {
 
   /////////////////////////////////////////////////////////////////////
 
-
   async FetchBidRelatedTocustomerOrder(
     orderID: number,
     customer: CustomerEntity,
   ) {
     try {
       const bidraltedtocustomer = await this.bidRepo.findAndCount({
-        where: { order: { id: orderID, customer: {id:customer.id} } },
+        where: { order: { id: orderID, customer: { id: customer.id } } },
         relations: ['order', 'order.customer'],
       });
-      if (bidraltedtocustomer[1]===0)
+      if (bidraltedtocustomer[1] === 0)
         throw new NotFoundException('bid related to customer not found');
       return bidraltedtocustomer;
     } catch (error) {
@@ -753,14 +741,13 @@ export class CustomerService {
     }
   }
 
-
   //2. counterbid with an offer
   async CounterBid(dto: counterBidDto, bidID: number): Promise<IBids> {
     try {
       //check bid
       const bid = await this.bidRepo.findOne({
         where: { id: bidID },
-        relations: ['order','order.customer'],
+        relations: ['order', 'order.customer'],
       });
       if (!bid)
         throw new NotFoundException(
@@ -781,19 +768,19 @@ export class CustomerService {
       bid.counter_bid_offer = dto.counter_bid;
       bid.counteredAt = new Date();
       bid.bidStatus = BidStatus.COUNTERED;
-      bid.isCounterOffer = true
+      bid.isCounterOffer = true;
 
       await this.bidRepo.save(bid);
 
-      bid.order.bidStatus = BidStatus.COUNTERED
-      await this.orderRepo.save(bid.order)
+      bid.order.bidStatus = BidStatus.COUNTERED;
+      await this.orderRepo.save(bid.order);
 
-         // Notify admin about the counter bid
-    this.eventsGateway.notifyAdmin('counterBid', {
-      message: 'A bid has been countered',
-      bidId: bidID,
-      newOffer: dto.counter_bid,
-    });
+      // Notify admin about the counter bid
+      this.eventsGateway.notifyAdmin('counterBid', {
+        message: 'A bid has been countered',
+        bidId: bidID,
+        newOffer: dto.counter_bid,
+      });
 
       //save the notification
       const notification = new Notifications();
@@ -842,36 +829,41 @@ export class CustomerService {
         );
       }
 
-      
       let baseAmount = Number(order.accepted_cost_of_delivery);
       let expressDeliveryCharge = 0;
       let discountAmount = 0;
       const vatPercentage = 0.07;
-  
+
       // Calculate express delivery charge if applicable
-      const hasExpressDelivery = order.isExpressDelivery
+      const hasExpressDelivery = order.isExpressDelivery;
       if (hasExpressDelivery) {
-        const expressDeliveryFeePercentage = await this.getExpressDeliveryFeePercentage();
-        expressDeliveryCharge = Number((baseAmount * (expressDeliveryFeePercentage / 100)).toFixed(2));
+        const expressDeliveryFeePercentage =
+          await this.getExpressDeliveryFeePercentage();
+        expressDeliveryCharge = Number(
+          (baseAmount * (expressDeliveryFeePercentage / 100)).toFixed(2),
+        );
       }
-  
+
       // Calculate discount if applicable
       if (order.IsDiscountApplied && order.discount) {
-        discountAmount = Number(((baseAmount * order.discount) / 100).toFixed(2));
+        discountAmount = Number(
+          ((baseAmount * order.discount) / 100).toFixed(2),
+        );
       }
-  
+
       // Calculate subtotal (base amount + express delivery charge - discount)
-      const subtotal = Number((baseAmount + expressDeliveryCharge - discountAmount).toFixed(2));
-  
+      const subtotal = Number(
+        (baseAmount + expressDeliveryCharge - discountAmount).toFixed(2),
+      );
+
       // Calculate VAT
       const vatAmount = Number((subtotal * vatPercentage).toFixed(2));
-  
+
       // Calculate total amount including VAT
       const totalAmountWithVAT = Number((subtotal + vatAmount).toFixed(2));
 
- 
       // Generate a unique reference for the transaction
-    const paymentReference = `order_${order.orderID}_${uuidv4()}`;
+      const paymentReference = `order_${order.orderID}_${uuidv4()}`;
 
       // Paystack payment integration
       const response = await axios.post(
@@ -891,42 +883,43 @@ export class CustomerService {
       );
 
       if (response.data.status === true) {
-        
-         // Find existing receipt or create a new one
-    let receipt = await this.receiptrepo.findOne({ where: { order: { id: orderID } } });
-    if (receipt) {
-      // Update existing receipt
-      receipt.issuedAt = new Date();
-      receipt.expressDeliveryCharge = expressDeliveryCharge;
-      receipt.VAT = vatAmount;
-      receipt.subtotal = subtotal;
-      receipt.total = totalAmountWithVAT;
-      receipt.discount = discountAmount;
-    } else {
-      // Create new receipt
-      receipt = new ReceiptEntity();
-      receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
-      receipt.issuedAt = new Date();
-      receipt.order = order;
-      receipt.expressDeliveryCharge = expressDeliveryCharge;
-      receipt.VAT = vatAmount;
-      receipt.subtotal = subtotal;
-      receipt.total = totalAmountWithVAT;
-      receipt.discount = discountAmount;
-    }
+        // Find existing receipt or create a new one
+        let receipt = await this.receiptrepo.findOne({
+          where: { order: { id: orderID } },
+        });
+        if (receipt) {
+          // Update existing receipt
+          receipt.issuedAt = new Date();
+          receipt.expressDeliveryCharge = expressDeliveryCharge;
+          receipt.VAT = vatAmount;
+          receipt.subtotal = subtotal;
+          receipt.total = totalAmountWithVAT;
+          receipt.discount = discountAmount;
+        } else {
+          // Create new receipt
+          receipt = new ReceiptEntity();
+          receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
+          receipt.issuedAt = new Date();
+          receipt.order = order;
+          receipt.expressDeliveryCharge = expressDeliveryCharge;
+          receipt.VAT = vatAmount;
+          receipt.subtotal = subtotal;
+          receipt.total = totalAmountWithVAT;
+          receipt.discount = discountAmount;
+        }
 
-    await this.receiptrepo.save(receipt);
+        await this.receiptrepo.save(receipt);
 
-      // Create transaction
-      await this.createTransaction(order);
+        // Create transaction
+        await this.createTransaction(order);
 
         console.log('payment successful');
 
-         // Save the mapping of orderID to paymentReference for webhook handling
-      const paymentMapping = new PaymentMappingEntity();
-      paymentMapping.orderID = order.orderID;
-      paymentMapping.reference = paymentReference;
-      await this.paymentMappingRepo.save(paymentMapping);
+        // Save the mapping of orderID to paymentReference for webhook handling
+        const paymentMapping = new PaymentMappingEntity();
+        paymentMapping.orderID = order.orderID;
+        paymentMapping.reference = paymentReference;
+        await this.paymentMappingRepo.save(paymentMapping);
       } else {
         throw new InternalServerErrorException(
           'Payment initialization failed. Please try again later',
@@ -960,8 +953,8 @@ export class CustomerService {
     transaction.transactionID = `#osl-${this.genratorservice.generateTransactionCode()}`;
     transaction.transactionType = TransactionType.ORDER_PAYMENT;
     transaction.customer = order.customer;
-    transaction.paymentMethod = "paystack";
-    transaction.order = order
+    transaction.paymentMethod = 'paystack';
+    transaction.order = order;
     transaction.paymentStatus = order.payment_status;
     await this.transactionRepo.save(transaction);
   }
@@ -969,8 +962,7 @@ export class CustomerService {
   // track order
   async TrackOrder(keyword: string) {
     try {
-      
-      //find a task that is associated with this order  
+      //find a task that is associated with this order
       const trackorder = await this.orderRepo.findOne({
         where: { trackingID: ILike(`%${keyword}`) },
         cache: false,
@@ -981,14 +973,21 @@ export class CustomerService {
         throw new NotFoundException(
           `oops! this trackingID ${keyword} is not associated with any order in ostra logistics`,
         );
-        const task = await this.taskRepo.findOne({
-          where: { assigned_order: trackorder },
-          relations:['assigned_order','assigned_order.items','assigned_order.items.vehicleType','assigned_order.customer','rider']
-        });
-  
-        if (!task) throw new NotFoundException('ride associated with order not found')
-  
-        return task;
+      const task = await this.taskRepo.findOne({
+        where: { assigned_order: trackorder },
+        relations: [
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.items.vehicleType',
+          'assigned_order.customer',
+          'rider',
+        ],
+      });
+
+      if (!task)
+        throw new NotFoundException('ride associated with order not found');
+
+      return task;
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -1014,14 +1013,21 @@ export class CustomerService {
           `Oops! Order associated with barcode ${barcode} is not found`,
         );
 
-        const task = await this.taskRepo.findOne({
-          where: { assigned_order: order },
-          relations:['assigned_order','assigned_order.items','assigned_order.items.vehicleType','assigned_order.customer','rider']
-        });
-  
-        if (!task) throw new NotFoundException('ride associated with order not found')
-  
-        return task;
+      const task = await this.taskRepo.findOne({
+        where: { assigned_order: order },
+        relations: [
+          'assigned_order',
+          'assigned_order.items',
+          'assigned_order.items.vehicleType',
+          'assigned_order.customer',
+          'rider',
+        ],
+      });
+
+      if (!task)
+        throw new NotFoundException('ride associated with order not found');
+
+      return task;
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -1035,12 +1041,6 @@ export class CustomerService {
     }
   }
 
-
-
-
-
-
-
   //fetching all orders intransit
   async fetchallOngoingOrders(customer: CustomerEntity) {
     try {
@@ -1049,9 +1049,15 @@ export class CustomerService {
           customer: { id: customer.id },
           order_display_status: OrderDisplayStatus.IN_TRANSIT,
         },
-        relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
+        relations: [
+          'customer',
+          'bid',
+          'items',
+          'items.vehicleType',
+          'transaction',
+        ],
         comment: 'fetching orders that are in transit ',
-        order:{RiderAssignedAT:'DESC'}
+        order: { RiderAssignedAT: 'DESC' },
       });
 
       if (findorder[1] === 0)
@@ -1079,9 +1085,15 @@ export class CustomerService {
           customer: { id: customer.id },
           order_status: OrderStatus.ORDER_PLACED,
         },
-        relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
+        relations: [
+          'customer',
+          'bid',
+          'items',
+          'items.vehicleType',
+          'transaction',
+        ],
         comment: 'fetching orders that are just placed ',
-        order:{orderPlacedAt:'DESC'}
+        order: { orderPlacedAt: 'DESC' },
       });
 
       if (findorder[1] === 0)
@@ -1109,7 +1121,13 @@ export class CustomerService {
           customer: { id: customer.id },
           order_status: OrderStatus.ORDER_PLACED,
         },
-        relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
+        relations: [
+          'customer',
+          'bid',
+          'items',
+          'items.vehicleType',
+          'transaction',
+        ],
         comment: 'fetching orders that are just placed ',
       });
 
@@ -1138,9 +1156,15 @@ export class CustomerService {
           customer: { id: customer.id },
           order_display_status: OrderDisplayStatus.COMPLETED,
         },
-        relations: ['customer', 'bid', 'items', 'items.vehicleType','transaction'],
+        relations: [
+          'customer',
+          'bid',
+          'items',
+          'items.vehicleType',
+          'transaction',
+        ],
         comment: 'fetching orders that have been dropped off ',
-        order:{DeliveredAT:'DESC'}
+        order: { DeliveredAT: 'DESC' },
       });
 
       if (findorder[1] === 0)
@@ -1165,7 +1189,14 @@ export class CustomerService {
     try {
       const order = await this.orderRepo.findAndCount({
         where: { id: orderID, customer: { id: customer.id } },
-        relations: ['bid', 'Rider', 'customer', 'items', 'items.vehicleType','transaction'], // Assuming relations are correctly defined
+        relations: [
+          'bid',
+          'Rider',
+          'customer',
+          'items',
+          'items.vehicleType',
+          'transaction',
+        ], // Assuming relations are correctly defined
       });
 
       if (!order) throw new NotFoundException('order not found');
@@ -1348,14 +1379,14 @@ export class CustomerService {
   ): Promise<{ message: string }> {
     try {
       // Check if the provided email is already in use
-      if (dto.email){
-      const existingCustomer = await this.customerRepo.findOne({
-        where: { email: dto.email },
-      });
-      if (existingCustomer && existingCustomer.id !== customer.id) {
-        throw new ConflictException('Email is already in use');
+      if (dto.email) {
+        const existingCustomer = await this.customerRepo.findOne({
+          where: { email: dto.email },
+        });
+        if (existingCustomer && existingCustomer.id !== customer.id) {
+          throw new ConflictException('Email is already in use');
+        }
       }
-    }
 
       //add the updated data from the dto
 
@@ -1503,15 +1534,15 @@ export class CustomerService {
     try {
       const [notifications, count] = await this.notificationripo.findAndCount({
         where: { account: customer.customerID }, // Convert id to string if necessary
-        order: { date: 'DESC' }
+        order: { date: 'DESC' },
       });
-  
+
       if (count === 0) {
         throw new NotFoundException(
-          'Oops! You have no notifications at this time.'
+          'Oops! You have no notifications at this time.',
         );
       }
-  
+
       return notifications;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -1520,7 +1551,7 @@ export class CustomerService {
         console.error(error);
         throw new InternalServerErrorException(
           'Something went wrong while trying to fetch notifications.',
-          error.message
+          error.message,
         );
       }
     }
@@ -1692,38 +1723,39 @@ export class CustomerService {
     }
   }
 
- //get discount
- async GetDiscount() {
-  try {
-    const now = new Date();
-    const discounts = await this.discountripo.findAndCount({
-      where: { isActive: true },
-    });
+  //get discount
+  async GetDiscount() {
+    try {
+      const now = new Date();
+      const discounts = await this.discountripo.findAndCount({
+        where: { isActive: true },
+      });
 
-    if (discounts[1] === 0)
-      throw new NotFoundException(
-        'Oops! No discount has been set at the moment',
-      );
+      if (discounts[1] === 0)
+        throw new NotFoundException(
+          'Oops! No discount has been set at the moment',
+        );
 
-    return discounts;
-  } catch (error) {
-    if (error instanceof NotFoundException)
-      throw new NotFoundException(error.message);
-    else {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'Something went wrong while trying to fetch the promo code.',
-        error.message,
-      );
+      return discounts;
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      else {
+        console.log(error);
+        throw new InternalServerErrorException(
+          'Something went wrong while trying to fetch the promo code.',
+          error.message,
+        );
+      }
     }
   }
-}
 
   async getPaymenthistoryOfOneCustomer(Customer: CustomerEntity) {
     try {
       const transaction = await this.transactionRepo.findAndCount({
-        where: { customer: {customerID:Customer.customerID} },relations:['customer']
-        
+        where: { 
+          customer: { id: Customer.id, },transactionType: TransactionType.ORDER_PAYMENT  },
+        relations: ['customer'],
       });
       if (!transaction)
         throw new NotFoundException(
@@ -1742,10 +1774,11 @@ export class CustomerService {
     }
   }
 
-  async rateOrder(orderId: number, ratingReviewDto: RatingReviewDto): Promise<OrderEntity> {
-    
-
-    const order = await this.orderRepo.findOne({where:{id:orderId}});
+  async rateOrder(
+    orderId: number,
+    ratingReviewDto: RatingReviewDto,
+  ): Promise<OrderEntity> {
+    const order = await this.orderRepo.findOne({ where: { id: orderId } });
     if (!order) {
       throw new NotFoundException(`Order with ID ${orderId} not found`);
     }
@@ -1755,15 +1788,13 @@ export class CustomerService {
 
     await this.orderRepo.save(order);
 
-   
+    //notifiction
+    const notification = new Notifications();
+    notification.account = 'customer';
+    notification.subject = 'Review And Rating Left for an Order !';
+    notification.message = `the customer has left a review and a rating `;
+    await this.notificationripo.save(notification);
 
-     //notifiction
-     const notification = new Notifications();
-     notification.account = "customer";
-     notification.subject = 'Review And Rating Left for an Order !';
-     notification.message = `the customer has left a review and a rating `;
-     await this.notificationripo.save(notification);
-
-     return order
+    return order;
   }
 }

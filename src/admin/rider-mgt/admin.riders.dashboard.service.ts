@@ -786,8 +786,8 @@ export class AdminRiderDashboardService {
 
         // Handle the former rider
         if (formerRider && formerRider.id !== rider.id) {
-          // Update former rider's status 
-          formerRider.status = RiderStatus.AVAILABLE; 
+          // Update former rider's status
+          formerRider.status = RiderStatus.AVAILABLE;
           formerRider.assigned_order = null;
           await this.riderripo.save(formerRider);
 
@@ -1109,7 +1109,10 @@ export class AdminRiderDashboardService {
   async fetchRiderPaymentTransactionHistory(riderID: string) {
     try {
       const mytransactions = await this.transactionRepo.findAndCount({
-        where: { Rider: { id: riderID } },
+        where: {
+          Rider: { id: riderID },
+          transactionType: TransactionType.SALARY_PAYMENT,
+        },
         relations: ['Rider', 'bankInfo'],
         order: { transactedAT: 'DESC' },
       });

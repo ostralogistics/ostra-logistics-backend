@@ -38,6 +38,7 @@ import {
   RiderMileStones,
   RiderStatus,
   TaskStatus,
+  TransactionType,
 } from 'src/Enums/all-enums';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
 import { RequestEntity } from 'src/Entity/requests.entity';
@@ -1485,31 +1486,43 @@ export class RiderService {
       }
     }
   }
-
-  async fetchRiderPaymentTransactionHistory(rider:RiderEntity) {
+  async fetchRiderPaymentTransactionHistory(rider: RiderEntity) {
     try {
+      console.log(`Fetching transactions for rider with ID: ${rider.id}`);
+  
       const mytransactions = await this.transactionRepo.findAndCount({
-        where: { Rider: { riderID: rider.riderID } },
+        where: {
+          Rider: { id: rider.id },
+          transactionType: TransactionType.SALARY_PAYMENT 
+        },
         relations: ['Rider', 'bankInfo'],
         order: { transactedAT: 'DESC' },
-      
       });
-      if (mytransactions[1] == 0)
+  
+      // console.log(`Found ${mytransactions[1]} transactions`);
+  
+      // // Log the first few transactions for debugging
+      // console.log('Sample transactions:', JSON.stringify(mytransactions[0].slice(0, 3), null, 2));
+  
+      if (mytransactions[1] === 0) {
         throw new NotFoundException(
-          'there are no transaction logs for this rider at the moment',
+          'There are no transaction logs for this rider at the moment',
         );
-
+      }
+  
       return mytransactions;
     } catch (error) {
-      if (error instanceof NotFoundException)
+      if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
-      else {
-        console.log(error);
+      } else {
+        console.error('Error in fetchRiderPaymentTransactionHistory:', error);
         throw new InternalServerErrorException(
-          'something went wrong while fetching the logged transactions of this rider',
+          'Something went wrong while fetching the logged transactions of this rider',
           error.message,
         );
       }
     }
   }
+
+
 }
