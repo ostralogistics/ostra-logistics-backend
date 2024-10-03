@@ -25,8 +25,8 @@ export class AdminStaffDashBoardController{
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
     @Post('/register')
-    async AdminRegisterStaff(@Body()dto:RegisterOtherAdminByAdminDto,){
-        return await this.adminstaffservice.RegisterStaff(dto)
+    async AdminRegisterStaff(@Body()dto:RegisterOtherAdminByAdminDto,@Req()req){
+        return await this.adminstaffservice.RegisterStaff(req.user,dto)
 
     }
 

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
@@ -94,8 +95,13 @@ export class AdminStaffDasboardService {
   }
 
   //admin register rider
-  async RegisterStaff(dto: RegisterOtherAdminByAdminDto) {
+  async RegisterStaff(admin:AdminEntity,dto: RegisterOtherAdminByAdminDto) {
     try {
+
+      if (admin.adminAccessLevels !== AdminAccessLevels.LEVEL2 && admin.adminAccessLevels !== AdminAccessLevels.LEVEL3) {
+        throw new ForbiddenException('You do not have the authorization to register a staff');
+      }
+    
       const genpassword = await this.generatorservice.generatePassword();
       const hashedpassword =
         await this.generatorservice.hashpassword(genpassword);
@@ -183,22 +189,25 @@ export class AdminStaffDasboardService {
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
 
-      // Update other admin record directly from DTO
-      admin.firstname = dto.firstname;
-      admin.lastname = dto.lastname;
-      admin.mobile = dto.mobile;
-      admin.marital_status = dto.marital_status;
-      admin.home_address = dto.home_address;
-      admin.state_of_origin = dto.state_of_origin;
-      admin.LGA_of_origin = dto.LGA_of_origin;
-      admin.gender = dto.gender;
-      admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
-      admin.adminAccessLevels = dto.accesslevel
-      admin.UpdatedAt = new Date()
-      
-
-
-      await this.adminripo.save(admin);
+     // Update other admin record directly from DTO
+     admin.firstname = dto.firstname;
+     admin.lastname = dto.lastname;
+     admin.mobile = dto.mobile;
+     admin.marital_status = dto.marital_status;
+     admin.home_address = dto.home_address;
+     admin.state_of_origin = dto.state_of_origin;
+     admin.LGA_of_origin = dto.LGA_of_origin;
+     admin.gender = dto.gender;
+     admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
+     
+     // Only update accesslevel if the admin has LEVEL3 access
+     if (admin.adminAccessLevels === AdminAccessLevels.LEVEL3) {
+       admin.adminAccessLevels = dto.accesslevel;
+     }
+     
+     admin.UpdatedAt = new Date()
+ 
+     await this.adminripo.save(admin);
 
       //save notification
       const notification = new Notifications();
