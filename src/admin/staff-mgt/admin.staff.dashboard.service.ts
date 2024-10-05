@@ -173,6 +173,7 @@ export class AdminStaffDasboardService {
   }
 
   async UpdateStaffInfoByAdmin(
+    adminDoer:AdminEntity,
     adminId: string,
     dto: UpdateOtherAdminInfoByAdminDto,
   ): Promise<{ message: string; response: IAdmin }> {
@@ -201,19 +202,16 @@ export class AdminStaffDasboardService {
      admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
      
      // Only update accesslevel if the admin has LEVEL3 access
-     if (admin.adminAccessLevels === AdminAccessLevels.LEVEL3) {
-       admin.adminAccessLevels = dto.accesslevel;
-     }
-     
+      admin.adminAccessLevels = dto.accesslevel;
      admin.UpdatedAt = new Date()
  
      await this.adminripo.save(admin);
 
       //save notification
       const notification = new Notifications();
-      notification.account = admin.id;
+      notification.account = adminDoer.id;
       notification.subject = 'Staff Record Updated !';
-      notification.message = `the record of the rider with the id ${adminId} has been updated  on ostra logistics platform `;
+      notification.message = `the record of the rider with the id ${adminId} has been updated by the CEO on ostra logistics platform `;
       await this.notificationripo.save(notification);
 
       return {

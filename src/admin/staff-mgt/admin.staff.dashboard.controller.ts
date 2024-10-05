@@ -30,10 +30,10 @@ export class AdminStaffDashBoardController{
 
     }
 
-    @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
+    @AdminAccessLevel(AdminAccessLevels.LEVEL3)
     @Patch('/update-staff-info/:staffId')
-    async UpdateStaffInfo(@Param('staffId')staffId:string,@Body()dto:UpdateOtherAdminInfoByAdminDto){
-        return await this.adminstaffservice.UpdateStaffInfoByAdmin(staffId,dto)
+    async UpdateStaffInfo(@Param('staffId')staffId:string,@Body()dto:UpdateOtherAdminInfoByAdminDto,@Req()req){
+        return await this.adminstaffservice.UpdateStaffInfoByAdmin(req.user,staffId,dto)
     }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3)
