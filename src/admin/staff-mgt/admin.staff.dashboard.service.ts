@@ -98,9 +98,9 @@ export class AdminStaffDasboardService {
   async RegisterStaff(admin:AdminEntity,dto: RegisterOtherAdminByAdminDto) {
     try {
 
-      if (admin.adminAccessLevels !== AdminAccessLevels.LEVEL2 && admin.adminAccessLevels !== AdminAccessLevels.LEVEL3) {
-        throw new ForbiddenException('You do not have the authorization to register a staff');
-      }
+      // if (admin.adminAccessLevels !== AdminAccessLevels.LEVEL2 && admin.adminAccessLevels !== AdminAccessLevels.LEVEL3) {
+      //   throw new ForbiddenException('You do not have the authorization to register a staff');
+      // }
     
       const genpassword = await this.generatorservice.generatePassword();
       const hashedpassword =

@@ -953,7 +953,7 @@ export class RiderService {
     await this.updateTaskAndOrderStatus(queryRunner, task, isOrder, Rider);
 
       await this.saveNotification(queryRunner, Rider, isOrder,true);
-      await this.sendEmailNotification(isOrder, currentTime);
+      await this.sendEmailNotification(isOrder);
       //await this.sendPushNotification(isOrder);
   
       await queryRunner.commitTransaction();
@@ -991,22 +991,42 @@ export class RiderService {
   }
   
   
-  private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, itemId: number, currentTime: Date) {
-    const itemToUpdate = order.items.find(item => item.id === itemId);
+  private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, itemIds: number[], currentTime: Date) {
+    // const itemToUpdate = order.items.find(item => item.id === itemId);
 
-    if (!itemToUpdate) {
-      throw new NotAcceptableException('Item not found in this order.');
+    // if (!itemToUpdate) {
+    //   throw new NotAcceptableException('Item not found in this order.');
+    // }
+  
+    // if (itemToUpdate.isdroppedOff) {
+    //   throw new NotAcceptableException('This item has already been dropped off.');
+    // }
+  
+    // // Update the item as dropped off
+    // itemToUpdate.isdroppedOff = true;
+    // itemToUpdate.droppedOffAt = currentTime;
+  
+    // await queryRunner.manager.save(itemToUpdate);
+
+    for (const itemId of itemIds) {
+      const itemToUpdate = order.items.find(item => item.id === itemId);
+
+      if (!itemToUpdate) {
+          throw new NotAcceptableException(`Item with ID ${itemId} not found in this order.`);
+      }
+
+      if (itemToUpdate.isdroppedOff) {
+          throw new NotAcceptableException(`Item with ID ${itemId} has already been dropped off.`);
+      }
+
+      // Update the item as dropped off
+      itemToUpdate.isdroppedOff = true;
+      itemToUpdate.droppedOffAt = currentTime;
+
+      // Save the updated item in the transaction
+      await queryRunner.manager.save(itemToUpdate);
+
     }
-  
-    if (itemToUpdate.isdroppedOff) {
-      throw new NotAcceptableException('This item has already been dropped off.');
-    }
-  
-    // Update the item as dropped off
-    itemToUpdate.isdroppedOff = true;
-    itemToUpdate.droppedOffAt = currentTime;
-  
-    await queryRunner.manager.save(itemToUpdate);
   }
   
   private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, Rider: RiderEntity) {
@@ -1049,7 +1069,7 @@ export class RiderService {
     await queryRunner.manager.save(notification);
   }
   
-  private async sendEmailNotification(order: OrderEntity, currentTime: Date) {
+  private async sendEmailNotification(order: OrderEntity) {
     const email = order.customer?.email || order.items[0]?.email;
     const firstName = order.customer?.firstname || order.items[0]?.name;
   

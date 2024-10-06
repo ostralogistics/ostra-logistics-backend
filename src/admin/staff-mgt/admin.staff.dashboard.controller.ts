@@ -8,11 +8,13 @@ import { IChangeRiderPassword } from "src/Riders/riders";
 import { JwtGuard } from "src/auth/guard/jwt.guard";
 import { RoleGuard } from "src/auth/guard/role.guard";
 import { Roles } from "src/auth/decorator/role.decorator";
-import { AdminAccessLevels, Role } from "src/Enums/all-enums";
+import { AdminAccessLevels, AdminType, Role } from "src/Enums/all-enums";
 import { AdminAcessLevelGuard } from "src/auth/guard/accesslevel.guard";
 import { AdminAccessLevel } from "src/auth/decorator/accesslevel.decorator";
+import { AdminTypeGuard } from "src/auth/guard/admintype.guard";
+import { AdminTypes } from "src/auth/decorator/admintype.decorator";
 
-@UseGuards(JwtGuard,RoleGuard,AdminAcessLevelGuard)
+@UseGuards(JwtGuard,RoleGuard,AdminAcessLevelGuard,AdminTypeGuard)
 @Roles(Role.ADMIN)
 
 
@@ -20,7 +22,6 @@ import { AdminAccessLevel } from "src/auth/decorator/accesslevel.decorator";
 @Controller('admin-staff-dashboard')
 export class AdminStaffDashBoardController{
     constructor(private readonly adminstaffservice:AdminStaffDasboardService){}
-
 
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3,AdminAccessLevels.LEVEL2)
@@ -31,18 +32,21 @@ export class AdminStaffDashBoardController{
     }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @AdminTypes(AdminType.CEO)
     @Patch('/update-staff-info/:staffId')
     async UpdateStaffInfo(@Param('staffId')staffId:string,@Body()dto:UpdateOtherAdminInfoByAdminDto,@Req()req){
         return await this.adminstaffservice.UpdateStaffInfoByAdmin(req.user,staffId,dto)
     }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @AdminTypes(AdminType.CEO)
     @Delete('delete-staff/:staffID')
     async DeleteStaff(@Param('staffID') staffID:string) {
         return await this.adminstaffservice.AdminDeleteStaff(staffID)
     }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @AdminTypes(AdminType.CEO)
     @Patch('/change-staff-password/:staffID')
     async ChangeStaffPassword( @Param('staffID')staffID:string) {
         return await this.adminstaffservice.AdminChangeStaffPassword(staffID)
@@ -79,16 +83,15 @@ export class AdminStaffDashBoardController{
     }
 
     @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @AdminTypes(AdminType.CEO)
     @Patch('/change-staff-accesslevel/:staffID')
     async ChangestaffAccessLevel(@Param('staffID')staffID:string, @Body()dto:AdminchangestaffAccessLevelDto){
         return await this.adminstaffservice.ChangeStaffAccessLevel(staffID,dto)
-
     }
 
    
-  
-  
     @AdminAccessLevel(AdminAccessLevels.LEVEL3)
+    @AdminTypes(AdminType.CEO)
     @Patch('update-passcode/:passcodeID')
     async UpdatePasscode(@Param('passcodeID') passcodeID: number, @Req() req) {
       return await this.adminstaffservice.UpdatePasscode(req.user, passcodeID);

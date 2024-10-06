@@ -29,7 +29,7 @@ export class DropOffCodeDto {
 
   @IsInt()
   @Min(1)
-  itemsDroppedOff: number;
+  itemsDroppedOff: number[];
 }
 
 export class AcceptOrDeclineTaskDto {
