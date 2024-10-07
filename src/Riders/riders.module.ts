@@ -17,9 +17,8 @@ import { RequestEntity } from 'src/Entity/requests.entity';
 import { CustomerService } from 'src/customer/customer.service';
 import { GeneatorService } from 'src/common/services/generator.service';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
-import { FcmService } from 'src/firebase/fcm-node.service';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
-//import { PushNotificationsService } from 'src/pushnotification.service';
+import { PushNotificationsService } from 'src/pushnotification.service';
 
 
 
@@ -46,9 +45,8 @@ import { TransactionEntity } from 'src/Entity/transactions.entity';
     RiderService,
     GeneatorService,
     EventsGateway,
-    FcmService,
-    //PushNotificationsService,
-    //FirebaseAdminProvider
+    PushNotificationsService,
+   
     
   ],
   controllers: [RiderAuthController, RiderController],

@@ -1,6 +1,5 @@
 import {
-  BadRequestException,
-  Inject,
+ 
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
@@ -41,22 +40,17 @@ import {
   TransactionConfirmation,
   TransactionType,
 } from 'src/Enums/all-enums';
-import { ILike } from 'typeorm';
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { OrderRepository } from 'src/order/order.reposiroty';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
-import { IRequests, RequestEntity } from 'src/Entity/requests.entity';
+import {  RequestEntity } from 'src/Entity/requests.entity';
 import { GeneatorService } from 'src/common/services/generator.service';
 import {
-  ITransactions,
   TransactionEntity,
 } from 'src/Entity/transactions.entity';
-import { all } from 'axios';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
-//import * as firebase from 'firebase-admin';
-import { FcmService } from 'src/firebase/fcm-node.service';
-//import { PushNotificationsService } from 'src/pushnotification.service';
+import { PushNotificationsService } from 'src/pushnotification.service';
 
 @Injectable()
 export class AdminRiderDashboardService {
@@ -80,7 +74,7 @@ export class AdminRiderDashboardService {
     private cloudinaryservice: CloudinaryService,
     private mailer: Mailer,
     private genratorservice: GeneatorService,
-    //private readonly fcmService: PushNotificationsService,
+    private readonly fcmService: PushNotificationsService,
     //private readonly pushnotificationService: PushNotificationsService,
   ) {}
 
@@ -663,81 +657,7 @@ export class AdminRiderDashboardService {
     return await this.riderripo.count();
   }
 
-  //admin asign tasks to a rider
-
-  // async AssignOrderToRider(
-  //   riderID: string,
-  //   orderID: number,
-  //   dto: AssignTaskDto,
-  // ) {
-  //   try {
-
-  //     const rider = await this.riderripo.findOne({
-  //       where: { id: riderID },
-  //     });
-  //     if (!rider)
-  //       throw new NotFoundException(
-  //         `rider with id:${riderID} is not found in the ostra logistics rider database`,
-  //       );
-
-  //     const order = await this.orderripo.findOne({
-  //       where: { id: orderID },
-  //       relations: ['customer', 'items', 'items.vehicleType'],
-  //     });
-  //     if (!order) throw new NotFoundException('order not found ');
-
-  //     //find order that the payment status has been updated to successful
-  //     if (order && order.payment_status !== PaymentStatus.SUCCESSFUL)
-  //       throw new NotAcceptableException(
-  //         'the payment on this order is not successful yet, so order cannot be assigned to a driver ',
-  //       );
-
-  //     //assign the order to a driver
-  //     order.Rider = rider;
-  //     await this.orderripo.save(order);
-
-  //     //save task to the task table
-  //     const task = new TaskEntity();
-  //     (task.rider = order.Rider), (task.task = dto.task);
-  //     (task.assigned_order = order), (task.assignedAT = new Date());
-
-  //     await this.taskRepo.save(task);
-
-  //     // Push notification
-  //     // await this.fcmService.sendNotification(
-  //     //   rider.deviceToken,
-  //     //   ' New Task Assigned!',
-  //     //   `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
-
-  //     //   {
-  //     //     task: task.task,
-  //     //     orderID: order.orderID,
-  //     //     customerId: order.customer.id,
-  //     //   },
-  //     // );
-
-  //     //save the notification
-  //     const notification = new Notifications();
-  //     notification.account = rider.id;
-  //     notification.subject = 'Rider Assigned Task!';
-  //     notification.message = `the Rider  ${rider.firstname} have been assigned a task on the admin portal of ostra ogistics by superadmin  `;
-  //     await this.notificationripo.save(notification);
-
-  //     return task;
-  //   } catch (error) {
-  //     if (error instanceof NotFoundException) {
-  //       throw new NotFoundException(error.message);
-  //     } else if (error instanceof NotAcceptableException)
-  //       throw new NotAcceptableException(error.message);
-  //     else {
-  //       console.log(error);
-  //       throw new InternalServerErrorException(
-  //         'Something went wrong when trying to assign a task to a rider. Please try again later.',
-  //         error.message,
-  //       );
-  //     }
-  //   }
-  // }
+  
 
   async AssignOrderToRider(
     riderID: string,
@@ -799,17 +719,17 @@ export class AdminRiderDashboardService {
           await this.notificationripo.save(formerRiderNotification);
 
           // Push notification
-          // await this.fcmService.sendNotification(
-          //   rider.deviceToken,
-          //   ' Task Reassigned!',
-          //   `Your task for order ${order.orderID} has been reassigned to another rider. You are now available for new tasks. `,
+          await this.fcmService.sendNotification(
+            rider.deviceToken,
+            ' Task Reassigned!',
+            `Your task for order ${order.orderID} has been reassigned to another rider. You are now available for new tasks. `,
 
-          //   {
-          //     task: task.task,
-          //     orderID: order.orderID,
-          //     customerId: order.customer.id,
-          //   },
-          // );
+            {    
+              task: task.task,
+              orderID: order.orderID,
+              customerId: order.customer.id,
+            },
+          );
         }
 
         // Create a notification for the new rider
@@ -820,17 +740,17 @@ export class AdminRiderDashboardService {
         await this.notificationripo.save(notification);
 
         // Push notification
-        // await this.fcmService.sendNotification(
-        //   rider.deviceToken,
-        //   ' TRider Reassigned Task!',
-        //   `Rider ${rider.firstname} has been reassigned to an existing task for order ${order.orderID}`,
+        await this.fcmService.sendNotification(
+          rider.deviceToken,
+          ' TRider Reassigned Task!',
+          `Rider ${rider.firstname} has been reassigned to an existing task for order ${order.orderID}`,
 
-        //   {
-        //     task: task.task,
-        //     orderID: order.orderID,
-        //     customerId: order.customer.id,
-        //   },
-        // );
+          {
+            task: task.task,
+            orderID: order.orderID,
+            customerId: order.customer.id,
+          },
+        );
       } else {
         // If no existing task, create a new one (original logic)
         order.Rider = rider;
@@ -850,17 +770,17 @@ export class AdminRiderDashboardService {
         await this.notificationripo.save(notification);
 
         // Push notification
-        // await this.fcmService.sendNotification(
-        //   formerRider.deviceToken,
-        //   ' New Task Assigned!',
-        //   `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
+        await this.fcmService.sendNotification(
+          formerRider.deviceToken,
+          ' New Task Assigned!',
+          `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
 
-        //   {
-        //     task: task.task,
-        //     orderID: order.orderID,
-        //     customerId: order.customer.id,
-        //   },
-        // );
+          {
+            task: task.task,
+            orderID: order.orderID,
+            customerId: order.customer.id,
+          },
+        );
 
         return task;
       }
@@ -885,28 +805,28 @@ export class AdminRiderDashboardService {
     }
   }
 
-  // async testPushNotification() {
-  //   try {
-  //     // Push notification
-  //     const push = await this.pushnotificationService.sendNotification(
+  async testPushNotification() {
+    try {
+      // Push notification
+      const push = await this.fcmService.sendNotification(
 
-  //       'dgzV_I-tTberyStu4W_YHE:APA91bGC4-Rbqoo_kW2IO2SAX4YXpkENw3ryL-5YmUPGXxG3s4WVsKMSRyfxEpeQjQuJ2xMx5Aat7jOS_hTIY91IFj8Cno-k-AiRB-lgU6F5PSGssG3nZgxWQ_ND_W84nGm5UETfWSdw',
+        'dreLxUl9SgSQQGCkuRSyfY:APA91bETzy_kRdvp4DBbLg4nu-Vy-IgVxL7mhkmO4evv0LqfkufAXkPNrPPRwth8ePsKt1umhzKNJoQ2B0NOP0eI9GeGKrbSqTuOEibiPFBXTOHe_1pPAYpjsSuF2hNtinamzBH6Pc_h',
 
-  //       ' New Task Assigned!',
-  //       `A new task, Please accept this task or decline it with a solid reason for your decline. Thank you `,
+        ' New Task Assigned!',
+        `A new task, Please accept this task or decline it with a solid reason for your decline. Thank you `,
 
-  //       {
-  //         task: 'pickup',
-  //         orderID: 'osl-123456',
-  //         customerId: 'toyib',
-  //       },
-  //     );
+        {
+          task: 'pickup',
+          orderID: 'osl-123456',
+          customerId: 'toyib',
+        },
+      );
 
-  //     return push;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
+      return push;
+    } catch (error) {
+      throw error;
+    }
+  }
 
   //add rider bank details
   async addRiderBankDetails(dto: BankDetailsDto, riderID: string) {

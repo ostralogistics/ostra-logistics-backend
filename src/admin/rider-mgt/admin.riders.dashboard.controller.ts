@@ -1,6 +1,5 @@
 import {
   Controller,
-  UploadedFile,
   UseInterceptors,
   Post,
   Get,
@@ -21,7 +20,7 @@ import {
   RegisterRiderByAdminDto,
   UpdateRiderInfoByAdminDto,
 } from '../admin.dto';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import {  FilesInterceptor } from '@nestjs/platform-express';
 
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { RoleGuard } from 'src/auth/guard/role.guard';
@@ -46,9 +45,7 @@ export class AdminRiderDashBoardController {
     @Body() dto: RegisterRiderByAdminDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    // if (files.length !== 4) {
-    //     throw new BadRequestException('Two files are required: front and back of the driver\'s license');
-    //   }
+   
     return await this.adminriderservice.RegisterRider(dto, files);
   }
 
@@ -405,8 +402,8 @@ export class AdminRiderDashBoardController {
     return await this.adminriderservice.getOneriderCompletedTaskCount(riderID);
   }
 
-  // @Post('push')
-  // async PushNotification(){
-  //   return await this.adminriderservice.testPushNotification()
-  // }
+  @Post('push')
+  async PushNotification(){
+    return await this.adminriderservice.testPushNotification()
+  }
 }

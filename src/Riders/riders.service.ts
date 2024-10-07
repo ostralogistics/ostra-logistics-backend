@@ -46,8 +46,8 @@ import { IOrder } from 'src/order/order';
 import { DataSource, ILike, QueryRunner } from 'typeorm';
 import { markNotificationAsReadDto } from 'src/customer/customer.dto';
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
-import { FcmService } from 'src/firebase/fcm-node.service';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
+import { PushNotificationsService } from 'src/pushnotification.service';
 
 
 export class RiderService {
@@ -64,7 +64,7 @@ export class RiderService {
     private readonly requestrepo: RequestRepository,
     private mailer: Mailer,
     private readonly eventsGateway: EventsGateway,
-    private readonly fcmService: FcmService,
+    private readonly fcmService: PushNotificationsService,
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
     @InjectDataSource() private readonly dataSource: DataSource,
@@ -954,7 +954,7 @@ export class RiderService {
 
       await this.saveNotification(queryRunner, Rider, isOrder,true);
       await this.sendEmailNotification(isOrder);
-      //await this.sendPushNotification(isOrder);
+      await this.sendPushNotification(isOrder);
   
       await queryRunner.commitTransaction();
       return task;
@@ -992,21 +992,7 @@ export class RiderService {
   
   
   private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, itemIds: number[], currentTime: Date) {
-    // const itemToUpdate = order.items.find(item => item.id === itemId);
-
-    // if (!itemToUpdate) {
-    //   throw new NotAcceptableException('Item not found in this order.');
-    // }
-  
-    // if (itemToUpdate.isdroppedOff) {
-    //   throw new NotAcceptableException('This item has already been dropped off.');
-    // }
-  
-    // // Update the item as dropped off
-    // itemToUpdate.isdroppedOff = true;
-    // itemToUpdate.droppedOffAt = currentTime;
-  
-    // await queryRunner.manager.save(itemToUpdate);
+   
 
     for (const itemId of itemIds) {
       const itemToUpdate = order.items.find(item => item.id === itemId);
@@ -1085,20 +1071,20 @@ export class RiderService {
     }
   }
   
-  // private async sendPushNotification(order: OrderEntity) {
-  //   if (order.customer?.deviceToken) {
-  //     await this.fcmService.sendNotification(
-  //       order.customer.deviceToken,
-  //       'Parcel Successfully DroppedOff!',
-  //       `Order with ID: ${order.orderID} belonging to ${order.customer.firstname} has been dropped off to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`,
-  //       {
-  //         order: order,
-  //         orderID: order.orderID,
-  //         customerId: order.customer.id,
-  //       },
-  //     );
-  //   }
-  // }
+  private async sendPushNotification(order: OrderEntity) {
+    if (order.customer?.deviceToken) {
+      await this.fcmService.sendNotification(
+        order.customer.deviceToken,
+        'Parcel Successfully DroppedOff!',
+        `Order with ID: ${order.orderID} belonging to ${order.customer.firstname} has been dropped off to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`,
+        {
+          order: order,
+          orderID: order.orderID,
+          customerId: order.customer.id,
+        },
+      );
+    }
+  }
   
   private handleError(error: any) {
     if (error instanceof NotFoundException || error instanceof NotAcceptableException || error instanceof ConflictException) {

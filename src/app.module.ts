@@ -12,7 +12,7 @@ import { AdminModule } from './admin/admin.module';
 import { WebHookModule } from './Payment/webhook.module';
 import { AuthModule } from './auth/auth.module';
 //import { firebaseAdminProvider } from './firebase/firebase-admin.provider';
-import { FcmModule } from './firebase/fcm-node.module';
+
 //import { PushNotificationsService } from './pushnotification.service';
 //import { FirebaseModule } from './firebase/firebase.module';
 
@@ -23,8 +23,7 @@ import { FcmModule } from './firebase/fcm-node.module';
     AdminModule,
     WebHookModule,
     AuthModule,
-    FcmModule,
-
+   
     //FirebaseModule,
     
     ConfigModule.forRoot({ isGlobal: true }),

@@ -23,7 +23,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1/ostra-logistics_api')
   app.useGlobalPipes(new ValidationPipe)
-  await app.listen(process.env.PORT||8000);
+  await app.listen(process.env.PORT||8100);
  
 }
 bootstrap();

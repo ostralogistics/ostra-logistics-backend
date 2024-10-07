@@ -82,10 +82,10 @@ import {
 import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { Socket } from 'socket.io';
 //import * as firebase from 'firebase-admin';
-import { FcmService } from 'src/firebase/fcm-node.service';
+
 import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
 import { v4 as uuidv4 } from 'uuid';
-//import { PushNotificationsService } from 'src/pushnotification.service';
+import { PushNotificationsService } from 'src/pushnotification.service';
 
 
 @Injectable()
@@ -119,7 +119,7 @@ export class AdminCustomerDashBoardService {
     private genratorservice: GeneatorService,
     private distanceservice: DistanceService,
     private geocodingservice: GeoCodingService,
-    //private readonly fcmService: PushNotificationsService,
+    private readonly fcmService: PushNotificationsService,
     @InjectRepository(ReceiptEntity)
     private readonly receiptrepo: ReceiptRespository,
   ) {}
@@ -154,17 +154,17 @@ export class AdminCustomerDashBoardService {
       await this.orderRepo.save(order);
 
       // Push notification
-      // await this.fcmService.sendNotification(
-      //   order.customer.deviceToken,
-      //   'Opening Bid Sent!',
-      //   `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
+      await this.fcmService.sendNotification(
+        order.customer.deviceToken,
+        'Opening Bid Sent!',
+        `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
         
-      //   {
-      //     orderID: order.orderID,
-      //     bidValue: bid.bid_value.toString(),
-      //     customerId: order.customer.id,
-      //   },
-      // );
+        {
+          orderID: order.orderID,
+          bidValue: bid.bid_value.toString(),
+          customerId: order.customer.id,
+        },
+      );
 
       // Notify the customer via WebSocket
       this.eventsGateway.notifyCustomer('openingBidMade', {
@@ -243,17 +243,17 @@ export class AdminCustomerDashBoardService {
       });
 
       // // Push notification
-      // await this.fcmService.sendNotification(
-      //   bid.order.customer.deviceToken,
-      //   'Counter Bid Accepted!',
-      //   `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
+      await this.fcmService.sendNotification(
+        bid.order.customer.deviceToken,
+        'Counter Bid Accepted!',
+        `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
        
-      //   {
-      //     orderID: bid.order.orderID,
-      //     counterbidValue: bid.counter_bid_offer.toString(),
-      //     customerId: bid.order.customer.id,
-      //   },
-      // );
+        {
+          orderID: bid.order.orderID,
+          counterbidValue: bid.counter_bid_offer.toString(),
+          customerId: bid.order.customer.id,
+        },
+      );
 
       // Save notification for admin
       const notification = new Notifications();
@@ -314,17 +314,17 @@ export class AdminCustomerDashBoardService {
       await this.bidRepo.save(bid);
 
       // Push notification
-      // await this.fcmService.sendNotification(
-      //   bid.order.customer.deviceToken,
-      //   ' Bid Countered!',
-      //   `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
+       await this.fcmService.sendNotification(
+        bid.order.customer.deviceToken,
+        ' Bid Countered!',
+        `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
         
-      //   {
-      //     orderID: bid.order.orderID,
-      //     counterbidValue: bid.counter_bid_offer.toString(),
-      //     customerId: bid.order.customer.id,
-      //   },
-      // );
+        {
+          orderID: bid.order.orderID,
+          counterbidValue: bid.counter_bid_offer.toString(),
+          customerId: bid.order.customer.id,
+        },
+      );
 
       // Notify the customer via WebSocket
       this.eventsGateway.notifyCustomer('bidCountered', {
