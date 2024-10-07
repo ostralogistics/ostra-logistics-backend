@@ -119,6 +119,7 @@ export class AdminStaffDasboardService {
       //register new rider
       const staff = new AdminEntity();
       (staff.firstname = dto.firstname), (staff.lastname = dto.lastname);
+      staff.fullname = `${dto.firstname}   ${dto.lastname}`
       staff.email = emailnow;
       staff.adminID = `#OslSt-${await this.generatorservice.generateUserID()}`;
       staff.password = hashedpassword;
