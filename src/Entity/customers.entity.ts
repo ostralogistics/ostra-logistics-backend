@@ -79,7 +79,7 @@ export class CustomerEntity implements ICustomer{
     isLocked: boolean;
 
 
-    @OneToMany(()=>OrderEntity, order=>order.customer,{nullable:true})
+    @OneToMany(()=>OrderEntity, order=>order.customer,{nullable:true,onDelete:'CASCADE'})
     my_orders: OrderEntity[];
 
     @OneToMany(()=>CardEntity,card => card.card_owner, {nullable:true} )
@@ -88,7 +88,7 @@ export class CustomerEntity implements ICustomer{
     @OneToMany(()=>ComplaintEntity,complain=>complain.customer,{nullable:true})
     my_complains: ComplaintEntity[];
 
-    @OneToMany(()=>OrderCartEntity, cart =>cart.customer,{nullable:true})
+    @OneToMany(()=>OrderCartEntity, cart =>cart.customer,{nullable:true,onDelete:'CASCADE'})
     carts: OrderCartEntity;
 
     @OneToMany(() => DiscountUsageEntity, (usage) => usage.appliedBy, {nullable:true, onDelete:'CASCADE'})

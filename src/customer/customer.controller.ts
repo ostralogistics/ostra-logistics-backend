@@ -226,6 +226,12 @@ export class CustomerController{
        return this.customerservice.rateOrder(orderId, ratingReviewDto);
      }
 
+     @Delete('delete-customer')
+     async deleteRider(@Req()req): Promise<any> {
+      return  await this.customerservice.deleteCustomer(req.user);
+       
+     }
+
      //apply discount
     //  @Post("apply-discount-code/:orderID")
     //  async ApplyDiscount(@Body()dto:ApplypromoCodeDto, @Param('orderID')orderID:string, @Req()req){

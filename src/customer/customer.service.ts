@@ -1797,4 +1797,27 @@ export class CustomerService {
 
     return order;
   }
+
+    // Hard delete customer (with cascade on related entities)
+    async deleteCustomer(Customer:CustomerEntity): Promise<any> {
+      const customer = await this.customerRepo.findOne({ where: { id:Customer.id } });
+      if (!customer) {
+        throw new NotFoundException(`Customer with ID ${Customer.id} not found.`);
+      }
+  
+      // This will delete the customer and automatically cascade the deletion
+      // to related entities with 'onDelete: CASCADE'
+      await this.customerRepo.delete(customer.id);
+
+      //notifiction
+    const notification = new Notifications();
+    notification.account = 'customer';
+    notification.subject = 'Customer Deleted Account !';
+    notification.message = `the customer has deleted his account `;
+    await this.notificationripo.save(notification);
+
+    const message = "customer account deleted successfully"
+
+    return message
+    }
 }

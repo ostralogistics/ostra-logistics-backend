@@ -160,6 +160,14 @@ export class RiderController{
     async GetRiderTransaction(@Req()req) {
       return await this.riderservice.fetchRiderPaymentTransactionHistory(req
       );
+
+      
+    }
+
+    @Delete('delete-rider')
+    async deleteRider(@Req()req): Promise<any> {
+     return  await this.riderservice.deleteRider(req.user);
+      
     }
 
      
