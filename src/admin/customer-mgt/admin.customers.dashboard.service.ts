@@ -155,14 +155,15 @@ export class AdminCustomerDashBoardService {
 
       // Push notification
       await this.fcmService.sendNotification(
+        //'clH_a7reT2yzyAPjm_R9l7:APA91bG7b7LVoxAj2WByhdF_wb1qxFI3lNYKHnoNX3FhcNMgryVaUv3nal6rD44xG7idqfHAGexXJDjNS2zeRz_yfI9FxTii-iRx7qMdy8nEsfPZ91rR_VTXgSJzj9TjyuNaH3pxsFhe',
         order.customer.deviceToken,
         'Opening Bid Sent!',
         `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
         
         {
-          orderID: order.orderID,
-          bidValue: bid.bid_value.toString(),
-          customerId: order.customer.id,
+          // orderID: order.orderID,
+          // bidValue: bid.bid_value.toString(),
+          // customerId: order.customer.id,
         },
       );
 
@@ -249,9 +250,9 @@ export class AdminCustomerDashBoardService {
         `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
        
         {
-          orderID: bid.order.orderID,
-          counterbidValue: bid.counter_bid_offer.toString(),
-          customerId: bid.order.customer.id,
+          // orderID: bid.order.orderID,
+          // counterbidValue: bid.counter_bid_offer.toString(),
+          // customerId: bid.order.customer.id,
         },
       );
 
@@ -320,9 +321,9 @@ export class AdminCustomerDashBoardService {
         `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
         
         {
-          orderID: bid.order.orderID,
-          counterbidValue: bid.counter_bid_offer.toString(),
-          customerId: bid.order.customer.id,
+          // orderID: bid.order.orderID,
+          // counterbidValue: bid.counter_bid_offer.toString(),
+          // customerId: bid.order.customer.id,
         },
       );
 

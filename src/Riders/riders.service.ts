@@ -1078,9 +1078,9 @@ export class RiderService {
         'Parcel Successfully DroppedOff!',
         `Order with ID: ${order.orderID} belonging to ${order.customer.firstname} has been dropped off to the dropoff location and has been confirmed by the recipient. Thank you for choosing Ostra Logistics`,
         {
-          order: order,
-          orderID: order.orderID,
-          customerId: order.customer.id,
+          // order: order,
+          // orderID: order.orderID,
+          // customerId: order.customer.id,
         },
       );
     }

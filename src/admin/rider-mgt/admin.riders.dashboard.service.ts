@@ -725,9 +725,9 @@ export class AdminRiderDashboardService {
             `Your task for order ${order.orderID} has been reassigned to another rider. You are now available for new tasks. `,
 
             {    
-              task: task.task,
-              orderID: order.orderID,
-              customerId: order.customer.id,
+              // task: task.task,
+              // orderID: order.orderID,
+              // customerId: order.customer.id,
             },
           );
         }
@@ -746,9 +746,9 @@ export class AdminRiderDashboardService {
           `Rider ${rider.firstname} has been reassigned to an existing task for order ${order.orderID}`,
 
           {
-            task: task.task,
-            orderID: order.orderID,
-            customerId: order.customer.id,
+            // task: task.task,
+            // orderID: order.orderID,
+            // customerId: order.customer.id,
           },
         );
       } else {
@@ -776,9 +776,9 @@ export class AdminRiderDashboardService {
           `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
 
           {
-            task: task.task,
-            orderID: order.orderID,
-            customerId: order.customer.id,
+            // task: task.task,
+            // orderID: order.orderID,
+            // customerId: order.customer.id,
           },
         );
 
@@ -810,7 +810,7 @@ export class AdminRiderDashboardService {
       // Push notification
       const push = await this.fcmService.sendNotification(
 
-        'dreLxUl9SgSQQGCkuRSyfY:APA91bETzy_kRdvp4DBbLg4nu-Vy-IgVxL7mhkmO4evv0LqfkufAXkPNrPPRwth8ePsKt1umhzKNJoQ2B0NOP0eI9GeGKrbSqTuOEibiPFBXTOHe_1pPAYpjsSuF2hNtinamzBH6Pc_h',
+        'clH_a7reT2yzyAPjm_R9l7:APA91bG7b7LVoxAj2WByhdF_wb1qxFI3lNYKHnoNX3FhcNMgryVaUv3nal6rD44xG7idqfHAGexXJDjNS2zeRz_yfI9FxTii-iRx7qMdy8nEsfPZ91rR_VTXgSJzj9TjyuNaH3pxsFhe',
 
         ' New Task Assigned!',
         `A new task, Please accept this task or decline it with a solid reason for your decline. Thank you `,
