@@ -162,7 +162,7 @@ export class CustomerAuthService {
       const notification = new Notifications();
       notification.account = customer.customerID;
       notification.subject = 'New Customer Created!';
-      notification.message = `new admin created successfully `;
+      notification.message = `new customer created successfully `;
       await this.notificationrepo.save(notification);
 
          

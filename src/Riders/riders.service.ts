@@ -175,9 +175,10 @@ export class RiderService {
           throw new BadRequestException('A reason must be provided when declining a task');
         }
   
-        task.rider = Rider;
+        task.rider = null;
         task.reason_for_cancelling_declining = dto.reason;
         task.declinedAT = new Date();
+        task.assigned_order.Rider = null
         await this.taskRepo.save(task);
   
         const notification = new Notifications();
