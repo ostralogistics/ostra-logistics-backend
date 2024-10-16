@@ -49,10 +49,8 @@ import { EventsGateway } from 'src/common/gateways/websockets.gateway';
 import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { PushNotificationsService } from 'src/pushnotification.service';
 
-
 export class RiderService {
   constructor(
-   
     @InjectRepository(RiderEntity) private readonly riderRepo: RidersRepository,
     @InjectRepository(OrderEntity) private readonly orderRepo: OrderRepository,
     @InjectRepository(TaskEntity) private readonly taskRepo: TaskRepository,
@@ -68,8 +66,6 @@ export class RiderService {
     @InjectRepository(TransactionEntity)
     private readonly transactionRepo: TransactionRespository,
     @InjectDataSource() private readonly dataSource: DataSource,
-   
-    
   ) {}
 
   //get orders assigned to him
@@ -141,58 +137,74 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
-  
+
       if (!task)
         throw new NotFoundException(
           `task with the id: ${taskID} is not assigned to this rider`,
         );
-  
+
       if (dto.action === AcceptOrDeclineTask.ACCEPT) {
         task.rider = Rider;
         task.acceptedAt = new Date();
         task.status = TaskStatus.ONGOING;
         await this.taskRepo.save(task);
-  
+
         task.assigned_order.order_status = OrderStatus.RIDER_ASSIGNED;
         task.assigned_order.RiderAssignedAT = new Date();
         await this.orderRepo.save(task.assigned_order);
-  
+
         Rider.status = RiderStatus.IN_TRANSIT;
         await this.riderRepo.save(Rider);
-  
+
         const notification = new Notifications();
         notification.account = Rider.riderID;
         notification.subject = 'Rider Accepted a Task !';
         notification.message = `Rider with the id ${Rider.id} has accepted the Task on the ostra logistics rider app`;
         await this.notificationripo.save(notification);
-  
+
         return task;
       } else if (dto.action === AcceptOrDeclineTask.DECLINE) {
         if (!dto.reason) {
-          throw new BadRequestException('A reason must be provided when declining a task');
+          throw new BadRequestException(
+            'A reason must be provided when declining a task',
+          );
         }
-  
+
+        // Disassociate the rider from the task
         task.rider = null;
         task.reason_for_cancelling_declining = dto.reason;
         task.declinedAT = new Date();
-        task.assigned_order.Rider = null
+        task.status = null
         await this.taskRepo.save(task);
-  
+
+        // Disassociate the rider from the order
+        const order = task.assigned_order;
+        order.Rider = null;
+        order.order_display_status = OrderDisplayStatus.PENDING; // Reset order status to PENDING
+        order.RiderAssignedAT = null;
+        await this.orderRepo.save(order);
+
+        Rider.status = RiderStatus.AVAILABLE;
+        Rider.assigned_order = null;
+
+        await this.riderRepo.save(Rider);
+
         const notification = new Notifications();
         notification.account = Rider.riderID;
         notification.subject = 'Rider Declined a Task !';
         notification.message = `Rider  ${Rider.firstname} has declined the Task on the ostra logistics rider app due to this reason ${dto.reason}`;
         await this.notificationripo.save(notification);
-  
+
         return task;
       }
-  
-      
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       } else {
         console.log(error);
@@ -222,7 +234,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
 
@@ -249,14 +261,14 @@ export class RiderService {
       task.assigned_order.assigned_task = null;
       await this.orderRepo.save(task.assigned_order);
 
-           // Notify admin about the ride cancellation
-           this.eventsGateway.notifyCustomer('rideCancelled', {
-            message: 'Ride cancelled',
-            reason: task.reason_for_cancelling_ride,
-            rider: rider,
-            task: taskID,
-            customerId: task.assigned_order.customer.id,  // Include customer ID
-          })
+      // Notify admin about the ride cancellation
+      this.eventsGateway.notifyCustomer('rideCancelled', {
+        message: 'Ride cancelled',
+        reason: task.reason_for_cancelling_ride,
+        rider: rider,
+        task: taskID,
+        customerId: task.assigned_order.customer.id, // Include customer ID
+      });
 
       // Save notification
       const notification = new Notifications();
@@ -275,14 +287,16 @@ export class RiderService {
       } else {
         console.error(error);
         throw new InternalServerErrorException(
-          'Something went wrong while trying to cancel the ride.',error.message
+          'Something went wrong while trying to cancel the ride.',
+          error.message,
         );
       }
     }
   }
 
-  
-  async fetchAllCanceledRides(rider: RiderEntity): Promise<{ tasks: TaskEntity[]; count: number }> {
+  async fetchAllCanceledRides(
+    rider: RiderEntity,
+  ): Promise<{ tasks: TaskEntity[]; count: number }> {
     try {
       const [tasks, count] = await this.taskRepo.findAndCount({
         where: { isCancelled: true, rider: { id: rider.id } },
@@ -292,25 +306,27 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
-  
+
       if (count === 0) {
         throw new NotFoundException('No cancelled rides found for this rider');
       }
-  
+
       return { tasks, count };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
         console.error('Error fetching cancelled rides:', error.message);
-        throw new InternalServerErrorException('Something went wrong', error.message);
+        throw new InternalServerErrorException(
+          'Something went wrong',
+          error.message,
+        );
       }
     }
   }
-  
 
   //check-in when rider gets to pick up location
   async RiderCheckswhenEnrouteToPickupLocation(
@@ -331,7 +347,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
 
@@ -369,7 +385,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update milestone status of being on your way to the pick up location, please try again later', error.message
+          'something went wrong while trying to update milestone status of being on your way to the pick up location, please try again later',
+          error.message,
         );
       }
     }
@@ -394,7 +411,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
 
@@ -432,7 +449,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of reaching the pick up location, please try again later',error.message
+          'something went wrong while trying update milestone status of reaching the pick up location, please try again later',
+          error.message,
         );
       }
     }
@@ -456,7 +474,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
 
@@ -497,7 +515,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying to update the milestone status of reaching the pickup location, please try again later',error.message
+          'something went wrong while trying to update the milestone status of reaching the pickup location, please try again later',
+          error.message,
         );
       }
     }
@@ -521,7 +540,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
 
@@ -560,7 +579,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of being on your way to  the ofice for rebranding, please try again later',error
+          'something went wrong while trying update milestone status of being on your way to  the ofice for rebranding, please try again later',
+          error,
         );
       }
     }
@@ -586,7 +606,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
 
@@ -631,7 +651,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of arriving at the ofice for rebranding, please try again later',error.message
+          'something went wrong while trying update milestone status of arriving at the ofice for rebranding, please try again later',
+          error.message,
         );
       }
     }
@@ -656,7 +677,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
 
@@ -695,7 +716,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of being on your way to the droppoff location, please try again later',error.message
+          'something went wrong while trying update milestone status of being on your way to the droppoff location, please try again later',
+          error.message,
         );
       }
     }
@@ -720,7 +742,7 @@ export class RiderService {
           'assigned_order.items',
           'assigned_order.customer',
           'assigned_order.admin',
-          'assigned_order.items.vehicleType'
+          'assigned_order.items.vehicleType',
         ],
       });
 
@@ -759,7 +781,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while trying update milestone status of arriving at the droppoff location, please try again later',error.message
+          'something went wrong while trying update milestone status of arriving at the droppoff location, please try again later',
+          error.message,
         );
       }
     }
@@ -787,12 +810,12 @@ export class RiderService {
   //         'assigned_order.admin',
   //       ],
   //     });
-  
+
   //     if (!task)
   //       throw new NotFoundException(
   //         `Task with the id: ${taskID} is not assigned to this rider`,
   //       );
-  
+
   //     // Check the order
   //     const isOrder = await this.orderRepo.findOne({
   //       where: {
@@ -805,22 +828,22 @@ export class RiderService {
   //       throw new NotAcceptableException(
   //         'This order you are about to drop off was not assigned to you',
   //       );
-  
+
   //     // Confirm dropoff code
   //     if (dto && dto.dropOff_code !== isOrder.dropoffCode)
   //       throw new ConflictException(
   //         'The dropoff code does not match, please try again ',
   //       );
-  
+
   //     // Get the number of items in the order
   //     const itemsInOrder = isOrder.items.length;
-  
+
   //     if (dto.itemsDroppedOff > itemsInOrder || dto.itemsDroppedOff < 1) {
   //       throw new NotAcceptableException(
   //         `Invalid number of items dropped off. Please select a number between 1 and ${itemsInOrder}`,
   //       );
   //     }
-  
+
   //     // Update item statuses with individual timestamps
   //     const currentTime = new Date();
   //     for (let i = 0; i < dto.itemsDroppedOff; i++) {
@@ -829,7 +852,7 @@ export class RiderService {
   //       item.droppedOffAt = currentTime; // Assign the current time to each item
   //       await this.orderRepo.save(item); // Save the updated item
   //     }
-  
+
   //     // Update task milestone and status
   //     task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
   //     task.dropped_off_parcelAT = currentTime; // Assign the current time to the task dropoff
@@ -837,12 +860,12 @@ export class RiderService {
   //       ...task.checkpointStatus,
   //       'dropped_off-parcel': true,
   //     };
-  
+
   //     // Check if all items are dropped off
   //     if (dto.itemsDroppedOff < itemsInOrder) {
   //       task.status = TaskStatus.ONGOING;
   //       isOrder.order_display_status = OrderDisplayStatus.IN_TRANSIT;
-  
+
   //       // Save notification
   //       const notification = new Notifications();
   //       notification.account = Rider.id;
@@ -854,11 +877,11 @@ export class RiderService {
   //       isOrder.order_status = OrderStatus.DELIVERED;
   //       isOrder.order_display_status = OrderDisplayStatus.COMPLETED;
   //       isOrder.DeliveredAT = currentTime; // Assign the current time to the order delivery
-  
+
   //       // Update the rider entity status
   //       Rider.status = RiderStatus.AVAILABLE;
   //       await this.riderRepo.save(Rider);
-  
+
   //       // Save notification
   //       const notification = new Notifications();
   //       notification.account = Rider.id;
@@ -866,10 +889,10 @@ export class RiderService {
   //       notification.message = `Rider ${Rider.firstname} has dropped off the parcel and has finally completed the task.`;
   //       await this.notificationripo.save(notification);
   //     }
-  
+
   //     await this.taskRepo.save(task);
   //     await this.orderRepo.save(isOrder);
-  
+
   //     // Log the drop-off
   //     // const dropOffLog = new DropOffLogEntity();
   //     // dropOffLog.order = isOrder;
@@ -877,13 +900,13 @@ export class RiderService {
   //     // dropOffLog.droppedOffAt = currentTime; // Log the current time
   //     // dropOffLog.location = dto.location; // Assuming location is part of the DTO
   //     // await this.dropOffLogRepo.save(dropOffLog);
-  
+
   //     // Determine the email recipient
   //     const email = isOrder.customer?.email || isOrder.items[0]?.email;
   //     const firstName = isOrder.customer?.firstname || isOrder.items[0]?.name;
-  
+
   //     console.log(email, firstName);
-  
+
   //     if (email && firstName) {
   //       // Send mail
   //       try {
@@ -899,7 +922,7 @@ export class RiderService {
   //     } else {
   //       console.warn('Email or first name not found for sending mail');
   //     }
-  
+
   //     // Send push notification
   //     await this.fcmService.sendNotification(
   //       isOrder.customer.deviceToken,
@@ -911,7 +934,7 @@ export class RiderService {
   //         customerId: isOrder.customer.id,
   //       },
   //     );
-  
+
   //     return task;
   //   } catch (error) {
   //     if (error instanceof NotFoundException) {
@@ -930,7 +953,6 @@ export class RiderService {
   //   }
   // }
 
-
   async RiderCheckInWhenHeDropsOffnew5(
     taskID: number,
     orderID: number,
@@ -940,23 +962,32 @@ export class RiderService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-  
+
     try {
       const task = await this.getTask(queryRunner, taskID, Rider.id);
-      const isOrder = await this.getOrder(queryRunner, orderID, taskID, Rider.id);
-  
+      const isOrder = await this.getOrder(
+        queryRunner,
+        orderID,
+        taskID,
+        Rider.id,
+      );
+
       this.validateDropOffCode(dto.dropOff_code, isOrder.dropoffCode);
       //this.validateItemCount(dto.itemsDroppedOff, isOrder.items.length);
-  
-     
-    const currentTime = new Date();
-    await this.updateItemStatus(queryRunner, isOrder, dto.itemsDroppedOff, currentTime);
-    await this.updateTaskAndOrderStatus(queryRunner, task, isOrder, Rider);
 
-      await this.saveNotification(queryRunner, Rider, isOrder,true);
+      const currentTime = new Date();
+      await this.updateItemStatus(
+        queryRunner,
+        isOrder,
+        dto.itemsDroppedOff,
+        currentTime,
+      );
+      await this.updateTaskAndOrderStatus(queryRunner, task, isOrder, Rider);
+
+      await this.saveNotification(queryRunner, Rider, isOrder, true);
       await this.sendEmailNotification(isOrder);
       await this.sendPushNotification(isOrder);
-  
+
       await queryRunner.commitTransaction();
       return task;
     } catch (error) {
@@ -966,44 +997,77 @@ export class RiderService {
       await queryRunner.release();
     }
   }
-  
-  private async getTask(queryRunner: QueryRunner, taskID: number, riderID: string) {
+
+  private async getTask(
+    queryRunner: QueryRunner,
+    taskID: number,
+    riderID: string,
+  ) {
     const task = await queryRunner.manager.findOne(TaskEntity, {
       where: { id: taskID, rider: { id: riderID } },
-      relations: ['rider', 'assigned_order', 'assigned_order.items', 'assigned_order.customer', 'assigned_order.admin','assigned_order.items.vehicleType']
+      relations: [
+        'rider',
+        'assigned_order',
+        'assigned_order.items',
+        'assigned_order.customer',
+        'assigned_order.admin',
+        'assigned_order.items.vehicleType',
+      ],
     });
-    if (!task) throw new NotFoundException(`Task with the id: ${taskID} is not assigned to this rider`);
+    if (!task)
+      throw new NotFoundException(
+        `Task with the id: ${taskID} is not assigned to this rider`,
+      );
     return task;
   }
-  
-  private async getOrder(queryRunner: QueryRunner, orderID: number, taskID: number, riderID: string) {
+
+  private async getOrder(
+    queryRunner: QueryRunner,
+    orderID: number,
+    taskID: number,
+    riderID: string,
+  ) {
     const isOrder = await queryRunner.manager.findOne(OrderEntity, {
-      where: { id: orderID, assigned_task: { id: taskID, rider: { id: riderID } } },
+      where: {
+        id: orderID,
+        assigned_task: { id: taskID, rider: { id: riderID } },
+      },
       relations: ['Rider', 'assigned_task', 'customer', 'items'],
     });
-    if (!isOrder) throw new NotAcceptableException('This order you are about to drop off was not assigned to you');
+    if (!isOrder)
+      throw new NotAcceptableException(
+        'This order you are about to drop off was not assigned to you',
+      );
     return isOrder;
   }
-  
+
   private validateDropOffCode(providedCode: string, actualCode: string) {
     if (providedCode !== actualCode) {
-      throw new ConflictException('The dropoff code does not match, please try again');
+      throw new ConflictException(
+        'The dropoff code does not match, please try again',
+      );
     }
   }
-  
-  
-  private async updateItemStatus(queryRunner: QueryRunner, order: OrderEntity, itemIds: number[], currentTime: Date) {
-   
 
+  private async updateItemStatus(
+    queryRunner: QueryRunner,
+    order: OrderEntity,
+    itemIds: number[],
+    currentTime: Date,
+  ) {
     for (const itemId of itemIds) {
-      const itemToUpdate = order.items.find(item => item.id === itemId);
+      const itemToUpdate = order.items.find((item) => item.id === itemId);
 
       if (!itemToUpdate) {
-          throw new NotAcceptableException(`Item with ID ${itemId} not found in this order.`);
+        throw new NotAcceptableException(
+          `Item with ID ${itemId} not found in this order.`,
+        );
       }
 
       if (itemToUpdate.isdroppedOff) {
-          throw new NotAcceptableException(`Item with ID ${itemId} has already been dropped off.`);
+        throw new NotAcceptableException(
+          `Item with ID ${itemId} has already been dropped off.`,
+        );
       }
 
       // Update the item as dropped off
@@ -1012,17 +1076,23 @@ export class RiderService {
 
       // Save the updated item in the transaction
       await queryRunner.manager.save(itemToUpdate);
-
     }
   }
-  
-  private async updateTaskAndOrderStatus(queryRunner: QueryRunner, task: TaskEntity, order: OrderEntity, Rider: RiderEntity) {
+
+  private async updateTaskAndOrderStatus(
+    queryRunner: QueryRunner,
+    task: TaskEntity,
+    order: OrderEntity,
+    Rider: RiderEntity,
+  ) {
     task.milestone = RiderMileStones.DROPPED_OFF_PARCEL;
     task.dropped_off_parcelAT = new Date(); // This is the latest drop-off time
-  
-    const remainingItems = order.items.filter(item => !item.isdroppedOff).length;
+
+    const remainingItems = order.items.filter(
+      (item) => !item.isdroppedOff,
+    ).length;
     const allItemsDroppedOff = remainingItems === 0;
-  
+
     if (allItemsDroppedOff) {
       task.status = TaskStatus.CONCLUDED;
       order.order_status = OrderStatus.DELIVERED;
@@ -1030,23 +1100,35 @@ export class RiderService {
       order.DeliveredAT = new Date();
       Rider.status = RiderStatus.AVAILABLE;
       await queryRunner.manager.save(Rider);
-      console.log(`Updating task ${task.id} to CONCLUDED and order ${order.id} to COMPLETED`);
+      console.log(
+        `Updating task ${task.id} to CONCLUDED and order ${order.id} to COMPLETED`,
+      );
     } else {
       task.status = TaskStatus.ONGOING;
       order.order_display_status = OrderDisplayStatus.IN_TRANSIT;
-      console.log(`Updating task ${task.id} to ONGOING and order ${order.id} to IN_TRANSIT`);
+      console.log(
+        `Updating task ${task.id} to ONGOING and order ${order.id} to IN_TRANSIT`,
+      );
     }
-  
-    task.checkpointStatus = { ...task.checkpointStatus, 'dropped_off-parcel': true };
-  
+
+    task.checkpointStatus = {
+      ...task.checkpointStatus,
+      'dropped_off-parcel': true,
+    };
+
     await queryRunner.manager.save(task);
     await queryRunner.manager.save(order);
-    console.log(`Successfully saved updates for task ${task.id} and order ${order.id}`);
+    console.log(
+      `Successfully saved updates for task ${task.id} and order ${order.id}`,
+    );
   }
 
-
-  
-  private async saveNotification(queryRunner: QueryRunner, Rider: RiderEntity, order: OrderEntity, isFullyDroppedOff: boolean) {
+  private async saveNotification(
+    queryRunner: QueryRunner,
+    Rider: RiderEntity,
+    order: OrderEntity,
+    isFullyDroppedOff: boolean,
+  ) {
     const notification = new Notifications();
     notification.account = Rider.riderID;
     notification.subject = 'Rider Reached a MileStone!';
@@ -1055,14 +1137,18 @@ export class RiderService {
       : `Rider ${Rider.firstname} has dropped off one of the parcels for a multiple order dropoff points.`;
     await queryRunner.manager.save(notification);
   }
-  
+
   private async sendEmailNotification(order: OrderEntity) {
     const email = order.customer?.email || order.items[0]?.email;
     const firstName = order.customer?.firstname || order.items[0]?.name;
-  
+
     if (email && firstName) {
       try {
-        await this.mailer.ParcelDroppedOfMail(email, firstName, order.trackingID);
+        await this.mailer.ParcelDroppedOfMail(
+          email,
+          firstName,
+          order.trackingID,
+        );
         console.log(`Email sent successfully to ${email}`);
       } catch (mailError) {
         console.error(`Failed to send email to ${email}`, mailError);
@@ -1071,7 +1157,7 @@ export class RiderService {
       console.warn('Email or first name not found for sending mail');
     }
   }
-  
+
   private async sendPushNotification(order: OrderEntity) {
     if (order.customer?.deviceToken) {
       await this.fcmService.sendNotification(
@@ -1086,17 +1172,21 @@ export class RiderService {
       );
     }
   }
-  
+
   private handleError(error: any) {
-    if (error instanceof NotFoundException || error instanceof NotAcceptableException || error instanceof ConflictException) {
+    if (
+      error instanceof NotFoundException ||
+      error instanceof NotAcceptableException ||
+      error instanceof ConflictException
+    ) {
       throw error;
     } else {
       console.error(error);
-      throw new InternalServerErrorException('Something went wrong while processing the drop-off. Please try again later.');
+      throw new InternalServerErrorException(
+        'Something went wrong while processing the drop-off. Please try again later.',
+      );
     }
   }
-
-
 
   //see tasks asssigned to the rider
   async fetchAssignedTask(Rider: RiderEntity) {
@@ -1111,7 +1201,7 @@ export class RiderService {
           'assigned_order.customer',
           'assigned_order.admin',
         ],
-        order:{assignedAT:'DESC'}
+        order: { assignedAT: 'DESC' },
       });
 
       if (mytasks[1] === 0)
@@ -1152,7 +1242,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch your assigned tasks',error.message
+          'an error occured when trying to fetch your assigned tasks',
+          error.message,
         );
       }
     }
@@ -1171,7 +1262,7 @@ export class RiderService {
           'assigned_order.admin',
           'rider',
         ],
-        order:{acceptedAt:'DESC'}
+        order: { acceptedAt: 'DESC' },
       });
 
       if (mytasks[1] === 0)
@@ -1183,7 +1274,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch your ongoing tasks', error.message
+          'an error occured when trying to fetch your ongoing tasks',
+          error.message,
         );
       }
     }
@@ -1201,7 +1293,7 @@ export class RiderService {
           'assigned_order.admin',
           'rider',
         ],
-        order:{acceptedAt:'DESC'}
+        order: { acceptedAt: 'DESC' },
       });
 
       if (mytasks[1] === 0)
@@ -1214,7 +1306,8 @@ export class RiderService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch your concluded tasks',error.message
+          'an error occured when trying to fetch your concluded tasks',
+          error.message,
         );
       }
     }
@@ -1238,7 +1331,8 @@ export class RiderService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch all bank detials associated with this rider',error.message
+          'an error occured when trying to fetch all bank detials associated with this rider',
+          error.message,
         );
       }
     }
@@ -1262,7 +1356,8 @@ export class RiderService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'an error occured when trying to fetch a bank detial of the selected bank',error.message
+          'an error occured when trying to fetch a bank detial of the selected bank',
+          error.message,
         );
       }
     }
@@ -1302,7 +1397,8 @@ export class RiderService {
         throw new NotFoundException(error.message);
       } else {
         throw new InternalServerErrorException(
-          'an error occured when trying to chnage the preference status of the bank details selected', error.message
+          'an error occured when trying to chnage the preference status of the bank details selected',
+          error.message,
         );
       }
     }
@@ -1349,7 +1445,8 @@ export class RiderService {
       } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong when trying to request for reset password, please try again later', error.message
+          'something went wrong when trying to request for reset password, please try again later',
+          error.message,
         );
       }
     }
@@ -1378,7 +1475,8 @@ export class RiderService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while tracking order, please try again later', error.message
+          'something went wrong while tracking order, please try again later',
+          error.message,
         );
       }
     }
@@ -1404,7 +1502,8 @@ export class RiderService {
       else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something went wrong while scanning the barcode to get order status, please try again later',error.message
+          'something went wrong while scanning the barcode to get order status, please try again later',
+          error.message,
         );
       }
     }
@@ -1414,9 +1513,9 @@ export class RiderService {
 
   async AllNotificationsRelatedToRider(rider: RiderEntity) {
     try {
-      const [notification,count] = await this.notificationripo.findAndCount({
+      const [notification, count] = await this.notificationripo.findAndCount({
         where: { account: rider.riderID },
-        order:{date:'DESC'}
+        order: { date: 'DESC' },
       });
       if (count[1] === 0)
         throw new NotFoundException(
@@ -1496,27 +1595,27 @@ export class RiderService {
   async fetchRiderPaymentTransactionHistory(rider: RiderEntity) {
     try {
       console.log(`Fetching transactions for rider with ID: ${rider.id}`);
-  
+
       const mytransactions = await this.transactionRepo.findAndCount({
         where: {
           Rider: { id: rider.id },
-          transactionType: TransactionType.SALARY_PAYMENT 
+          transactionType: TransactionType.SALARY_PAYMENT,
         },
         relations: ['Rider', 'bankInfo'],
         order: { transactedAT: 'DESC' },
       });
-  
+
       // console.log(`Found ${mytransactions[1]} transactions`);
-  
+
       // // Log the first few transactions for debugging
       // console.log('Sample transactions:', JSON.stringify(mytransactions[0].slice(0, 3), null, 2));
-  
+
       if (mytransactions[1] === 0) {
         throw new NotFoundException(
           'There are no transaction logs for this rider at the moment',
         );
       }
-  
+
       return mytransactions;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -1531,28 +1630,28 @@ export class RiderService {
     }
   }
 
-     // Hard delete customer (with cascade on related entities)
-     async deleteRider(Customer:RiderEntity): Promise<any> {
-      const customer = await this.riderRepo.findOne({ where: { id:Customer.id } });
-      if (!customer) {
-        throw new NotFoundException(`Rider with ID ${Customer.id} not found.`);
-      }
-  
-      // This will delete the customer and automatically cascade the deletion
-      // to related entities with 'onDelete: CASCADE'
-      await this.riderRepo.delete(customer.id);
+  // Hard delete customer (with cascade on related entities)
+  async deleteRider(Customer: RiderEntity): Promise<any> {
+    const customer = await this.riderRepo.findOne({
+      where: { id: Customer.id },
+    });
+    if (!customer) {
+      throw new NotFoundException(`Rider with ID ${Customer.id} not found.`);
+    }
 
-      //notifiction
+    // This will delete the customer and automatically cascade the deletion
+    // to related entities with 'onDelete: CASCADE'
+    await this.riderRepo.delete(customer.id);
+
+    //notifiction
     const notification = new Notifications();
     notification.account = 'Rider';
     notification.subject = 'Rider Deleted Account !';
     notification.message = `the rider has deleted his account `;
     await this.notificationripo.save(notification);
 
-    const message = "rider account deleted successfully"
+    const message = 'rider account deleted successfully';
 
-    return message
-    }
-
-
+    return message;
+  }
 }

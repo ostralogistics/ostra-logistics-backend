@@ -742,7 +742,7 @@ export class AdminRiderDashboardService {
         // Push notification
         await this.fcmService.sendNotification(
           rider.deviceToken,
-          ' TRider Reassigned Task!',
+          ' Rider Reassigned Task!',
           `Rider ${rider.firstname} has been reassigned to an existing task for order ${order.orderID}`,
 
           {
