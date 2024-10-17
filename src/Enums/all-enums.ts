@@ -21,7 +21,10 @@ export enum AcceptOrDeclineTask{
 
 export enum TaskStatus{
     ONGOING="ongoing",
-    CONCLUDED ="concluded"
+    CONCLUDED ="concluded",
+    DECLINED ='declined',
+    ASSIGNED ='assigned',
+    REASSIGNED='reassigned'
 }
 
 

@@ -1,5 +1,4 @@
 import {
- 
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
@@ -43,11 +42,9 @@ import {
 import { OrderEntity } from 'src/Entity/orders.entity';
 import { OrderRepository } from 'src/order/order.reposiroty';
 import { TaskEntity } from 'src/Entity/ridersTasks.entity';
-import {  RequestEntity } from 'src/Entity/requests.entity';
+import { RequestEntity } from 'src/Entity/requests.entity';
 import { GeneatorService } from 'src/common/services/generator.service';
-import {
-  TransactionEntity,
-} from 'src/Entity/transactions.entity';
+import { TransactionEntity } from 'src/Entity/transactions.entity';
 import { CloudinaryService } from 'src/common/services/claudinary.service';
 import { VehicleEntity } from 'src/Entity/vehicle.entity';
 import { PushNotificationsService } from 'src/pushnotification.service';
@@ -657,8 +654,6 @@ export class AdminRiderDashboardService {
     return await this.riderripo.count();
   }
 
-  
-
   async AssignOrderToRider(
     riderID: string,
     orderID: number,
@@ -670,125 +665,112 @@ export class AdminRiderDashboardService {
       });
       if (!rider)
         throw new NotFoundException(
-          `rider with id:${riderID} is not found in the ostra logistics rider database`,
+          `Rider with id:${riderID} is not found in the Ostra Logistics rider database`,
         );
-
+  
       const order = await this.orderripo.findOne({
         where: { id: orderID },
         relations: ['customer', 'items', 'items.vehicleType', 'Rider'],
       });
-      if (!order) throw new NotFoundException('order not found');
-
+      if (!order) throw new NotFoundException('Order not found');
+  
       if (order.payment_status !== PaymentStatus.SUCCESSFUL)
         throw new NotAcceptableException(
-          'the payment on this order is not successful yet, so order cannot be assigned to a driver',
+          'The payment on this order is not successful yet, so the order cannot be assigned to a rider.',
         );
-
+  
       // Check if there's an existing task for this order
       const existingTask = await this.taskRepo.findOne({
         where: { assigned_order: { id: orderID } },
         relations: ['rider'],
       });
-
+  
       let task = null;
       let formerRider = null;
-
+  
       if (existingTask) {
         formerRider = existingTask.rider;
-
+  
         // Update the existing task with the new rider
         existingTask.rider = rider;
         await this.taskRepo.save(existingTask);
-
+  
         // Update the order with the new rider
         order.Rider = rider;
         await this.orderripo.save(order);
-
+  
         // Handle the former rider
         if (formerRider && formerRider.id !== rider.id) {
           // Update former rider's status
           formerRider.status = RiderStatus.AVAILABLE;
           formerRider.assigned_order = null;
           await this.riderripo.save(formerRider);
-
+  
           // Create a notification for the former rider
           const formerRiderNotification = new Notifications();
           formerRiderNotification.account = formerRider.riderID;
           formerRiderNotification.subject = 'Task Reassigned';
           formerRiderNotification.message = `Your task for order ${order.orderID} has been reassigned to another rider. You are now available for new tasks.`;
           await this.notificationripo.save(formerRiderNotification);
-
-          // Push notification
+  
+          // Push notification to former rider
           await this.fcmService.sendNotification(
-            rider.deviceToken,
-            ' Task Reassigned!',
-            `Your task for order ${order.orderID} has been reassigned to another rider. You are now available for new tasks. `,
-
-            {    
-              // task: task.task,
-              // orderID: order.orderID,
-              // customerId: order.customer.id,
-            },
+            formerRider.deviceToken,
+            'Task Reassigned!',
+            `Your task for order ${order.orderID} has been reassigned to another rider. You are now available for new tasks.`,
+            {},
           );
         }
-
+  
         // Create a notification for the new rider
         const notification = new Notifications();
         notification.account = rider.riderID;
         notification.subject = 'Rider Reassigned Task!';
-        notification.message = `Rider ${rider.firstname} has been reassigned to an existing task for order ${order.orderID}`;
+        notification.message = `Rider ${rider.firstname} has been reassigned to an existing task for order ${order.orderID}.`;
         await this.notificationripo.save(notification);
-
-        // Push notification
+  
+        // Push notification to new rider
         await this.fcmService.sendNotification(
           rider.deviceToken,
-          ' Rider Reassigned Task!',
-          `Rider ${rider.firstname} has been reassigned to an existing task for order ${order.orderID}`,
-
-          {
-            // task: task.task,
-            // orderID: order.orderID,
-            // customerId: order.customer.id,
-          },
+          'Rider Reassigned Task!',
+          `Rider ${rider.firstname} has been reassigned to an existing task for order ${order.orderID}.`,
+          {},
         );
       } else {
-        // If no existing task, create a new one (original logic)
+        // If no existing task, create a new one
         order.Rider = rider;
         await this.orderripo.save(order);
-
+  
         task = new TaskEntity();
-        task.rider = order.Rider;
+        task.rider = rider;
         task.task = dto.task;
         task.assigned_order = order;
         task.assignedAT = new Date();
         await this.taskRepo.save(task);
-
+  
+        // Create a notification for the new rider
         const notification = new Notifications();
         notification.account = rider.riderID;
         notification.subject = 'Rider Assigned Task!';
-        notification.message = `Rider ${rider.firstname} has been assigned a new task for order ${order.orderID}`;
+        notification.message = `Rider ${rider.firstname} has been assigned a new task for order ${order.orderID}.`;
         await this.notificationripo.save(notification);
-
-        // Push notification
+  
+        // Push notification to new rider
         await this.fcmService.sendNotification(
-          formerRider.deviceToken,
-          ' New Task Assigned!',
-          `A new task of ${task.task} for ${order.orderID} made by ${order.customer} Please accept this task or decline it with a solid reason for your decine. Thank you `,
-
-          {
-            // task: task.task,
-            // orderID: order.orderID,
-            // customerId: order.customer.id,
-          },
+          rider.deviceToken,
+          'New Task Assigned!',
+          `A new task of ${task.task} for order ${order.orderID} has been assigned to you. Please accept or decline it with a solid reason.`,
+          {},
         );
-
+  
+        // Return the newly created task
         return task;
       }
-
-      // Update the new rider's status
-      rider.status = RiderStatus.IN_TRANSIT; // or whatever status indicates the rider is on a task
+  
+      // Update the new rider's status to 'IN_TRANSIT'
+      rider.status = RiderStatus.AVAILABLE;
       await this.riderripo.save(rider);
-
+  
       return existingTask || task;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -804,12 +786,12 @@ export class AdminRiderDashboardService {
       }
     }
   }
+  
 
   async testPushNotification() {
     try {
       // Push notification
       const push = await this.fcmService.sendNotification(
-
         'clH_a7reT2yzyAPjm_R9l7:APA91bG7b7LVoxAj2WByhdF_wb1qxFI3lNYKHnoNX3FhcNMgryVaUv3nal6rD44xG7idqfHAGexXJDjNS2zeRz_yfI9FxTii-iRx7qMdy8nEsfPZ91rR_VTXgSJzj9TjyuNaH3pxsFhe',
 
         ' New Task Assigned!',

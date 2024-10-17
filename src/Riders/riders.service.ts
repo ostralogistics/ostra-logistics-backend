@@ -177,7 +177,7 @@ export class RiderService {
         task.rider = null;
         task.reason_for_cancelling_declining = dto.reason;
         task.declinedAT = new Date();
-        task.status = null
+        task.status = TaskStatus.DECLINED
         await this.taskRepo.save(task);
 
         // Disassociate the rider from the order
