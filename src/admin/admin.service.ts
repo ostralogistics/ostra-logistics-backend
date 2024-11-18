@@ -353,6 +353,7 @@ export class AdminService {
     try {
       const vehicletype = await this.vehicletyperepo.findOne({
         where: { id: vehicletypeID },
+        relations: ['selected_vehicle'],
       });
       if (!vehicletype)
         throw new NotFoundException(

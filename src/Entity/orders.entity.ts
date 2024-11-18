@@ -249,7 +249,7 @@ export class OrderItemEntity {
   @Column({ nullable: true })
   landmark_of_dropoff: string;
 
-  @ManyToOne(() => VehicleTypeEntity, (vehicle) => vehicle.selected_vehicle, { cascade: true })
+  @ManyToOne(() => VehicleTypeEntity, (vehicle) => vehicle.selected_vehicle, { cascade: true, onDelete:'CASCADE',nullable:true })
   vehicleType: VehicleTypeEntity;
 
   @Column({ nullable: false, type: 'enum', enum: PriorityDeliveryType })
@@ -395,7 +395,7 @@ export class CartItemEntity {
   @Column({nullable:true})
   landmark_of_dropoff: string;
 
-  @ManyToOne(()=>VehicleTypeEntity, vehicle=>vehicle.selected_vehicle, { cascade: true })
+  @ManyToOne(()=>VehicleTypeEntity, vehicle=>vehicle.selected_vehicle, { cascade: true, onDelete:'CASCADE',nullable:true })
   vehicleType: VehicleTypeEntity
 
   @Column({ nullable: false, type: 'enum', enum: PriorityDeliveryType })

@@ -217,6 +217,9 @@ export class AdminRiderDashboardService {
       rider.guarantor2_relatioship_with_rider =
         dto.guarantor2_relatioship_with_rider;
       rider.UpdatedAt = new Date();
+      rider.DOB = dto.DOB;
+      rider.age = age
+
 
       await this.riderripo.save(rider);
 

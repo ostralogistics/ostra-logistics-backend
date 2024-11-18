@@ -15,6 +15,6 @@ export class VehicleTypeEntity {
     @Column({nullable:true})
     status:string
 
-    @OneToMany(()=>CartItemEntity, selected=>selected.vehicleType)
+    @OneToMany(()=>CartItemEntity, selected=>selected.vehicleType,{nullable:true})
     selected_vehicle:CartItemEntity[]
 }
