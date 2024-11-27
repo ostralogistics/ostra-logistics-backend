@@ -1299,7 +1299,7 @@ export class AdminCustomerDashBoardService {
       const vatAmount = Number((subtotal * vatPercentage).toFixed(2));
 
       // Calculate total amount including VAT
-      const totalAmountWithVAT = Number((subtotal + vatAmount).toFixed(2));
+      const totalAmountWithVAT = Number((subtotal).toFixed(2));
 
       // Generate a unique reference for the transaction
       const paymentReference = `order_${order.orderID}_${uuidv4()}`;
@@ -1330,7 +1330,7 @@ export class AdminCustomerDashBoardService {
       // Update existing receipt
       receipt.issuedAt = new Date();
       receipt.expressDeliveryCharge = expressDeliveryCharge;
-      receipt.VAT = vatAmount;
+      receipt.VAT = 0.00;
       receipt.subtotal = subtotal;
       receipt.total = totalAmountWithVAT;
       receipt.discount = discountAmount;
@@ -1341,7 +1341,7 @@ export class AdminCustomerDashBoardService {
       receipt.issuedAt = new Date();
       receipt.order = order;
       receipt.expressDeliveryCharge = expressDeliveryCharge;
-      receipt.VAT = vatAmount;
+      receipt.VAT = 0.00;
       receipt.subtotal = subtotal;
       receipt.total = totalAmountWithVAT;
       receipt.discount = discountAmount;
