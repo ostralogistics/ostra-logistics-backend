@@ -45,9 +45,8 @@ export class AdminStaffDasboardService {
     @InjectRepository(Notifications)
     private readonly notificationripo: NotificationRepository,
     private generatorservice: GeneatorService,
-    private mailer:Mailer
+    private mailer: Mailer,
   ) {}
-
 
   async UpdatePasscode(admin: AdminEntity, id: number) {
     try {
@@ -77,10 +76,12 @@ export class AdminStaffDasboardService {
       await this.passcodeRipo.save(findpasscode);
 
       //forward passcode to mail
-      await this.mailer.updatePasscodeMail(admin.email,admin.fullname,code)
+      await this.mailer.updatePasscodeMail(admin.email, admin.fullname, code);
 
-
-      return { message: 'pass code updated by the superadmin, please check your email for the new passcode' };
+      return {
+        message:
+          'pass code updated by the superadmin, please check your email for the new passcode',
+      };
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
@@ -95,13 +96,12 @@ export class AdminStaffDasboardService {
   }
 
   //admin register rider
-  async RegisterStaff(admin:AdminEntity,dto: RegisterOtherAdminByAdminDto) {
+  async RegisterStaff(admin: AdminEntity, dto: RegisterOtherAdminByAdminDto) {
     try {
-
       // if (admin.adminAccessLevels !== AdminAccessLevels.LEVEL2 && admin.adminAccessLevels !== AdminAccessLevels.LEVEL3) {
       //   throw new ForbiddenException('You do not have the authorization to register a staff');
       // }
-    
+
       const genpassword = await this.generatorservice.generatePassword();
       const hashedpassword =
         await this.generatorservice.hashpassword(genpassword);
@@ -110,7 +110,7 @@ export class AdminStaffDasboardService {
         await this.generatorservice.generatEmailSuffixNumber();
       const emailfromfirstname = dto.firstname;
       const emaildomain = '.staff@ostralogistics.com';
-      const emailnow = emailfromfirstname+genEmailsuffix+emaildomain;
+      const emailnow = emailfromfirstname + genEmailsuffix + emaildomain;
 
       const dob = new Date(dto.DOB);
       const today = new Date();
@@ -119,7 +119,7 @@ export class AdminStaffDasboardService {
       //register new rider
       const staff = new AdminEntity();
       (staff.firstname = dto.firstname), (staff.lastname = dto.lastname);
-      staff.fullname = `${dto.firstname}   ${dto.lastname}`
+      staff.fullname = `${dto.firstname}   ${dto.lastname}`;
       staff.email = emailnow;
       staff.adminID = `#OslSt-${await this.generatorservice.generateUserID()}`;
       staff.password = hashedpassword;
@@ -150,13 +150,14 @@ export class AdminStaffDasboardService {
 
       //save notification
       const notification = new Notifications();
-      notification.account = "admin";
+      notification.account = 'admin';
       notification.subject = 'Admin Registered staff  !';
       notification.message = `a new staff  have been created on ostra logistics platform `;
       await this.notificationripo.save(notification);
 
       return {
-        message: 'the staff have been Registered Successfuly,these are the login credentials generated for the newly created Staff',
+        message:
+          'the staff have been Registered Successfuly,these are the login credentials generated for the newly created Staff',
         email: emailnow,
         password: genpassword,
       };
@@ -170,11 +171,11 @@ export class AdminStaffDasboardService {
           error.message,
         );
       }
-    } 
+    }
   }
 
   async UpdateStaffInfoByAdmin(
-    adminDoer:AdminEntity,
+    adminDoer: AdminEntity,
     adminId: string,
     dto: UpdateOtherAdminInfoByAdminDto,
   ): Promise<{ message: string; response: IAdmin }> {
@@ -191,28 +192,28 @@ export class AdminStaffDasboardService {
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
 
-     // Update other admin record directly from DTO
-     admin.firstname = dto.firstname;
-     admin.lastname = dto.lastname;
-     admin.mobile = dto.mobile;
-     admin.marital_status = dto.marital_status;
-     admin.home_address = dto.home_address;
-     admin.state_of_origin = dto.state_of_origin;
-     admin.LGA_of_origin = dto.LGA_of_origin;
-     admin.gender = dto.gender;
-     admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
-     
-     // Only update accesslevel if the admin has LEVEL3 access
+      // Update other admin record directly from DTO
+      admin.firstname = dto.firstname;
+      admin.lastname = dto.lastname;
+      admin.mobile = dto.mobile;
+      admin.marital_status = dto.marital_status;
+      admin.home_address = dto.home_address;
+      admin.state_of_origin = dto.state_of_origin;
+      admin.LGA_of_origin = dto.LGA_of_origin;
+      admin.gender = dto.gender;
+      admin.LGA_of_Home_Address = dto.LGA_of_Home_Address;
+
+      // Only update accesslevel if the admin has LEVEL3 access
       admin.adminAccessLevels = dto.accesslevel;
-     admin.UpdatedAt = new Date()
- 
-     await this.adminripo.save(admin);
+      admin.UpdatedAt = new Date();
+
+      await this.adminripo.save(admin);
 
       //save notification
       const notification = new Notifications();
       notification.account = adminDoer.id;
       notification.subject = 'Staff Record Updated !';
-      notification.message = `the record of the rider with the id ${adminId} has been updated by the CEO on ostra logistics platform `;
+      notification.message = `the record of the staff with the id ${adminId} has been updated by the CEO on ostra logistics platform `;
       await this.notificationripo.save(notification);
 
       return {
@@ -327,7 +328,14 @@ export class AdminStaffDasboardService {
       const staff = await this.adminripo.findAndCount({
         where: { admintype: AdminType.STAFF },
         order: { RegisteredAt: 'DESC' },
-        relations:['my_orders','replies','carts','bids_sent','assigned_complaints','my_filed_complains'],
+        relations: [
+          'my_orders',
+          'replies',
+          'carts',
+          'bids_sent',
+          'assigned_complaints',
+          'my_filed_complains',
+        ],
         take: limit,
         skip: skip,
       });
@@ -355,7 +363,17 @@ export class AdminStaffDasboardService {
     try {
       const staff = await this.adminripo.findOne({
         where: { id: staffID, admintype: AdminType.STAFF },
-        relations:['my_orders','my_orders.items','replies','carts','bids_sent','bids_sent.order', 'bids_sent.order.customer','assigned_complaints','my_filed_complains'],
+        relations: [
+          'my_orders',
+          'my_orders.items',
+          'replies',
+          'carts',
+          'bids_sent',
+          'bids_sent.order',
+          'bids_sent.order.customer',
+          'assigned_complaints',
+          'my_filed_complains',
+        ],
       });
       if (!staff)
         throw new NotFoundException(
@@ -379,17 +397,29 @@ export class AdminStaffDasboardService {
     try {
       const staff = await this.adminripo.findOne({
         where: { id: staffID, admintype: AdminType.STAFF },
-        relations:['my_orders','my_orders.items','replies','carts','bids_sent','bids_sent.order', 'bids_sent.order.customer','assigned_complaints','my_filed_complains'],
+        relations: [
+          'my_orders',
+          'my_orders.items',
+          'replies',
+          'carts',
+          'bids_sent',
+          'bids_sent.order',
+          'bids_sent.order.customer',
+          'assigned_complaints',
+          'my_filed_complains',
+        ],
       });
-  
+
       if (!staff) {
-        throw new NotFoundException(`Staff with id: ${staffID} is not found in the Ostra logistics staff database`);
+        throw new NotFoundException(
+          `Staff with id: ${staffID} is not found in the Ostra logistics staff database`,
+        );
       }
-  
+
       // Calculate bidCount and orderCount
       const bidCount = staff.bids_sent ? staff.bids_sent.length : 0;
       const orderCount = staff.my_orders ? staff.my_orders.length : 0;
-  
+
       // Return the staff details along with bidCount and orderCount
       return {
         staff,
@@ -408,17 +438,20 @@ export class AdminStaffDasboardService {
       }
     }
   }
-  
 
   //admin search for an admin
-  async SearchForOtherAdmin(keyword: string, page?:number, perPage?:number, sort?:string): Promise<{ data: AdminEntity[]; total: number }> {
+  async SearchForOtherAdmin(
+    keyword: string,
+    page?: number,
+    perPage?: number,
+    sort?: string,
+  ): Promise<{ data: AdminEntity[]; total: number }> {
     try {
-      const qb = this.adminripo.createQueryBuilder('admin')
+      const qb = this.adminripo.createQueryBuilder('admin');
 
-      qb.where('admin.firstname ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.orWhere('admin.lastname ILIKE :keyword',{keyword:`%${keyword}%`})
-      qb.cache(false)
-
+      qb.where('admin.firstname ILIKE :keyword', { keyword: `%${keyword}%` });
+      qb.orWhere('admin.lastname ILIKE :keyword', { keyword: `%${keyword}%` });
+      qb.cache(false);
 
       if (sort) {
         const [sortField] = sort.split(',');
@@ -436,10 +469,8 @@ export class AdminStaffDasboardService {
           `No staff found matching your search criteria for "${keyword}".`,
         );
       }
-  
-      return { data: admin, total };
 
-      
+      return { data: admin, total };
     } catch (error) {
       if (error instanceof NotFoundException)
         throw new NotFoundException(error.message);
