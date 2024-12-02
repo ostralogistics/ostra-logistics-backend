@@ -1912,7 +1912,7 @@ export class AdminCustomerDashBoardService {
   async DeleteCustomer(id: string) {
     try {
       const customer = await this.customerRepo.findOne({
-        where: { customerID: id },
+        where: { id: id },
       });
       if (!customer) throw new NotFoundException('customer with Id not found');
 
