@@ -329,5 +329,11 @@ export class AdminCustomerDashBoardController {
       return await this.admincustomerservice.getPaymenthistoryOfOneCustomer(customerID)
   }
 
+  @Delete('delete-customer/:customerID')
+  async DeleteCustomer(@Param('customerID')customerID:string){
+      return await this.admincustomerservice.DeleteCustomer(customerID)
+  }
+
+
 
 }

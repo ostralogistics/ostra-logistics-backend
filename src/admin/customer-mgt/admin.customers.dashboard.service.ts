@@ -86,7 +86,7 @@ import { Socket } from 'socket.io';
 import { PaymentMappingEntity } from 'src/Entity/refrencemapping.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { PushNotificationsService } from 'src/pushnotification.service';
-
+import { CustomOperatorContextImpl } from 'twilio/lib/rest/intelligence/v2/customOperator';
 
 @Injectable()
 export class AdminCustomerDashBoardService {
@@ -159,7 +159,7 @@ export class AdminCustomerDashBoardService {
         order.customer.deviceToken,
         'Opening Bid Sent!',
         `Starting bid for order ${order.orderID} made by ${order.customer.firstname} is ${bid.bid_value}. Please note that you can only counter this bid once. We believe our bid is very reasonable. Thank you.`,
-        
+
         {
           // orderID: order.orderID,
           // bidValue: bid.bid_value.toString(),
@@ -248,7 +248,7 @@ export class AdminCustomerDashBoardService {
         bid.order.customer.deviceToken,
         'Counter Bid Accepted!',
         `the conter bid for ${bid.order.orderID} has been accepted with ${bid.counter_bid_offer}, please proceed to making payment. Thank You`,
-       
+
         {
           // orderID: bid.order.orderID,
           // counterbidValue: bid.counter_bid_offer.toString(),
@@ -315,11 +315,11 @@ export class AdminCustomerDashBoardService {
       await this.bidRepo.save(bid);
 
       // Push notification
-       await this.fcmService.sendNotification(
+      await this.fcmService.sendNotification(
         bid.order.customer.deviceToken,
         ' Bid Countered!',
         `the bid for ${bid.order.orderID} has been countered with ${bid.counter_bid_offer}. This offer cannot be countered again, you can either decline or accept the bid. Thank You`,
-        
+
         {
           // orderID: bid.order.orderID,
           // counterbidValue: bid.counter_bid_offer.toString(),
@@ -972,7 +972,7 @@ export class AdminCustomerDashBoardService {
   async createAirWaybill(trackingID: string) {
     try {
       const checkorder = await this.orderRepo.findOne({
-        where: {trackingID: trackingID },
+        where: { trackingID: trackingID },
         relations: ['customer', 'receipt', 'items'],
       });
       if (!checkorder) throw new NotFoundException('trackingID not found');
@@ -1299,7 +1299,7 @@ export class AdminCustomerDashBoardService {
       const vatAmount = Number((subtotal * vatPercentage).toFixed(2));
 
       // Calculate total amount including VAT
-      const totalAmountWithVAT = Number((subtotal).toFixed(2));
+      const totalAmountWithVAT = Number(subtotal.toFixed(2));
 
       // Generate a unique reference for the transaction
       const paymentReference = `order_${order.orderID}_${uuidv4()}`;
@@ -1310,7 +1310,7 @@ export class AdminCustomerDashBoardService {
           amount: Math.round(totalAmountWithVAT * 100), // Convert to kobo (Paystack currency)
           email: email, // Customer email for reference
           reference: paymentReference, // Order ID as payment reference
-          callback_url:`https://admin.ostralogistics.com/dashboard/orders/${orderID}`,
+          callback_url: `https://admin.ostralogistics.com/dashboard/orders/${orderID}`,
           currency: 'NGN',
         },
         {
@@ -1324,34 +1324,35 @@ export class AdminCustomerDashBoardService {
       if (response.data.status === true) {
         console.log('payment successfully initiated');
 
-          // Find existing receipt or create a new one
-    let receipt = await this.receiptrepo.findOne({ where: { order: { id: orderID } } });
-    if (receipt) {
-      // Update existing receipt
-      receipt.issuedAt = new Date();
-      receipt.expressDeliveryCharge = expressDeliveryCharge;
-      receipt.VAT = 0.00;
-      receipt.subtotal = subtotal;
-      receipt.total = totalAmountWithVAT;
-      receipt.discount = discountAmount;
-    } else {
-      // Create new receipt
-      receipt = new ReceiptEntity();
-      receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
-      receipt.issuedAt = new Date();
-      receipt.order = order;
-      receipt.expressDeliveryCharge = expressDeliveryCharge;
-      receipt.VAT = 0.00;
-      receipt.subtotal = subtotal;
-      receipt.total = totalAmountWithVAT;
-      receipt.discount = discountAmount;
-    }
+        // Find existing receipt or create a new one
+        let receipt = await this.receiptrepo.findOne({
+          where: { order: { id: orderID } },
+        });
+        if (receipt) {
+          // Update existing receipt
+          receipt.issuedAt = new Date();
+          receipt.expressDeliveryCharge = expressDeliveryCharge;
+          receipt.VAT = 0.0;
+          receipt.subtotal = subtotal;
+          receipt.total = totalAmountWithVAT;
+          receipt.discount = discountAmount;
+        } else {
+          // Create new receipt
+          receipt = new ReceiptEntity();
+          receipt.ReceiptID = `#${this.genratorservice.generatereceiptID()}`;
+          receipt.issuedAt = new Date();
+          receipt.order = order;
+          receipt.expressDeliveryCharge = expressDeliveryCharge;
+          receipt.VAT = 0.0;
+          receipt.subtotal = subtotal;
+          receipt.total = totalAmountWithVAT;
+          receipt.discount = discountAmount;
+        }
 
-    await this.receiptrepo.save(receipt);
+        await this.receiptrepo.save(receipt);
 
-
-      // Create transaction
-      await this.createTransaction(order);
+        // Create transaction
+        await this.createTransaction(order);
 
         // Save the mapping of orderID to paymentReference for webhook handling
         const paymentMapping = new PaymentMappingEntity();
@@ -1391,8 +1392,8 @@ export class AdminCustomerDashBoardService {
     transaction.transactionID = `#osl-${this.genratorservice.generateTransactionCode()}`;
     transaction.transactionType = TransactionType.ORDER_PAYMENT;
     transaction.customer = null;
-    transaction.paymentMethod = "paystack";
-    transaction.order = order
+    transaction.paymentMethod = 'paystack';
+    transaction.order = order;
     transaction.paymentStatus = order.payment_status;
     await this.transactionRepo.save(transaction);
   }
@@ -1706,14 +1707,14 @@ export class AdminCustomerDashBoardService {
 
       let hasExpressDelivery = false;
 
-        // Sort cart items by index before mapping to order items
-        cart.items.sort((a, b) => a.index - b.index);
+      // Sort cart items by index before mapping to order items
+      cart.items.sort((a, b) => a.index - b.index);
       // Add items to the order
       order.items = cart.items.map((cartItem) => {
         const orderItem = new OrderItemEntity();
         Object.assign(orderItem, {
           //id:`${uuidv4()}`,
-          index:cartItem.index,
+          index: cartItem.index,
           name: cartItem.name,
           landmark: cartItem.landmark,
           area: cartItem.area,
@@ -1866,7 +1867,7 @@ export class AdminCustomerDashBoardService {
       const transaction = await this.transactionRepo.findAndCount({
         where: { customer: { id: customerID } },
         relations: ['customer'],
-        order:{transactedAT:'DESC'}
+        order: { transactedAT: 'DESC' },
       });
       if (!transaction)
         throw new NotFoundException(
@@ -1903,6 +1904,24 @@ export class AdminCustomerDashBoardService {
       console.log(error);
       throw new InternalServerErrorException(
         'something went wrong',
+        error.message,
+      );
+    }
+  }
+
+  async DeleteCustomer(id: string) {
+    try {
+      const customer = await this.customerRepo.findOne({
+        where: { customerID: id },
+      });
+      if (!customer) throw new NotFoundException('customer with Id not found');
+
+      await this.customerRepo.remove(customer);
+      return 'customer deleted successfully';
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'error occured wile deleting customer',
         error.message,
       );
     }
