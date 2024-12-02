@@ -106,83 +106,73 @@ export class CustomerAuthService {
     dto: RegisterCustomerDto,
   ): Promise<{ message: string }> {
     try {
+      // Check if email already exists
       const checkemail = await this.customerrepo.findOne({
         where: { email: dto.email },
       });
       if (checkemail)
-        throw new NotFoundException('This customer already exists');
-
-      const hashedpassword = await this.generatorservice.hashpassword(
-        dto.password,
+        throw new ConflictException('This customer already exists');
+  
+      // Generate hashed password and email verification code
+      const hashedPassword = await this.generatorservice.hashpassword(dto.password);
+      const emailVerificationCode = await this.generatorservice.generateEmailToken();
+      const otpExpiration = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes later
+  
+      // Attempt to send verification email
+      await this.mailerservice.SendVerificationeMail(
+        dto.email,
+        dto.firstname,
+        emailVerificationCode,
+        otpExpiration,
       );
-
-      const devicetoken = dto.deviceToken;
-
+  
+      // Prepare customer entity
       const customer = new CustomerEntity();
       customer.customerID = `#OslC-${await this.generatorservice.generateUserID()}`;
-
       customer.email = dto.email;
-      customer.password = hashedpassword;
+      customer.password = hashedPassword;
       customer.firstname = dto.firstname;
       customer.lastname = dto.lastname;
       customer.mobile = dto.mobile;
       customer.role = Role.CUSTOMER;
       customer.RegisteredAt = new Date();
       customer.isRegistered = true;
+  
+      // Save customer to database
       await this.customerrepo.save(customer);
-
-      //2fa authentication
-      const emiailverificationcode =
-        await this.generatorservice.generateEmailToken();
-
-      //otp
+  
+      // Save OTP to database
       const otp = new UserOtp();
       otp.email = dto.email;
-      otp.otp = emiailverificationcode;
+      otp.otp = emailVerificationCode;
       otp.role = customer.role;
-      const twominuteslater = new Date();
-      await twominuteslater.setMinutes(twominuteslater.getMinutes() + 2);
-      otp.expiration_time = twominuteslater;
+      otp.expiration_time = otpExpiration;
       await this.otprepo.save(otp);
-
-      // mail
-      await this.mailerservice.SendVerificationeMail(
-        dto.email,
-        dto.firstname,
-        emiailverificationcode,
-        twominuteslater,
-      );
-
-      // //sms verification
-      // const text = `Hello ${customer.firstname}, your one time password (OTP) for verification is ${emiailverificationcode}. This OTP is valid for a single use and expires in the next 2 minutes. If you did not request this OTP from OSTRA LOGISTICS, please ignore this SMS`
-      // const formatNumber = await this.generatorservice.formatPhoneNumber(customer.mobile)
-      // await this.smsservice.sendSms(formatNumber,text)
-
-      //save the notification
+  
+      // Save notification
       const notification = new Notifications();
       notification.account = customer.customerID;
       notification.subject = 'New Customer Created!';
-      notification.message = `new customer created successfully `;
+      notification.message = 'New customer created successfully.';
       await this.notificationrepo.save(notification);
-
-         
-
+  
       return {
         message:
-          'You have successfully registered as a customer, please check your email for the otp verification',
+          'You have successfully registered as a customer. Please check your email for the OTP verification.',
       };
     } catch (error) {
-      if (error instanceof NotFoundException)
-        throw new NotFoundException(error.message);
-      else {
+      if (error instanceof ConflictException) {
+        throw new ConflictException(error.message);
+      } else {
         console.log(error);
         throw new InternalServerErrorException(
-          'something happen while trying to sign up',
+          'An error occurred while trying to register. Please try again.',
           error.message,
         );
       }
     }
   }
+  
 
   // verify email of customer
   async verifyEmail(
