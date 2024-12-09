@@ -289,7 +289,7 @@ export class AdminCustomerDashBoardService {
       //check if order is related to the countered bid
       const bid = await this.bidRepo.findOne({
         where: { id: bidID },
-        relations: ['order', 'order.items', 'madeby'],
+        relations: ['order', 'order.items','order.customer', 'madeby'],
       });
       if (!bid) throw new NotFoundException('this bis isnt found');
 
